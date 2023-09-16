@@ -1,0 +1,252 @@
+plan:
+Coup
+{60,60,6,6}
+150000
+plan:
+Blood diamants
+{11,13}
+40000
+plan:
+Chicks in cages
+{19,21}
+40000
+plan:
+Meat
+{55,57}
+40000
+plan:
+Safe bet
+{4,12}
+40000
+plan:
+Light load
+{49}[23,34,42,44,50]
+30000
+plan:
+Moonshine
+{48}[1,16,18,20,28,35,40,46,51,54]
+25000
+plan:
+Birthday party
+{21}[1,16,18,20,28,35,40,46,51,54]
+25000
+plan:
+Squating
+[56,58,59]
+15000
+plan:
+Local dealership
+[31,32]
+20000
+plan:
+ATM magic
+[3,14,24,38,52]
+10000
+plan:
+Exotic merchandice
+[23,34,42,44,50]
+10000
+plan:
+Hold up
+[2,15,27,37,47]
+20000
+plan:
+Road runner
+{55}[5,17,29,41,53]
+30000
+plan:
+Inspection
+{60}[5,17,29,41,53]
+30000
+plan:
+Slum lord
+{22}[56,58,59]
+35000
+plan:
+Laundry
+{12}[3,14,24,38,52]
+30000
+plan:
+Financing
+{22}[3,14,24,38,52]
+30000
+plan:
+125 gram
+{57}
+20000
+plan:
+Outsider
+{36}
+20000
+plan:
+400 kilo
+{30,49}
+40000
+plan:
+Informer
+{57,60}
+40000
+plan:
+Bodyguard
+{60,4}
+40000
+plan:
+Specimens
+{25,36}
+40000
+plan:
+Deadly cargo
+{55,6}
+40000
+plan:
+Foreign aid
+{49,6}
+40000
+plan:
+Underhanded
+{22}
+20000
+plan:
+Small arms
+{6,57}
+40000
+plan:
+Bystanders
+{25,57}
+40000
+plan:
+Flay'em
+{10,39}
+40000
+plan:
+Up yours
+{30,36}
+40000
+plan:
+Hooters
+{21,25}
+40000
+plan:
+Acquittal
+{33,10}
+40000
+plan:
+Agent
+{4,9}
+40000
+plan:
+Burglary
+{8}
+20000
+plan:
+Pure luck
+{12}
+20000
+plan:
+Demolition
+{43}
+20000
+plan:
+Party drugs
+{45,19}
+40000
+plan:
+Duty free
+{11}
+20000
+plan:
+Delivery
+{30,19}
+40000
+plan:
+Cold meds
+{45}
+20000
+plan:
+Fishy cargo
+{49}
+20000
+plan:
+Outstanding
+{22,39}
+40000
+plan:
+Health plan
+{4,25}
+40000
+plan:
+Hooked
+{21,57}
+40000
+plan:
+Infiltration
+{60,6}
+40000
+plan:
+Judicial murder
+{10,10}
+60000
+plan:
+Majority investment
+{4,4,4}
+80000
+plan:
+Strong medicine
+{45,57}
+40000
+plan:
+Borderless
+{49,55}
+40000
+plan:
+Grand designs
+{43,4}
+40000
+plan:
+Rock solid claims
+{30,39}
+40000
+plan:
+Ram theft
+{13}
+20000
+plan:
+Recycling
+{26,7}
+40000
+plan:
+Secret weapon
+{9,6}
+40000
+plan:
+Sing along song
+{10}
+20000
+plan:
+Small box
+{11,30}
+40000
+plan:
+Exotics
+{21,11}
+40000
+plan:
+Et spiritus sancti
+{48,7}
+40000
+plan:
+Legalese
+{33,39}
+40000
+plan:
+Bail
+{33,36}
+40000
+plan:
+Lawfare
+{33}
+20000
+plan:
+Stiffs
+{21,26}
+40000

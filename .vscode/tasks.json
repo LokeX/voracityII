@@ -1,0 +1,53 @@
+{
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Run Batch",
+      "type": "process",
+      "command": "nim",
+      "args": [
+        "c",
+        "-r",
+        "-d:release",
+        "testdeck.nim"
+      ],
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Compile Batch",
+      "type": "process",
+      "command": "nim",
+      "args": [
+        "c",
+        "-d:release",
+        "testbatch.nim"
+      ],
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      }
+    },
+    {
+      "label": "nim: build current file (for debugging)",
+      "command": "nim",
+      "args": [
+          "compile",
+          "-g",
+          "--debugger:native",
+          "-o:${workspaceRoot}/bin/${fileBasenameNoExtension}",
+          "${relativeFile}"
+      ],
+      "options": {
+          "cwd": "${workspaceRoot}"
+      },
+      "type": "shell",
+    }  
+  ]
+}
