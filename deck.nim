@@ -291,6 +291,9 @@ proc playTo*(hand,pile:var seq[BlueCard],idx:int) =
   pile.add hand[idx]
   hand.del idx
 
+proc playManyTo*(many:seq[BlueCard],pile:var seq[BlueCard]) =
+  pile.add many
+
 proc paintCards*(b:var Boxy,deck:Deck,playerHand:seq[BlueCard]) =
   if deck.drawPile.len > 0:
     b.drawImage(deck.drawSlot.name,deck.drawSlot.rect)
