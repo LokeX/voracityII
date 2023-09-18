@@ -4,7 +4,7 @@ import strutils
 import random
 
 type
-  Show = enum Hand,Discard
+  Show* = enum Hand,Discard
   ProtoCard = array[4,string]
   BoardSquares = array[1..60,Square]
   Square = tuple[nr:int,name:string,icon:Image]
@@ -20,7 +20,7 @@ type
     else:discard
   Deck* = object 
     fullDeck,drawPile*,discardPile*:seq[BlueCard]
-    popUpSlot,drawSlot,discardSlot:CardSlot
+    popUpSlot,drawSlot*,discardSlot*:CardSlot
   CardSlot = tuple[nr:int,name:string,area:Area,rect:Rect]
 
 const
@@ -57,7 +57,7 @@ let
   ibmplex = readTypeFace "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
 
 var 
-  show = Hand
+  show* = Hand
 
 func nrOfslots(nrOfCards:int):int =
   for i,capacity in slotCapacities:
@@ -284,15 +284,14 @@ proc newDeck*(path:string):Deck =
   for card in result.fullDeck:
     addImage(card.title,card.img)
 
-proc drawFrom*(hand,pile:var seq[BlueCard],nr:int) =
-  for i in 1..nr: hand.add pile.pop
+proc resetDeck*(deck:var Deck) =
+  deck.discardPile.setLen 0
+  deck.drawPile = deck.fullDeck
 
-proc playTo*(hand,pile:var seq[BlueCard],idx:int) =
-  pile.add hand[idx]
-  hand.del idx
-
-proc playManyTo*(many:seq[BlueCard],pile:var seq[BlueCard]) =
-  pile.add many
+proc shufflePiles*(deck:var Deck) =
+  deck.drawPile.add deck.discardPile
+  deck.discardPile.setLen 0
+  deck.drawPile.shuffle
 
 proc paintCards*(b:var Boxy,deck:Deck,playerHand:seq[BlueCard]) =
   if deck.drawPile.len > 0:
@@ -305,30 +304,6 @@ proc paintCards*(b:var Boxy,deck:Deck,playerHand:seq[BlueCard]) =
     b.drawImage(card.title,slot.rect)
     if mouseOn slot.area:
       b.drawImage(card.title,deck.popUpSlot.rect)
-
-proc leftMousePressed*(m:KeyEvent,deck:var Deck,playerHand:var seq[BlueCard]) =
-  if mouseOn deck.discardSlot.area:
-    case show:
-    of Hand: show = Discard
-    of Discard: show = Hand
-  elif show == Discard:
-    show = Hand
-  elif mouseOn deck.drawSlot.area:
-    if deck.drawPile.len > 0: 
-      playerHand.drawFrom deck.drawPile,1
-  else:
-    for (_,slot) in playerHand.cardSlots:
-      if mouseOn slot.area: 
-        playerHand.playTo deck.discardPile,slot.nr
-
-proc resetDeck*(deck:var Deck) =
-  deck.discardPile.setLen 0
-  deck.drawPile = deck.fullDeck
-
-proc shufflePiles*(deck:var Deck) =
-  deck.drawPile.add deck.discardPile
-  deck.discardPile.setLen 0
-  deck.drawPile.shuffle
 
 when isMainModule:
   let cards = buildBlues "dat\\deck.txt"

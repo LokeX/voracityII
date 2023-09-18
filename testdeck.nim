@@ -1,5 +1,6 @@
 import win
 import deck
+import players
 
 const
   # popUpCard = Rect(x:100,y:100,w:cardWidth,h:cardHeight)
@@ -10,20 +11,19 @@ let
   bg = readImage "pics\\bgblue.png"
   bgRect = Rect(x:0,y:0,w:scaledWidth.toFloat,h:scaledHeight.toFloat)
 
-var 
-  blueDeck = newDeck "dat\\blues.txt"
-  playerHand:seq[BlueCard]
+var blueDeck = newDeck "dat\\blues.txt"
 
 proc draw(b:var Boxy) =
   b.drawImage("bg",bgRect)
-  b.paintCards(blueDeck,playerHand)
+  b.paintCards(blueDeck,turn.player.hand)
 
 proc mouse(m:KeyEvent) =
   if m.leftMousePressed:
-    m.leftMousePressed(blueDeck,playerHand)
+    m.leftMousePressed blueDeck
 
 blueDeck.initCardSlots(discardRect = discardPile,drawRect = drawPile)
-playerHand.drawFrom blueDeck.drawPile,3
+nextPlayerTurn()
+drawFrom blueDeck
 addImage("bg",bg)
 addCall Call(draw:draw,mouse:mouse)
 runWin
