@@ -7,9 +7,7 @@ import random
 type
   PlayerKind* = enum Human,Computer,None
   PlayerColors* = enum Red,Green,Blue,Yellow,Black,White
-  Players = array[1..6,Player]
   Player* = object
-    nr*:int
     color*:PlayerColors
     kind*:PlayerKind
     turnNr*:int
@@ -17,8 +15,8 @@ type
     hand*:seq[BlueCard]
     cash*:int
   Turn* = object
-    nr*:int
-    player*:Player
+    nr*:int # turnNr == 0 is player setup flag?
+    player*:int
     diceMoved*:bool
     undrawnBlues*:int
 
@@ -31,7 +29,7 @@ const
 
 var
   playerKinds*:array[1..6,PlayerKind] = defaultPlayerKinds
-  players*:Players
+  players*:seq[Player]
   turn*:Turn
 
 proc nrOfPiecesOnBars(player:Player): int =
@@ -41,20 +39,20 @@ proc drawFrom*(deck:var Deck) =
   if turn.undrawnBlues > 0:
     if deck.drawPile.len == 0:
       deck.shufflePiles
-    turn.player.hand.add deck.drawPile.pop
+    players[turn.player].hand.add deck.drawPile.pop
     dec turn.undrawnBlues
 
 proc drawFrom*(deck:var Deck,nr:int) =
   if deck.drawPile.len == 0: deck.shufflePiles
-  for _ in 1..nr: turn.player.hand.add deck.drawPile.pop
+  for _ in 1..nr: players[turn.player].hand.add deck.drawPile.pop
 
 proc playTo*(deck:var Deck,idx:int) =
-  deck.discardPile.add turn.player.hand[idx]
-  turn.player.hand.del idx
+  deck.discardPile.add players[turn.player].hand[idx]
+  players[turn.player].hand.del idx
 
 proc discardCards*(deck:var Deck) =
-  while turn.player.hand.len > 3:
-    playTo deck,turn.player.hand.high
+  while players[turn.player].hand.len > 3:
+    playTo deck,players[turn.player].hand.high
 
 func requiredSquaresAndPieces*(plan:BlueCard):tuple[squares,nrOfPieces:seq[int]] =
   let squares = plan.squares.required.deduplicate
@@ -76,14 +74,14 @@ proc plans*(player:Player):tuple[cashable,notCashable:seq[BlueCard]] =
     if player.isCashable plan: result.cashable.add plan
     else: result.notCashable.add plan
 
-proc turnPlayerPlans*:tuple[cashable,notCashable:seq[BlueCard]] = turn.player.plans
+proc turnPlayerPlans*:tuple[cashable,notCashable:seq[BlueCard]] = players[turn.player].plans
 
 proc cashInPlans*(deck:var Deck):seq[BlueCard] =
-  let (cashable,notCashable) = turn.player.plans
+  let (cashable,notCashable) = players[turn.player].plans
   for plan in cashable.sortedByIt it.cash:
     deck.discardPile.add plan
-  turn.player.hand = notCashable
-  turn.player.cash += cashable.mapIt(it.cash).sum
+  players[turn.player].hand = notCashable
+  players[turn.player].cash += cashable.mapIt(it.cash).sum
   cashable
 
 proc leftMousePressed*(m:KeyEvent,deck:var Deck) =
@@ -97,49 +95,42 @@ proc leftMousePressed*(m:KeyEvent,deck:var Deck) =
     drawFrom deck,1
     # discard cashInPlans deck
   else:
-    for (_,slot) in turn.player.hand.cardSlots:
+    for (_,slot) in players[turn.player].hand.cardSlots:
       if mouseOn slot.area: 
         playTo deck,slot.nr
 
 proc nrOfPlayers*: int =
   players.filterIt(it.kind != None).len
 
-proc newDefaultPlayers*:Players =
+proc newDefaultPlayers*:seq[Player] =
   for i in 1..6:
-    result[i] = Player(
-      nr:i,
+    result.add Player(
       kind:playerKinds[i],
       color:PlayerColors(i-1),
       pieces:highways
     )
 
-proc newPlayers*(kind:openarray[PlayerKind]):Players =
-  randomize()
-  var randomPosition = rand(1..6)
-  for color in PlayerColors:
-    while result[randomPosition].nr != 0: 
+proc newPlayers*:seq[Player] =
+  var 
+    randomPosition = rand(1..6)
+    playerSlots:array[1..6,Player]
+  for player in players:
+    while playerSlots[randomPosition].cash != 0: 
       randomPosition = rand(1..6)
-    result[randomPosition] = Player(
-      nr:randomPosition,
-      color:color,
-      kind:kind[color.ord],
+    playerSlots[randomPosition] = Player(
+      color:player.color,
+      kind:player.kind,
       pieces:highways,
       cash:25000
     )
+  playerSlots.filterIt it.kind != None
 
 proc nextPlayerTurn* =
-  # discardCards()
-  # startDiceRoll()
-  let contesters = players.filterIt(it.kind != None)
-  if turn.nr == 0: turn = Turn(nr:1,player:contesters[0]) else:
-    let
-      isLastPlayer = turn.player.nr == contesters[^1].nr
-      turnNr = if isLastPlayer: turn.nr+1 else: turn.nr
-      nextPlayer = if isLastPlayer: contesters[0] else:
-        contesters[contesters.mapIt(it.nr).find(turn.player.nr)+1]
-    turn = Turn(nr:turnNr,player:nextPlayer)
-  turn.player.turnNr = turn.nr 
-  turn.undrawnBlues = turn.player.nrOfPiecesOnBars
+  if turn.player == players.high:
+    inc turn.nr
+    turn.player = 0
+  else: inc turn.player
+  turn.undrawnBlues = players[turn.player].nrOfPiecesOnBars
 
 proc playerKindsFromFile:seq[PlayerKind] =
   try:
@@ -152,6 +143,7 @@ proc playerKindsFromFile:seq[PlayerKind] =
 proc playerKindsToFile* =
   writeFile(settingsFile,$playerKinds.mapIt($it))
 
+randomize()
 players = newDefaultPlayers()
 for i,kind in playerKindsFromFile(): 
   playerKinds[playerKinds.low+i] = kind
