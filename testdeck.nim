@@ -14,14 +14,14 @@ let
 var blueDeck = newDeck "dat\\blues.txt"
 
 proc draw(b:var Boxy) =
-  b.drawImage("bg",bgRect)
-  b.paintCards(blueDeck,turn.player.hand)
+  b.drawImage "bg",bgRect
+  b.paintCards blueDeck,turnPlayer.hand
 
 proc mouse(m:KeyEvent) =
   if m.leftMousePressed:
     m.leftMousePressed blueDeck
 
-blueDeck.initCardSlots(discardRect = discardPile,drawRect = drawPile)
+blueDeck.initCardSlots discardRect = discardPile,drawRect = drawPile
 nextPlayerTurn()
 drawFrom blueDeck
 addImage("bg",bg)

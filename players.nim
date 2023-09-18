@@ -32,6 +32,8 @@ var
   players*:seq[Player]
   turn*:Turn
 
+template turnPlayer*:untyped = players[turn.player]
+
 proc nrOfPiecesOnBars(player:Player): int =
   player.pieces.countIt(it in bars)
 
@@ -39,20 +41,20 @@ proc drawFrom*(deck:var Deck) =
   if turn.undrawnBlues > 0:
     if deck.drawPile.len == 0:
       deck.shufflePiles
-    players[turn.player].hand.add deck.drawPile.pop
+    turnPlayer.hand.add deck.drawPile.pop
     dec turn.undrawnBlues
 
 proc drawFrom*(deck:var Deck,nr:int) =
   if deck.drawPile.len == 0: deck.shufflePiles
-  for _ in 1..nr: players[turn.player].hand.add deck.drawPile.pop
+  for _ in 1..nr: turnPlayer.hand.add deck.drawPile.pop
 
 proc playTo*(deck:var Deck,idx:int) =
-  deck.discardPile.add players[turn.player].hand[idx]
-  players[turn.player].hand.del idx
+  deck.discardPile.add turnPlayer.hand[idx]
+  turnPlayer.hand.del idx
 
 proc discardCards*(deck:var Deck) =
-  while players[turn.player].hand.len > 3:
-    playTo deck,players[turn.player].hand.high
+  while turnPlayer.hand.len > 3:
+    playTo deck,turnPlayer.hand.high
 
 func requiredSquaresAndPieces*(plan:BlueCard):tuple[squares,nrOfPieces:seq[int]] =
   let squares = plan.squares.required.deduplicate
@@ -74,14 +76,14 @@ proc plans*(player:Player):tuple[cashable,notCashable:seq[BlueCard]] =
     if player.isCashable plan: result.cashable.add plan
     else: result.notCashable.add plan
 
-proc turnPlayerPlans*:tuple[cashable,notCashable:seq[BlueCard]] = players[turn.player].plans
+proc turnPlayerPlans*:tuple[cashable,notCashable:seq[BlueCard]] = turnPlayer.plans
 
 proc cashInPlans*(deck:var Deck):seq[BlueCard] =
-  let (cashable,notCashable) = players[turn.player].plans
+  let (cashable,notCashable) = turnPlayer.plans
   for plan in cashable.sortedByIt it.cash:
     deck.discardPile.add plan
-  players[turn.player].hand = notCashable
-  players[turn.player].cash += cashable.mapIt(it.cash).sum
+  turnPlayer.hand = notCashable
+  turnPlayer.cash += cashable.mapIt(it.cash).sum
   cashable
 
 proc leftMousePressed*(m:KeyEvent,deck:var Deck) =
@@ -95,12 +97,9 @@ proc leftMousePressed*(m:KeyEvent,deck:var Deck) =
     drawFrom deck,1
     # discard cashInPlans deck
   else:
-    for (_,slot) in players[turn.player].hand.cardSlots:
+    for (_,slot) in turnPlayer.hand.cardSlots:
       if mouseOn slot.area: 
         playTo deck,slot.nr
-
-proc nrOfPlayers*: int =
-  players.filterIt(it.kind != None).len
 
 proc newDefaultPlayers*:seq[Player] =
   for i in 1..6:
@@ -126,11 +125,12 @@ proc newPlayers*:seq[Player] =
   playerSlots.filterIt it.kind != None
 
 proc nextPlayerTurn* =
+  turnPlayer.turnNr = turn.nr
   if turn.player == players.high:
     inc turn.nr
     turn.player = 0
   else: inc turn.player
-  turn.undrawnBlues = players[turn.player].nrOfPiecesOnBars
+  turn.undrawnBlues = turnPlayer.nrOfPiecesOnBars
 
 proc playerKindsFromFile:seq[PlayerKind] =
   try:
@@ -143,7 +143,16 @@ proc playerKindsFromFile:seq[PlayerKind] =
 proc playerKindsToFile* =
   writeFile(settingsFile,$playerKinds.mapIt($it))
 
+proc printPlayers =
+  for player in players:
+    for field,value in player.fieldPairs:
+      echo field,": ",value
+
 randomize()
-players = newDefaultPlayers()
 for i,kind in playerKindsFromFile(): 
   playerKinds[playerKinds.low+i] = kind
+players = newDefaultPlayers()
+printPlayers()
+players = newPlayers()
+printPlayers()
+
