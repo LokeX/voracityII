@@ -3,15 +3,17 @@ import deck
 import sequtils
 import algorithm
 import random
+import batch
 
 type
   PlayerKind* = enum Human,Computer,None
   PlayerColors* = enum Red,Green,Blue,Yellow,Black,White
+  Pieces* = array[5,int]
   Player* = object
     color*:PlayerColors
     kind*:PlayerKind
     turnNr*:int
-    pieces*:array[5,int]
+    pieces*:Pieces
     hand*:seq[BlueCard]
     cash*:int
   Turn* = object
@@ -21,20 +23,69 @@ type
     undrawnBlues*:int
 
 const
+  playerColors*:array[PlayerColors,Color] = [
+    color(50,0,0),color(0,50,0),
+    color(0,0,50),color(50,50,0),
+    color(255,255,255),color(1,1,1)
+  ]
+  playerColorsTrans*:array[PlayerColors,Color] = [
+    color(50,0,0,150),color(0,50,0,150),
+    color(0,0,50,150),color(50,50,0,150),
+    color(255,255,255,150),color(1,1,1,150)
+  ]
+  contrastColors*:array[PlayerColors,Color] = [
+    color(1,1,1),
+    color(255,255,255),
+    color(1,1,1),
+    color(255,255,255),
+    color(1,1,1),
+    color(255,255,255),
+  ]  
+  robotoRegular = "fonts\\Roboto-Regular_1.ttf"
+  condensedRegular = "fonts\\AsapCondensed-Regular.ttf"
+  fjallaOneRegular = "fonts\\FjallaOne-Regular.ttf"
+
+const
   settingsFile* = "settings.cfg"
-  defaultPlayerKinds = [Human,Computer,None,None,None,None]
+  defaultPlayerKinds = @[Human,Computer,None,None,None,None]
   highways* = [5,17,29,41,53]
   gasStations* = [2,15,27,37,47]
   bars* = [1,16,18,20,28,35,40,46,51,54]
 
 var
-  playerKinds*:array[1..6,PlayerKind] = defaultPlayerKinds
+  playerBatches*:seq[Batch]
+  playerKinds*:seq[PlayerKind]
   players*:seq[Player]
   turn*:Turn
 
+const
+  (bx,by) = (20,20)
+
+proc defaultBatch(name:string,bgColor:PlayerColors,entries:seq[string],yOffset:int):Batch = 
+  newBatch BatchInit(
+    kind:TextBatch,
+    name:name,
+    pos:(bx,by+yOffset),
+    padding:(0,0,35,35),
+    entries:entries,
+    hAlign:CenterAlign,
+    fixedBounds:(175,0),
+    font:(fjallaOneRegular,25.0,contrastColors[bgColor]),
+    bgColor:playerColors[bgColor],
+    shadow:(10,1.75,color(255,255,255,200))
+  )
+
+proc defaultBatches:seq[Batch] =
+  var yOffset = by
+  for color in PlayerColors:
+    if result.len > 0:
+      yOffset = by+((result[^1].rect.h.toInt+20)*color.ord)
+    result.add defaultBatch($color,color,@[$playerKinds[color.ord]],yOffset)
+    result[^1].update = true
+
 template turnPlayer*:untyped = players[turn.player]
 
-proc nrOfPiecesOnBars(player:Player): int =
+func nrOfPiecesOnBars(player:Player): int =
   player.pieces.countIt(it in bars)
 
 proc drawFrom*(deck:var Deck) =
@@ -60,18 +111,16 @@ func requiredSquaresAndPieces*(plan:BlueCard):tuple[squares,nrOfPieces:seq[int]]
   let squares = plan.squares.required.deduplicate
   (squares,squares.mapIt plan.squares.required.count it)
 
-proc hasOneInManyFor(player:Player,plan:BlueCard):bool =
-  player.pieces.anyIt(it in plan.squares.oneInMany)
-
-proc isCashable*(player:Player,plan:BlueCard):bool =
+func isCashable*(player:Player,plan:BlueCard):bool =
   let 
     (squares,nrOfPiecesRequired) = plan.requiredSquaresAndPieces
     nrOfPiecesOnSquares = squares.mapIt player.pieces.count it
-    requiredOk = toSeq(0..squares.len-1).allIt nrOfPiecesOnSquares[it] >= nrOfPiecesRequired[it]
-    oneInMoreOk = plan.squares.oneInmany.len == 0 or player.hasOneInManyFor plan
+    requiredOk = toSeq(0..squares.high).allIt nrOfPiecesOnSquares[it] >= nrOfPiecesRequired[it]
+    gotOneInMany = player.pieces.anyIt(it in plan.squares.oneInMany)
+    oneInMoreOk = plan.squares.oneInmany.len == 0 or gotOneInMany
   requiredOk and oneInMoreOk
 
-proc plans*(player:Player):tuple[cashable,notCashable:seq[BlueCard]] =
+func plans*(player:Player):tuple[cashable,notCashable:seq[BlueCard]] =
   for plan in player.hand.filterIt it.cardKind == Plan:
     if player.isCashable plan: result.cashable.add plan
     else: result.notCashable.add plan
@@ -86,26 +135,11 @@ proc cashInPlans*(deck:var Deck):seq[BlueCard] =
   turnPlayer.cash += cashable.mapIt(it.cash).sum
   cashable
 
-proc leftMousePressed*(m:KeyEvent,deck:var Deck) =
-  if mouseOn deck.discardSlot.area:
-    case show:
-    of Hand: show = Discard
-    of Discard: show = Hand
-  elif show == Discard:
-    show = Hand
-  elif mouseOn deck.drawSlot.area:
-    drawFrom deck,1
-    # discard cashInPlans deck
-  else:
-    for (_,slot) in turnPlayer.hand.cardSlots:
-      if mouseOn slot.area: 
-        playTo deck,slot.nr
-
 proc newDefaultPlayers*:seq[Player] =
-  for i in 1..6:
+  for i,kind in playerKinds:
     result.add Player(
-      kind:playerKinds[i],
-      color:PlayerColors(i-1),
+      kind:kind,
+      color:PlayerColors(i),
       pieces:highways
     )
 
@@ -132,15 +166,30 @@ proc nextPlayerTurn* =
   else: inc turn.player
   turn.undrawnBlues = turnPlayer.nrOfPiecesOnBars
 
+proc leftMousePressed*(m:KeyEvent,deck:var Deck) =
+  if mouseOn deck.discardSlot.area:
+    case show:
+    of Hand: show = Discard
+    of Discard: show = Hand
+  elif show == Discard:
+    show = Hand
+  elif mouseOn deck.drawSlot.area:
+    drawFrom deck,1
+    # discard cashInPlans deck
+  else:
+    for (_,slot) in turnPlayer.hand.cardSlots:
+      if mouseOn slot.area: 
+        playTo deck,slot.nr
+
 proc playerKindsFromFile:seq[PlayerKind] =
   try:
     readFile(settingsFile)
     .split("@[,]\" ".toRunes)
     .filterIt(it.len > 0)
     .mapIt(PlayerKind(PlayerKind.mapIt($it).find(it)))
-  except: return
+  except: defaultPlayerKinds
 
-proc playerKindsToFile* =
+proc playerKindsToFile*(playerKinds:openArray[PlayerKind]) =
   writeFile(settingsFile,$playerKinds.mapIt($it))
 
 proc printPlayers =
@@ -149,10 +198,13 @@ proc printPlayers =
       echo field,": ",value
 
 randomize()
-for i,kind in playerKindsFromFile(): 
-  playerKinds[playerKinds.low+i] = kind
+playerKinds = playerKindsFromFile()
+playerKindsToFile playerKinds
 players = newDefaultPlayers()
-printPlayers()
-players = newPlayers()
-printPlayers()
+playerBatches = defaultBatches()
+
+when isMainModule:
+  printPlayers()
+  players = newPlayers()
+  printPlayers()
 

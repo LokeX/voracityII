@@ -19,6 +19,7 @@ type
     border:Border
     padding:tuple[left,right,top,bottom:int]
     shadow:tuple[size:int,offSetFactor:float,color:Color]
+    fixedBounds:tuple[width,height:int]
   Border* = tuple[size:int,angle:float,color:Color]
   Line = tuple[color,bgColor:Color,border:Border]
   Title = tuple[on:bool,line:Line]
@@ -67,7 +68,8 @@ type
     bgColor*:Color = color(255,255,255)
     border*:(int,float,Color)
     shadow*:(int,float,Color)
-  
+    fixedBounds*:(int,int)
+
 func textBounds(bounds:Vec2):(int,int) = (bounds[0].toInt,bounds[1].toInt)
 
 func batchArea(batch:Batch):Area = (
@@ -134,6 +136,12 @@ func linePos(batch:Batch,lineIdx:int):Vec2 = vec2(
   (batch.border.size+batch.padding.top+
   (batch.font.defaultLineHeight.toInt*lineIdx)).toFloat)
 
+proc newPos*(batch:Batch,x,y:float) =
+  batch.rect.x = x
+  batch.rect.y = y
+  batch.area = batch.rect.toArea
+  batch.update = true
+
 proc paintLineBackground(batch:Batch,color:Color,border:Border):Image =
   let ctx = batch.lineBackground.newContext
   ctx.fillStyle = border.color
@@ -172,7 +180,8 @@ proc setSpanFontColors(batch:Batch) =
 
 proc typeSet(batch:Batch):Arrangement = batch.text.spans.typeset(
   bounds = vec2(batch.text.bounds.width.toFloat,batch.text.bounds.height.toFloat),
-  hAlign = batch.text.hAlign,wrap = false)
+  hAlign = batch.text.hAlign,
+  wrap = false)
 
 proc drawSelectorOn(batch:Batch,img:Image):Image =
   img.draw(batch.selector.img,translate batch.linePos(batch.selector.selection))
@@ -180,6 +189,8 @@ proc drawSelectorOn(batch:Batch,img:Image):Image =
 
 proc setDimensions(batch:Batch) =
   batch.text.bounds = batch.text.spans.layoutBounds.textBounds
+  if batch.fixedBounds.width > 0: batch.text.bounds.width = batch.fixedBounds.width
+  if batch.fixedBounds.height > 0: batch.text.bounds.height = batch.fixedBounds.height
   batch.area = batch.batchArea
   batch.rect = batch.area.toRect
   batch.background = batch.paintBackground
@@ -359,6 +370,7 @@ proc newBatch*(batchInit:BatchInit):Batch =
     batch.font = batchFont batchInit.font
     batch.text.bgColor = batchInit.bgColor
     batch.text.hAlign = batchInit.hAlign
+    batch.fixedBounds = batchInit.fixedBounds
     if batchInit.opacity > 0: batch.opacity = batchInit.opacity
     if batchInit.titleOn:
       batch.title.on = true

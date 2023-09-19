@@ -1,9 +1,10 @@
 import win
 import deck
 import players
+import batch
 
 const
-  # popUpCard = Rect(x:100,y:100,w:cardWidth,h:cardHeight)
+  popUpCard = Rect(x:500,y:50,w:cardWidth,h:cardHeight)
   drawPile = Rect(x:650,y:500,w:cardWidth*0.5,h:cardHeight*0.5)
   discardPile = Rect(x:800,y:500,w:cardWidth*0.5,h:cardHeight*0.5)
 
@@ -16,12 +17,14 @@ var blueDeck = newDeck "dat\\blues.txt"
 proc draw(b:var Boxy) =
   b.drawImage "bg",bgRect
   b.paintCards blueDeck,turnPlayer.hand
+  for batch in playerBatches:
+    if batch.isActive: b.drawBatch batch
 
 proc mouse(m:KeyEvent) =
   if m.leftMousePressed:
     m.leftMousePressed blueDeck
 
-blueDeck.initCardSlots discardRect = discardPile,drawRect = drawPile
+blueDeck.initCardSlots discardRect = discardPile,drawRect = drawPile,popUpRect = popUpCard
 nextPlayerTurn()
 drawFrom blueDeck
 addImage("bg",bg)
