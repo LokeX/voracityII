@@ -1,7 +1,7 @@
 import win
 import deck
 import players
-import batch
+# import batch
 
 const
   popUpCard = Rect(x:500,y:50,w:cardWidth,h:cardHeight)
@@ -17,8 +17,7 @@ var blueDeck = newDeck "dat\\blues.txt"
 proc draw(b:var Boxy) =
   b.drawImage "bg",bgRect
   b.paintCards blueDeck,turnPlayer.hand
-  for batch in playerBatches:
-    if batch.isActive: b.drawBatch batch
+  b.drawPlayerBatches
 
 proc mouse(m:KeyEvent) =
   if m.leftMousePressed:

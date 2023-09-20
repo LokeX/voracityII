@@ -41,27 +41,26 @@ const
     color(1,1,1),
     color(255,255,255),
   ]  
+
   robotoRegular = "fonts\\Roboto-Regular_1.ttf"
   condensedRegular = "fonts\\AsapCondensed-Regular.ttf"
   fjallaOneRegular = "fonts\\FjallaOne-Regular.ttf"
 
-const
   settingsFile* = "settings.cfg"
   defaultPlayerKinds = @[Human,Computer,None,None,None,None]
+  (bx,by) = (20,20)
+
   highways* = [5,17,29,41,53]
   gasStations* = [2,15,27,37,47]
   bars* = [1,16,18,20,28,35,40,46,51,54]
 
 var
-  playerBatches*:seq[Batch]
+  setupBatches*,playerBatches*:seq[Batch]
   playerKinds*:seq[PlayerKind]
   players*:seq[Player]
   turn*:Turn
 
-const
-  (bx,by) = (20,20)
-
-proc defaultBatch(name:string,bgColor:PlayerColors,entries:seq[string],yOffset:int):Batch = 
+proc setupBatch(name:string,bgColor:PlayerColors,entries:seq[string],yOffset:int):Batch = 
   newBatch BatchInit(
     kind:TextBatch,
     name:name,
@@ -70,17 +69,31 @@ proc defaultBatch(name:string,bgColor:PlayerColors,entries:seq[string],yOffset:i
     entries:entries,
     hAlign:CenterAlign,
     fixedBounds:(175,0),
-    font:(fjallaOneRegular,25.0,contrastColors[bgColor]),
+    font:(fjallaOneRegular,30.0,contrastColors[bgColor]),
     bgColor:playerColors[bgColor],
     shadow:(10,1.75,color(255,255,255,200))
   )
 
-proc defaultBatches:seq[Batch] =
+proc gameBatch(name:string,bgColor:PlayerColors,entries:seq[string],yOffset:int):Batch = 
+  newBatch BatchInit(
+    kind:TextBatch,
+    name:name,
+    pos:(bx,by+yOffset),
+    padding:(0,0,5,5),
+    entries:entries,
+    hAlign:LeftAlign,
+    fixedBounds:(175,0),
+    font:(fjallaOneRegular,14.0,contrastColors[bgColor]),
+    bgColor:playerColors[bgColor],
+    shadow:(10,1.75,color(255,255,255,200))
+  )
+
+proc newSetupBatches:seq[Batch] =
   var yOffset = by
   for color in PlayerColors:
     if result.len > 0:
-      yOffset = by+((result[^1].rect.h.toInt+20)*color.ord)
-    result.add defaultBatch($color,color,@[$playerKinds[color.ord]],yOffset)
+      yOffset = by+((result[^1].rect.h.toInt+15)*color.ord)
+    result.add setupBatch($color,color,@[$playerKinds[color.ord]],yOffset)
     result[^1].update = true
 
 template turnPlayer*:untyped = players[turn.player]
@@ -95,9 +108,9 @@ proc drawFrom*(deck:var Deck) =
     turnPlayer.hand.add deck.drawPile.pop
     dec turn.undrawnBlues
 
-proc drawFrom*(deck:var Deck,nr:int) =
+proc drawFrom*(deck:var Deck,batchNr:int) =
   if deck.drawPile.len == 0: deck.shufflePiles
-  for _ in 1..nr: turnPlayer.hand.add deck.drawPile.pop
+  for _ in 1..batchNr: turnPlayer.hand.add deck.drawPile.pop
 
 proc playTo*(deck:var Deck,idx:int) =
   deck.discardPile.add turnPlayer.hand[idx]
@@ -166,6 +179,16 @@ proc nextPlayerTurn* =
   else: inc turn.player
   turn.undrawnBlues = turnPlayer.nrOfPiecesOnBars
 
+proc drawPlayerBatches*(b:var Boxy) =
+  if turn.nr == 0:
+    for batch in setupBatches:
+      if batch.isActive: b.drawBatch batch
+
+proc mouseOnSetupBatchNr:int =
+  result = -1
+  for i,batch in setupBatches:
+    if mouseOn batch: return i
+
 proc leftMousePressed*(m:KeyEvent,deck:var Deck) =
   if mouseOn deck.discardSlot.area:
     case show:
@@ -177,9 +200,19 @@ proc leftMousePressed*(m:KeyEvent,deck:var Deck) =
     drawFrom deck,1
     # discard cashInPlans deck
   else:
-    for (_,slot) in turnPlayer.hand.cardSlots:
-      if mouseOn slot.area: 
-        playTo deck,slot.nr
+    let batchNr = mouseOnSetupBatchNr()
+    if batchNr != -1 and turn.nr == 0:
+      playerKinds[batchNr] = 
+        case playerKinds[batchNr]
+        of Human:Computer
+        of Computer:None
+        of None:Human
+      setupBatches[batchNr].setSpanText($playerKinds[batchNr],0)
+      setupBatches[batchNr].update = true
+    else:
+      for (_,slot) in turnPlayer.hand.cardSlots:
+        if mouseOn slot.area: 
+          playTo deck,slot.nr
 
 proc playerKindsFromFile:seq[PlayerKind] =
   try:
@@ -201,7 +234,7 @@ randomize()
 playerKinds = playerKindsFromFile()
 playerKindsToFile playerKinds
 players = newDefaultPlayers()
-playerBatches = defaultBatches()
+setupBatches = newSetupBatches()
 
 when isMainModule:
   printPlayers()
