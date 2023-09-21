@@ -42,8 +42,8 @@ const
     color(255,255,255),
   ]  
 
-  robotoRegular = "fonts\\Roboto-Regular_1.ttf"
-  condensedRegular = "fonts\\AsapCondensed-Regular.ttf"
+  # robotoRegular = "fonts\\Roboto-Regular_1.ttf"
+  # condensedRegular = "fonts\\AsapCondensed-Regular.ttf"
   fjallaOneRegular = "fonts\\FjallaOne-Regular.ttf"
 
   settingsFile* = "settings.cfg"

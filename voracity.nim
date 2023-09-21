@@ -1,6 +1,7 @@
 import win
 import deck
 import players
+import board
 # import batch
 
 const
@@ -16,6 +17,7 @@ var blueDeck = newDeck "dat\\blues.txt"
 
 proc draw(b:var Boxy) =
   b.drawImage "bg",bgRect
+  b.drawBoard
   b.paintCards blueDeck,turnPlayer.hand
   b.drawPlayerBatches
 
