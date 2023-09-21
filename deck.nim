@@ -21,6 +21,7 @@ type
   Deck* = object 
     fullDeck,drawPile*,discardPile*:seq[BlueCard]
     popUpSlot,drawSlot*,discardSlot*:CardSlot
+    show:Show
   CardSlot = tuple[nr:int,name:string,area:Area,rect:Rect]
 
 const
@@ -55,9 +56,6 @@ let
   roboto = readTypeface "fonts\\Roboto-Regular_1.ttf"
   point = readTypeface "fonts\\StintUltraCondensed-Regular.ttf"
   ibmplex = readTypeFace "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
-
-var 
-  show* = Hand
 
 func nrOfslots(nrOfCards:int):int =
   for i,capacity in slotCapacities:
@@ -300,10 +298,18 @@ proc paintCards*(b:var Boxy,deck:Deck,playerHand:seq[BlueCard]) =
     b.drawImage(deck.discardPile[^1].title,deck.discardSlot.rect)
     if mouseOn deck.discardSlot.area:
       b.drawImage(deck.discardPile[^1].title,deck.popUpSlot.rect)
-  for (card,slot) in (if show == Hand: playerHand else: deck.discardPile).cardSlots:
+  for (card,slot) in (if deck.show == Hand: playerHand else: deck.discardPile).cardSlots:
     b.drawImage(card.title,slot.rect)
     if mouseOn slot.area:
       b.drawImage(card.title,deck.popUpSlot.rect)
+
+proc leftMousePressed*(deck:var Deck) =
+  if mouseOn deck.discardSlot.area:
+    case deck.show:
+    of Hand: deck.show = Discard
+    of Discard: deck.show = Hand
+  elif deck.show == Discard:
+    deck.show = Hand
 
 when isMainModule:
   let cards = buildBlues "dat\\deck.txt"

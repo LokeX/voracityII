@@ -55,8 +55,8 @@ const
   bars* = [1,16,18,20,28,35,40,46,51,54]
 
 var
-  setupBatches*,playerBatches*:seq[Batch]
   playerKinds*:seq[PlayerKind]
+  setupBatches*,playerBatches*:seq[Batch]
   players*:seq[Player]
   turn*:Turn
 
@@ -70,20 +70,6 @@ proc setupBatch(name:string,bgColor:PlayerColors,entries:seq[string],yOffset:int
     hAlign:CenterAlign,
     fixedBounds:(175,0),
     font:(fjallaOneRegular,30.0,contrastColors[bgColor]),
-    bgColor:playerColors[bgColor],
-    shadow:(10,1.75,color(255,255,255,200))
-  )
-
-proc gameBatch(name:string,bgColor:PlayerColors,entries:seq[string],yOffset:int):Batch = 
-  newBatch BatchInit(
-    kind:TextBatch,
-    name:name,
-    pos:(bx,by+yOffset),
-    padding:(0,0,5,5),
-    entries:entries,
-    hAlign:LeftAlign,
-    fixedBounds:(175,0),
-    font:(fjallaOneRegular,14.0,contrastColors[bgColor]),
     bgColor:playerColors[bgColor],
     shadow:(10,1.75,color(255,255,255,200))
   )
@@ -133,15 +119,15 @@ func isCashable*(player:Player,plan:BlueCard):bool =
     oneInMoreOk = plan.squares.oneInmany.len == 0 or gotOneInMany
   requiredOk and oneInMoreOk
 
-func plans*(player:Player):tuple[cashable,notCashable:seq[BlueCard]] =
+func cashablePlans*(player:Player):tuple[cashable,notCashable:seq[BlueCard]] =
   for plan in player.hand.filterIt it.cardKind == Plan:
     if player.isCashable plan: result.cashable.add plan
     else: result.notCashable.add plan
 
-proc turnPlayerPlans*:tuple[cashable,notCashable:seq[BlueCard]] = turnPlayer.plans
+proc turnPlayerPlans*:tuple[cashable,notCashable:seq[BlueCard]] = turnPlayer.cashablePlans
 
 proc cashInPlans*(deck:var Deck):seq[BlueCard] =
-  let (cashable,notCashable) = turnPlayer.plans
+  let (cashable,notCashable) = turnPlayer.cashablePlans
   for plan in cashable.sortedByIt it.cash:
     deck.discardPile.add plan
   turnPlayer.hand = notCashable
@@ -190,13 +176,7 @@ proc mouseOnSetupBatchNr:int =
     if mouseOn batch: return i
 
 proc leftMousePressed*(m:KeyEvent,deck:var Deck) =
-  if mouseOn deck.discardSlot.area:
-    case show:
-    of Hand: show = Discard
-    of Discard: show = Hand
-  elif show == Discard:
-    show = Hand
-  elif mouseOn deck.drawSlot.area:
+  if mouseOn deck.drawSlot.area:
     drawFrom deck,1
     # discard cashInPlans deck
   else:
@@ -213,6 +193,7 @@ proc leftMousePressed*(m:KeyEvent,deck:var Deck) =
       for (_,slot) in turnPlayer.hand.cardSlots:
         if mouseOn slot.area: 
           playTo deck,slot.nr
+          break
 
 proc playerKindsFromFile:seq[PlayerKind] =
   try:
@@ -232,7 +213,6 @@ proc printPlayers =
 
 randomize()
 playerKinds = playerKindsFromFile()
-playerKindsToFile playerKinds
 players = newDefaultPlayers()
 setupBatches = newSetupBatches()
 

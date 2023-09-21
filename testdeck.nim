@@ -21,6 +21,7 @@ proc draw(b:var Boxy) =
 
 proc mouse(m:KeyEvent) =
   if m.leftMousePressed:
+    blueDeck.leftMousePressed
     m.leftMousePressed blueDeck
 
 blueDeck.initCardSlots discardRect = discardPile,drawRect = drawPile,popUpRect = popUpCard
@@ -29,3 +30,4 @@ drawFrom blueDeck
 addImage("bg",bg)
 addCall Call(draw:draw,mouse:mouse)
 runWin
+playerKindsToFile playerKinds
