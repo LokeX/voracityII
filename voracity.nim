@@ -2,12 +2,11 @@ import win
 import deck
 import players
 import board
-# import batch
 
 const
-  popUpCard = Rect(x:500,y:50,w:cardWidth,h:cardHeight)
-  drawPile = Rect(x:650,y:500,w:cardWidth*0.5,h:cardHeight*0.5)
-  discardPile = Rect(x:800,y:500,w:cardWidth*0.5,h:cardHeight*0.5)
+  popUpCard = Rect(x:500,y:275,w:cardWidth,h:cardHeight)
+  drawPile = Rect(x:855,y:495,w:110,h:180)
+  discardPile = Rect(x:1025,y:495,w:cardWidth*0.441,h:cardHeight*0.441)
 
 let
   bg = readImage "pics\\bgblue.png"
@@ -19,6 +18,7 @@ proc draw(b:var Boxy) =
   b.drawImage "bg",bgRect
   b.drawBoard
   b.paintCards blueDeck,turnPlayer.hand
+  # b.drawRect(drawPile,color(0,0,0))
   b.drawPlayerBatches
 
 proc mouse(m:KeyEvent) =

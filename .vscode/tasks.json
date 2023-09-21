@@ -4,14 +4,14 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Run Batch",
+      "label": "Run Voracity",
       "type": "process",
       "command": "nim",
       "args": [
         "c",
         "-r",
         "-d:release",
-        "testdeck.nim"
+        "voracity.nim"
       ],
       "problemMatcher": [],
       "group": {
@@ -20,13 +20,13 @@
       }
     },
     {
-      "label": "Compile Batch",
+      "label": "Compile Voracity",
       "type": "process",
       "command": "nim",
       "args": [
         "c",
         "-d:release",
-        "testbatch.nim"
+        "voracity.nim"
       ],
       "problemMatcher": [],
       "group": {

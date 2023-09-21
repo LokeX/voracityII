@@ -51,7 +51,7 @@ const
   cardSlotsX = initPosDim.buildCardSlots
 
 let
-  drawPileImg = readImage "pics\\blueback.jpg"
+  # drawPileImg = readImage "pics\\blueback.jpg"
   planbg = readImage "pics\\planbg.jpg"
   roboto = readTypeface "fonts\\Roboto-Regular_1.ttf"
   point = readTypeface "fonts\\StintUltraCondensed-Regular.ttf"
@@ -278,7 +278,7 @@ proc newDeck*(path:string):Deck =
   result.initCardSlots
   result.drawSlot.name = "drawpile"
   removeImg(result.drawSlot.name)
-  addImage(result.drawSlot.name,drawPileImg)
+  # addImage(result.drawSlot.name,drawPileImg)
   for card in result.fullDeck:
     addImage(card.title,card.img)
 
@@ -292,8 +292,8 @@ proc shufflePiles*(deck:var Deck) =
   deck.drawPile.shuffle
 
 proc paintCards*(b:var Boxy,deck:Deck,playerHand:seq[BlueCard]) =
-  if deck.drawPile.len > 0:
-    b.drawImage(deck.drawSlot.name,deck.drawSlot.rect)
+  # if deck.drawPile.len > 0:
+  #   b.drawImage(deck.drawSlot.name,deck.drawSlot.rect)
   if deck.discardPile.len > 0:
     b.drawImage(deck.discardPile[^1].title,deck.discardSlot.rect)
     if mouseOn deck.discardSlot.area:
