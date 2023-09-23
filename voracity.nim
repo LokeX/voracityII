@@ -18,13 +18,10 @@ proc draw(b:var Boxy) =
   b.drawImage "bg",bgRect
   b.drawBoard
   b.paintCards blueDeck,turnPlayer.hand
-  # b.drawRect(drawPile,color(0,0,0))
   b.drawPlayerBatches
 
 proc mouse(m:KeyEvent) =
   if m.leftMousePressed:
-    withScaledMousePos(x,y):
-      echo x,",",y
     blueDeck.leftMousePressed
     m.leftMousePressed blueDeck
 

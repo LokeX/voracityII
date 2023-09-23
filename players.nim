@@ -4,13 +4,12 @@ import sequtils
 import algorithm
 import random
 import batch
+import pieces
 
 type
   PlayerKind* = enum Human,Computer,None
-  PlayerColors* = enum Red,Green,Blue,Yellow,Black,White
-  Pieces* = array[5,int]
   Player* = object
-    color*:PlayerColors
+    color*:PlayerColor
     kind*:PlayerKind
     turnNr*:int
     pieces*:Pieces
@@ -23,17 +22,17 @@ type
     undrawnBlues:int
 
 const
-  playerColors*:array[PlayerColors,Color] = [
+  playerColors*:array[PlayerColor,Color] = [
     color(50,0,0),color(0,50,0),
     color(0,0,50),color(50,50,0),
     color(255,255,255),color(1,1,1)
   ]
-  playerColorsTrans*:array[PlayerColors,Color] = [
+  playerColorsTrans*:array[PlayerColor,Color] = [
     color(50,0,0,150),color(0,50,0,150),
     color(0,0,50,150),color(50,50,0,150),
     color(255,255,255,150),color(1,1,1,150)
   ]
-  contrastColors*:array[PlayerColors,Color] = [
+  contrastColors*:array[PlayerColor,Color] = [
     color(1,1,1),
     color(255,255,255),
     color(1,1,1),
@@ -60,7 +59,7 @@ var
   players*:seq[Player]
   turn*:Turn
 
-proc playerBatch(name:string,bgColor:PlayerColors,entries:seq[string],yOffset:int):Batch = 
+proc playerBatch(name:string,bgColor:PlayerColor,entries:seq[string],yOffset:int):Batch = 
   newBatch BatchInit(
     kind:TextBatch,
     name:name,
@@ -76,7 +75,7 @@ proc playerBatch(name:string,bgColor:PlayerColors,entries:seq[string],yOffset:in
 
 proc newPlayerBatches:array[6,Batch] =
   var yOffset = by
-  for color in PlayerColors:
+  for color in PlayerColor:
     if color.ord > 0:
       yOffset = by+((result[color.ord-1].rect.h.toInt+15)*color.ord)
     result[color.ord] = playerBatch($color,color,@[$playerKinds[color.ord]],yOffset)
@@ -138,7 +137,7 @@ proc newDefaultPlayers*:seq[Player] =
   for i,kind in playerKinds:
     result.add Player(
       kind:kind,
-      color:PlayerColors(i),
+      color:PlayerColor(i),
       pieces:highways
     )
 
@@ -212,8 +211,6 @@ proc printPlayers =
       echo field,": ",value
 
 randomize()
-
-# playerKinds = collect:
 for i,kind in playerKindsFromFile(): playerKinds[i] = kind
 players = newDefaultPlayers()
 playerBatches = newPlayerBatches()
