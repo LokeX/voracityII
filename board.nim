@@ -1,5 +1,5 @@
 import win
-import pieces
+import colors
 
 type
   BoardSquares* = array[61,Square]

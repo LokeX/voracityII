@@ -4,10 +4,11 @@ import sequtils
 import algorithm
 import random
 import batch
-import pieces
+import colors
 
 type
   PlayerKind* = enum Human,Computer,None
+  Pieces* = array[5,int]
   Player* = object
     color*:PlayerColor
     kind*:PlayerKind
@@ -20,26 +21,6 @@ type
     player:int
     diceMoved:bool
     undrawnBlues:int
-
-const
-  playerColors*:array[PlayerColor,Color] = [
-    color(50,0,0),color(0,50,0),
-    color(0,0,50),color(50,50,0),
-    color(255,255,255),color(1,1,1)
-  ]
-  playerColorsTrans*:array[PlayerColor,Color] = [
-    color(50,0,0,150),color(0,50,0,150),
-    color(0,0,50,150),color(50,50,0,150),
-    color(255,255,255,150),color(1,1,1,150)
-  ]
-  contrastColors*:array[PlayerColor,Color] = [
-    color(1,1,1),
-    color(255,255,255),
-    color(1,1,1),
-    color(255,255,255),
-    color(1,1,1),
-    color(255,255,255),
-  ]  
 
   # robotoRegular = "fonts\\Roboto-Regular_1.ttf"
   # condensedRegular = "fonts\\AsapCondensed-Regular.ttf"
