@@ -8,8 +8,6 @@ import batch
 type
   PlayerKind* = enum Human,Computer,None
   PlayerColors* = enum Red,Green,Blue,Yellow,Black,White
-  SetupBatches = array[6,Batch]
-  PlayerKinds = array[6,PlayerKind]
   Pieces* = array[5,int]
   Player* = object
     color*:PlayerColors
@@ -57,13 +55,12 @@ const
   bars* = [1,16,18,20,28,35,40,46,51,54]
 
 var
-  playerKinds*:PlayerKinds
-  setupBatches*:SetupBatches
-  playerBatches*:seq[Batch]
+  playerKinds*:array[6,PlayerKind]
+  playerBatches*:array[6,Batch]
   players*:seq[Player]
   turn*:Turn
 
-proc setupBatch(name:string,bgColor:PlayerColors,entries:seq[string],yOffset:int):Batch = 
+proc playerBatch(name:string,bgColor:PlayerColors,entries:seq[string],yOffset:int):Batch = 
   newBatch BatchInit(
     kind:TextBatch,
     name:name,
@@ -77,12 +74,12 @@ proc setupBatch(name:string,bgColor:PlayerColors,entries:seq[string],yOffset:int
     shadow:(10,1.75,color(255,255,255,200))
   )
 
-proc newSetupBatches:SetupBatches =
+proc newPlayerBatches:array[6,Batch] =
   var yOffset = by
   for color in PlayerColors:
     if color.ord > 0:
       yOffset = by+((result[color.ord-1].rect.h.toInt+15)*color.ord)
-    result[color.ord] = setupBatch($color,color,@[$playerKinds[color.ord]],yOffset)
+    result[color.ord] = playerBatch($color,color,@[$playerKinds[color.ord]],yOffset)
     result[color.ord].update = true
 
 template turnPlayer*:untyped = players[turn.player]
@@ -170,12 +167,12 @@ proc nextPlayerTurn* =
 
 proc drawPlayerBatches*(b:var Boxy) =
   if turn.nr == 0:
-    for batch in setupBatches:
+    for batch in playerBatches:
       if batch.isActive: b.drawBatch batch
 
 proc mouseOnSetupBatchNr:int =
   result = -1
-  for i,batch in setupBatches:
+  for i,batch in playerBatches:
     if mouseOn batch: return i
 
 proc leftMousePressed*(m:KeyEvent,deck:var Deck) =
@@ -190,8 +187,8 @@ proc leftMousePressed*(m:KeyEvent,deck:var Deck) =
         of Human:Computer
         of Computer:None
         of None:Human
-      setupBatches[batchNr].setSpanText($playerKinds[batchNr],0)
-      setupBatches[batchNr].update = true
+      playerBatches[batchNr].setSpanText($playerKinds[batchNr],0)
+      playerBatches[batchNr].update = true
     else:
       for (_,slot) in turnPlayer.hand.cardSlots:
         if mouseOn slot.area: 
@@ -219,7 +216,7 @@ randomize()
 # playerKinds = collect:
 for i,kind in playerKindsFromFile(): playerKinds[i] = kind
 players = newDefaultPlayers()
-setupBatches = newSetupBatches()
+playerBatches = newPlayerBatches()
 
 when isMainModule:
   printPlayers()

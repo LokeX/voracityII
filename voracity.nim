@@ -23,6 +23,8 @@ proc draw(b:var Boxy) =
 
 proc mouse(m:KeyEvent) =
   if m.leftMousePressed:
+    withScaledMousePos(x,y):
+      echo x,",",y
     blueDeck.leftMousePressed
     m.leftMousePressed blueDeck
 

@@ -2,12 +2,11 @@ import win
 import sequtils
 import strutils
 import random
+import board
 
 type
   Show* = enum Hand,Discard
   ProtoCard = array[4,string]
-  BoardSquares = array[1..60,Square]
-  Square = tuple[nr:int,name:string,icon:Image]
   PlanSquares = tuple[required,oneInMany:seq[int]]
   CardKind* = enum Plan,Event,News,Talent,Mission
   BlueCard* = object
@@ -51,7 +50,6 @@ const
   cardSlotsX = initPosDim.buildCardSlots
 
 let
-  # drawPileImg = readImage "pics\\blueback.jpg"
   planbg = readImage "pics\\planbg.jpg"
   roboto = readTypeface "fonts\\Roboto-Regular_1.ttf"
   point = readTypeface "fonts\\StintUltraCondensed-Regular.ttf"
@@ -98,14 +96,6 @@ func buildPlanFrom(protoCard:ProtoCard):BlueCard =
     parseCardSquares(protoCard[2],['{','}']),
     parseCardSquares(protoCard[2],['[',']']),)
   result.cash = protoCard[3].parseInt
-
-func iconPath(square:Square):string =
-  let squareName = square.name.toLower
-  "pics\\board_icons\\"&(case squareName:
-    of "villa","condo","slum": "livingspaces"
-    of "bank","shop","bar","highway": squareName
-    of "gas station": "gas_station"
-    else: $square.nr)&".png"
 
 func newBlueCards(protoCards:seq[ProtoCard]): seq[BlueCard] =
   for protoCard in protoCards:
@@ -215,17 +205,6 @@ proc paintCardKindOn(deck:BlueCard,img:var Image,borderSize:float) =
     cardKind = kindFont.typeset $deck.cardKind
   img.fillText(cardKind,translate vec2(10+borderSize,60))
 
-proc paintIcon(path:string):Image =
-  let 
-    shadowSize = 4.0
-    icon = readImage path
-    ctx = newImage(icon.width+shadowSize.toInt,icon.height+shadowSize.toInt).newContext
-  ctx.fillStyle = color(0,0,0,150)
-  ctx.fillrect(
-    Rect(x:shadowSize,y:shadowSize,w:icon.width.toFloat,h:icon.height.toFloat))
-  result = ctx.image
-  result.draw(icon,translate vec2(0,0))
-
 proc paintIconsOn(deck:BlueCard,img:var Image,squares:BoardSquares) =
   var requires = deck.squares.required
   if deck.squares.oneInMany.len > 0:
@@ -249,16 +228,8 @@ proc paintBlue(deck:BlueCard,squares:BoardSquares):Image =
   of Plan: deck.paintTextBoxOn(result,squares)
   else:discard
 
-proc buildBoardSquares(path:string):BoardSquares =
-  var count = 0
-  for name in lines path:
-    inc count
-    result[count] = (count,name,nil)
-    result[count].icon = result[count].iconPath.paintIcon
-
 proc buildBlues(path:string):seq[BlueCard] =
   result = lines(path).toSeq.parseProtoCards.newBlueCards
-  let squares = buildBoardSquares "dat\\board.txt"
   for deck in result.mitems:
     deck.img = deck.paintBlue squares
 
@@ -278,7 +249,6 @@ proc newDeck*(path:string):Deck =
   result.initCardSlots
   result.drawSlot.name = "drawpile"
   removeImg(result.drawSlot.name)
-  # addImage(result.drawSlot.name,drawPileImg)
   for card in result.fullDeck:
     addImage(card.title,card.img)
 
@@ -292,8 +262,6 @@ proc shufflePiles*(deck:var Deck) =
   deck.drawPile.shuffle
 
 proc paintCards*(b:var Boxy,deck:Deck,playerHand:seq[BlueCard]) =
-  # if deck.drawPile.len > 0:
-  #   b.drawImage(deck.drawSlot.name,deck.drawSlot.rect)
   if deck.discardPile.len > 0:
     b.drawImage(deck.discardPile[^1].title,deck.discardSlot.rect)
     if mouseOn deck.discardSlot.area:

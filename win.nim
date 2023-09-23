@@ -116,7 +116,7 @@ proc scaledMousePos*:(int,int) =
   (int)(window.mousepos[1].toFloat/boxyScale))
 
 template withScaledMousePos*(x,y,body:untyped) =
-  let (x,y) = scaledMousePos
+  let (x,y) = scaledMousePos()
   body
 
 proc mouseOn*(area:Area):bool =
