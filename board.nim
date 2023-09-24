@@ -14,6 +14,23 @@ const
   (tyo,byo) = (70.0,690.0)
   (lxo,rxo) = (70.0,1030.0)
 
+func squareDims:array[61,Dims] =
+  result[0].rect = Rect(x:bx+1225,y:by+150,w:35,h:100)
+  for i in 0..17:
+    result[37+i].rect = Rect(x:bx+tbxo+(i.toFloat*sqOff),y:by+tyo,w:35,h:100)
+    result[24-i].rect = Rect(x:bx+tbxo+(i.toFloat*sqOff),y:by+byo,w:35,h:100)
+    if i < 12:
+      result[36-i].rect = Rect(x:bx+lxo,y:by+lryo+(i.toFloat*sqOff),w:100,h:35)
+      if i < 6:
+        result[55+i].rect = Rect(x:bx+rxo,y:by+lryo+(i.toFloat*sqOff),w:100,h:35)
+      else:
+        result[1+(i-6)].rect = Rect(x:bx+rxo,y:by+lryo+(i.toFloat*sqOff),w:100,h:35)
+  for dim in result.mitems:
+    dim.area = dim.rect.toArea
+
+const 
+  dims = squareDims()
+
 proc paintIcon(path:string):Image =
   let 
     shadowSize = 4.0
@@ -35,21 +52,6 @@ func iconPath(square:Square):string =
     else: $square.nr
   )&".png"
 
-func squareDims:array[61,Dims] =
-  result[0].rect = Rect(x:bx+1225,y:by+150,w:35,h:100)
-  for i in 0..17:
-    result[37+i].rect = Rect(x:bx+tbxo+(i.toFloat*sqOff),y:by+tyo,w:35,h:100)
-    result[24-i].rect = Rect(x:bx+tbxo+(i.toFloat*sqOff),y:by+byo,w:35,h:100)
-    if i < 12:
-      result[36-i].rect = Rect(x:bx+lxo,y:by+lryo+(i.toFloat*sqOff),w:100,h:35)
-      if i < 6:
-        result[55+i].rect = Rect(x:bx+rxo,y:by+lryo+(i.toFloat*sqOff),w:100,h:35)
-      else:
-        result[1+(i-6)].rect = Rect(x:bx+rxo,y:by+lryo+(i.toFloat*sqOff),w:100,h:35)
-  for dim in result.mitems:
-    dim.area = dim.rect.toArea
-
-const dims = squareDims()
 proc buildBoardSquares*(path:string):BoardSquares =
   var count = 0
   for name in lines path:
@@ -58,7 +60,7 @@ proc buildBoardSquares*(path:string):BoardSquares =
     result[count].icon = result[count].iconPath.paintIcon
 
 let 
-  boardImg = readImage "pics\\engboard.jpg"
+  boardImg* = readImage "pics\\engboard.jpg"
   squares* = buildBoardSquares "dat\\board.txt"
 
 proc pieceOn*(color:PlayerColor,squareNr:int): Rect =
@@ -72,7 +74,7 @@ proc pieceOn*(color:PlayerColor,squareNr:int): Rect =
 
 proc drawBoard*(b:var Boxy) =
   b.drawImage("board",boardPos)
-  for square in squares:
-    b.drawRect(square.dims.rect,color(0,0,0,150))
+  # for square in squares:
+  #   b.drawRect(square.dims.rect,color(0,0,0,150))
 
 addImage("board",boardImg)

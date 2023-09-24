@@ -5,6 +5,7 @@ import algorithm
 import random
 import batch
 import colors
+import board
 
 type
   PlayerKind* = enum Human,Computer,None
@@ -22,13 +23,15 @@ type
     diceMoved:bool
     undrawnBlues:int
 
+const
   # robotoRegular = "fonts\\Roboto-Regular_1.ttf"
   # condensedRegular = "fonts\\AsapCondensed-Regular.ttf"
   fjallaOneRegular = "fonts\\FjallaOne-Regular.ttf"
 
+
   settingsFile* = "settings.cfg"
   defaultPlayerKinds = @[Human,Computer,None,None,None,None]
-  (bx,by) = (20,20)
+  (pbx,pby) = (20,20)
 
   highways* = [5,17,29,41,53]
   gasStations* = [2,15,27,37,47]
@@ -44,7 +47,7 @@ proc playerBatch(name:string,bgColor:PlayerColor,entries:seq[string],yOffset:int
   newBatch BatchInit(
     kind:TextBatch,
     name:name,
-    pos:(bx,by+yOffset),
+    pos:(pbx,pby+yOffset),
     padding:(0,0,35,35),
     entries:entries,
     hAlign:CenterAlign,
@@ -55,10 +58,10 @@ proc playerBatch(name:string,bgColor:PlayerColor,entries:seq[string],yOffset:int
   )
 
 proc newPlayerBatches:array[6,Batch] =
-  var yOffset = by
+  var yOffset = pby
   for color in PlayerColor:
     if color.ord > 0:
-      yOffset = by+((result[color.ord-1].rect.h.toInt+15)*color.ord)
+      yOffset = pby+((result[color.ord-1].rect.h.toInt+15)*color.ord)
     result[color.ord] = playerBatch($color,color,@[$playerKinds[color.ord]],yOffset)
     result[color.ord].update = true
 
@@ -150,17 +153,36 @@ proc drawPlayerBatches*(b:var Boxy) =
     for batch in playerBatches:
       if batch.isActive: b.drawBatch batch
 
-proc mouseOnSetupBatchNr:int =
+proc paintPieces*:Image =
+  var ctx = newImage(boardImg.width,boardImg.height).newContext
+  ctx.font = "fonts\\IBMPlexMono-Bold.ttf"
+  ctx.fontSize = 10
+  for player in (if turn.nr == 0: players.filterIt(it.kind != None) else: players):
+    for square in player.pieces.deduplicate():
+      let 
+        nrOfPiecesOnSquare = player.pieces.filterIt(it == square).len
+        piece = player.color.pieceOn(square)
+      ctx.fillStyle = playerColors[player.color]
+      ctx.fillRect(piece)
+      if nrOfPiecesOnSquare > 1:
+        ctx.fillStyle = contrastColors[player.color]
+        ctx.fillText($nrOfPiecesOnSquare,piece.x+2,piece.y+10)
+  ctx.image
+
+proc mouseOnPlayerBatchNr:int =
   result = -1
   for i,batch in playerBatches:
     if mouseOn batch: return i
+
+var 
+  piecesImg* = DynamicImage[void](updateImage:paintPieces,update:true)
 
 proc leftMousePressed*(m:KeyEvent,deck:var Deck) =
   if mouseOn deck.drawSlot.area:
     drawFrom deck,1
     # discard cashInPlans deck
   else:
-    let batchNr = mouseOnSetupBatchNr()
+    let batchNr = mouseOnPlayerBatchNr()
     if batchNr != -1 and turn.nr == 0:
       playerKinds[batchNr] = 
         case playerKinds[batchNr]
@@ -169,6 +191,8 @@ proc leftMousePressed*(m:KeyEvent,deck:var Deck) =
         of None:Human
       playerBatches[batchNr].setSpanText($playerKinds[batchNr],0)
       playerBatches[batchNr].update = true
+      players[batchNr].kind = playerKinds[batchNr]
+      piecesImg.update = true
     else:
       for (_,slot) in turnPlayer.hand.cardSlots:
         if mouseOn slot.area: 

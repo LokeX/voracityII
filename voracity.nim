@@ -1,6 +1,6 @@
 import win
 import deck
-import players
+import play
 import board
 
 const
@@ -12,11 +12,15 @@ let
   bg = readImage "pics\\bgblue.png"
   bgRect = Rect(x:0,y:0,w:scaledWidth.toFloat,h:scaledHeight.toFloat)
 
-var blueDeck = newDeck "dat\\blues.txt"
+var 
+  blueDeck = newDeck "dat\\blues.txt"
+  # piecesImg = DynamicImage[void](updateImage:paintPieces,update:true)
+
 
 proc draw(b:var Boxy) =
   b.drawImage "bg",bgRect
   b.drawBoard
+  b.drawDynamicImage piecesImg
   b.paintCards blueDeck,turnPlayer.hand
   b.drawPlayerBatches
 
