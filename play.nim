@@ -24,10 +24,8 @@ type
     undrawnBlues:int
 
 const
-  # robotoRegular = "fonts\\Roboto-Regular_1.ttf"
-  # condensedRegular = "fonts\\AsapCondensed-Regular.ttf"
   fjallaOneRegular = "fonts\\FjallaOne-Regular.ttf"
-
+  ibmBold = "fonts\\IBMPlexMono-Bold.ttf"
   settingsFile* = "settings.cfg"
   defaultPlayerKinds = @[Human,Computer,None,None,None,None]
   (pbx,pby) = (20,20)
@@ -150,7 +148,7 @@ proc drawPlayerBatches*(b:var Boxy) =
 
 proc paintPieces*:Image =
   var ctx = newImage(boardImg.width,boardImg.height).newContext
-  ctx.font = "fonts\\IBMPlexMono-Bold.ttf"
+  ctx.font = ibmBold
   ctx.fontSize = 10
   for player in (if turn.nr == 0: players.filterIt(it.kind != None) else: players):
     for square in player.pieces.deduplicate():
@@ -170,7 +168,12 @@ proc mouseOnPlayerBatchNr:int =
     if mouseOn batch: return i
 
 var 
-  piecesImg* = DynamicImage[void](name:"pieces",updateImage:paintPieces,update:true)
+  piecesImg* = DynamicImage[void](
+    name:"pieces",
+    area:(bx.toInt,by.toInt,0,0),
+    updateImage:paintPieces,
+    update:true
+  )
 
 proc leftMousePressed*(m:KeyEvent,deck:var Deck) =
   if mouseOn deck.drawSlot.area:

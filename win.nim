@@ -138,7 +138,7 @@ template area_wh*(area:Area,body:untyped) =
 
 func area_wh*(area:Area):(int,int) = (area.x2-area.x1,area.y2-area.y1)
 
-func wh_toArea*(x,y,w,h:int):Area = (x,y,x+w,y+h)
+func toArea*(x,y,w,h:float):Area = (x.toInt,y.toInt,(x+w).toInt,(y+h).toInt)
 
 func toArea*(rect:Rect):Area =
   (rect.x.toInt,rect.y.toInt,(rect.x+rect.w).toInt,(rect.y+rect.h).toInt)

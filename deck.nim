@@ -261,15 +261,36 @@ proc shufflePiles*(deck:var Deck) =
   deck.discardPile.setLen 0
   deck.drawPile.shuffle
 
+proc paintCardSquares*(blue:BlueCard):Image =
+  result = newImage(boardImg.width,boardImg.height)
+  result.paintSquares(blue.squares.required.deduplicate,color(0,0,0,100))
+  if blue.squares.oneInMany.len > 0:
+    result.paintSquares(blue.squares.oneInMany,color(100,0,0,100))
+
+var 
+  cardSquaresPainter* = DynamicImage[BlueCard](
+    name:"cardSquares",
+    area:(bx.toInt,by.toInt,0,0),
+    updateImage:paintCardSquares,
+    update:true
+  )
+
+proc drawCardSquares(b:var Boxy,blue:BlueCard) =
+  cardSquaresPainter.update = true
+  cardSquaresPainter.context = blue
+  b.drawDynamicImage cardSquaresPainter
+
 proc paintCards*(b:var Boxy,deck:Deck,playerHand:seq[BlueCard]) =
   if deck.discardPile.len > 0:
     b.drawImage(deck.discardPile[^1].title,deck.discardSlot.rect)
     if mouseOn deck.discardSlot.area:
       b.drawImage(deck.discardPile[^1].title,deck.popUpSlot.rect)
+      b.drawCardSquares deck.discardPile[^1]
   for (card,slot) in (if deck.show == Hand: playerHand else: deck.discardPile).cardSlots:
     b.drawImage(card.title,slot.rect)
     if mouseOn slot.area:
       b.drawImage(card.title,deck.popUpSlot.rect)
+      b.drawCardSquares card
 
 proc leftMousePressed*(deck:var Deck) =
   if mouseOn deck.discardSlot.area:

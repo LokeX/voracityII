@@ -14,26 +14,29 @@ const
   (tyo,byo) = (70.0,690.0)
   (lxo,rxo) = (70.0,1030.0)
 
+  condos* = [31,32]
+  slums* = [56,58,59]
+  shops* = [23,34,42,44,50]
+  banks* = [3,14,24,38,52]
   highways* = [5,17,29,41,53]
   gasStations* = [2,15,27,37,47]
   bars* = [1,16,18,20,28,35,40,46,51,54]
 
 func squareDims:array[61,Dims] =
-  result[0].rect = Rect(x:bx+1225,y:by+150,w:35,h:100)
+  result[0].rect = Rect(x:1225,y:150,w:35,h:100)
   for i in 0..17:
-    result[37+i].rect = Rect(x:bx+tbxo+(i.toFloat*sqOff),y:by+tyo,w:35,h:100)
-    result[24-i].rect = Rect(x:bx+tbxo+(i.toFloat*sqOff),y:by+byo,w:35,h:100)
+    result[37+i].rect = Rect(x:tbxo+(i.toFloat*sqOff),y:tyo,w:35,h:100)
+    result[24-i].rect = Rect(x:tbxo+(i.toFloat*sqOff),y:byo,w:35,h:100)
     if i < 12:
-      result[36-i].rect = Rect(x:bx+lxo,y:by+lryo+(i.toFloat*sqOff),w:100,h:35)
+      result[36-i].rect = Rect(x:lxo,y:lryo+(i.toFloat*sqOff),w:100,h:35)
       if i < 6:
-        result[55+i].rect = Rect(x:bx+rxo,y:by+lryo+(i.toFloat*sqOff),w:100,h:35)
+        result[55+i].rect = Rect(x:rxo,y:lryo+(i.toFloat*sqOff),w:100,h:35)
       else:
-        result[1+(i-6)].rect = Rect(x:bx+rxo,y:by+lryo+(i.toFloat*sqOff),w:100,h:35)
+        result[1+(i-6)].rect = Rect(x:rxo,y:lryo+(i.toFloat*sqOff),w:100,h:35)
   for dim in result.mitems:
-    dim.area = dim.rect.toArea
+    dim.area = toArea(dim.rect.x+bx,dim.rect.y+by,dim.rect.w,dim.rect.h)
 
-const 
-  dims = squareDims()
+const dims = squareDims()
 
 proc paintIcon(path:string):Image =
   let 
@@ -43,8 +46,8 @@ proc paintIcon(path:string):Image =
   ctx.fillStyle = color(0,0,0,150)
   ctx.fillrect(
     Rect(x:shadowSize,y:shadowSize,w:icon.width.toFloat,h:icon.height.toFloat))
+  ctx.drawImage(icon,0,0)
   result = ctx.image
-  result.draw(icon,translate vec2(0,0))
 
 func iconPath(square:Square):string =
   let squareName = square.name.toLower
@@ -67,6 +70,12 @@ let
   boardImg* = readImage "pics\\engboard.jpg"
   squares* = buildBoardSquares "dat\\board.txt"
 
+proc paintSquares*(img:var Image,squareNrs:seq[int],color:Color) =
+  var ctx = img.newContext
+  ctx.fillStyle = color
+  for i in squareNrs: 
+    ctx.fillRect(squares[i].dims.rect)
+
 proc pieceOn*(color:PlayerColor,squareNr:int): Rect =
   let r = squares[squareNr].dims.rect
   if squareNr == 0:
@@ -78,7 +87,5 @@ proc pieceOn*(color:PlayerColor,squareNr:int): Rect =
 
 proc drawBoard*(b:var Boxy) =
   b.drawImage("board",boardPos)
-  # for square in squares:
-  #   b.drawRect(square.dims.rect,color(0,0,0,150))
 
 addImage("board",boardImg)

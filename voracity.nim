@@ -27,7 +27,7 @@ proc mouse(m:KeyEvent) =
     blueDeck.leftMousePressed
     m.leftMousePressed blueDeck
 
-blueDeck.initCardSlots discardRect = discardPile,drawRect = drawPile,popUpRect = popUpCard
+blueDeck.initCardSlots discardPile,popUpCard,drawPile
 nextPlayerTurn()
 drawFrom blueDeck
 addImage("bg",bg)
