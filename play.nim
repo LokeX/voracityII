@@ -28,14 +28,9 @@ const
   # condensedRegular = "fonts\\AsapCondensed-Regular.ttf"
   fjallaOneRegular = "fonts\\FjallaOne-Regular.ttf"
 
-
   settingsFile* = "settings.cfg"
   defaultPlayerKinds = @[Human,Computer,None,None,None,None]
   (pbx,pby) = (20,20)
-
-  highways* = [5,17,29,41,53]
-  gasStations* = [2,15,27,37,47]
-  bars* = [1,16,18,20,28,35,40,46,51,54]
 
 var
   playerKinds*:array[6,PlayerKind]
@@ -175,7 +170,7 @@ proc mouseOnPlayerBatchNr:int =
     if mouseOn batch: return i
 
 var 
-  piecesImg* = DynamicImage[void](updateImage:paintPieces,update:true)
+  piecesImg* = DynamicImage[void](name:"pieces",updateImage:paintPieces,update:true)
 
 proc leftMousePressed*(m:KeyEvent,deck:var Deck) =
   if mouseOn deck.drawSlot.area:

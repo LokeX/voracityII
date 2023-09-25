@@ -14,6 +14,10 @@ const
   (tyo,byo) = (70.0,690.0)
   (lxo,rxo) = (70.0,1030.0)
 
+  highways* = [5,17,29,41,53]
+  gasStations* = [2,15,27,37,47]
+  bars* = [1,16,18,20,28,35,40,46,51,54]
+
 func squareDims:array[61,Dims] =
   result[0].rect = Rect(x:bx+1225,y:by+150,w:35,h:100)
   for i in 0..17:

@@ -14,8 +14,6 @@ let
 
 var 
   blueDeck = newDeck "dat\\blues.txt"
-  # piecesImg = DynamicImage[void](updateImage:paintPieces,update:true)
-
 
 proc draw(b:var Boxy) =
   b.drawImage "bg",bgRect

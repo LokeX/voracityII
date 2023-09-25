@@ -103,17 +103,17 @@ func newBlueCards(protoCards:seq[ProtoCard]): seq[BlueCard] =
     of Plan: result.add buildPlanFrom protoCard
     else:discard
 
-func required(deck:BlueCard,squares:BoardSquares):seq[string] =
+func required(plan:BlueCard,squares:BoardSquares):seq[string] =
   let 
-    planSquares = deck.squares.required.deduplicate
+    planSquares = plan.squares.required.deduplicate
     squareAdresses = planSquares.mapIt squares[it].name&" Nr. " & $squares[it].nr
-    nrOfPieces = planSquares.mapit deck.squares.required.count it
+    nrOfPieces = planSquares.mapit plan.squares.required.count it
     piecesTxt = nrOfPieces.mapIt(if it > 1: " pieces on the " else: " piece on the ")
     piecesOn = zip(nrOfPieces,piecesTxt).mapIt $it[0]&it[1]
     squareLines = zip(piecesOn,squareAdresses).mapIt it[0]&it[1]
   result = squareLines
-  if deck.squares.oneInMany.len > 0: 
-    result.add "1 piece on any "&squares[deck.squares.oneInMany[0]].name 
+  if plan.squares.oneInMany.len > 0: 
+    result.add "1 piece on any "&squares[plan.squares.oneInMany[0]].name 
 
 func buildShadowRect(rect:Rect,borderSize,shadowSize:float):Rect =
   result = rect
@@ -127,19 +127,19 @@ func buildInnerRect(rect:Rect,borderSize:float):Rect =
   result.w -= (borderSize*2)
   result.h -= (borderSize*2)
 
-proc typesetBoxedText(deck:BlueCard,squares:BoardSquares):(Arrangement,float32) =
-  var txt = deck.required squares
+proc typesetBoxedText(plan:BlueCard,squares:BoardSquares):(Arrangement,float32) =
+  var txt = plan.required squares
   txt.insert "Requires: ",0
-  txt.add "Rewards:\n" & ($deck.cash).insertSep('.')&" in cash"
+  txt.add "Rewards:\n" & ($plan.cash).insertSep('.')&" in cash"
   let 
     font = setNewFont(roboto,13.0,color(0,0,0))
     boxText = font.typeset txt.join "\n"
   (boxText,boxText.layoutBounds.y)
 
-proc paintTextBoxOn(deck:BlueCard,img:var Image,squares:BoardSquares) =
+proc paintTextBoxOn(card:BlueCard,img:var Image,squares:BoardSquares) =
   let
     (textPadX,textPadY,borderSize,shadowSize,angle) = (15.0,15.0,0.0,3.0,0.0)  
-    (boxText,textHeight) = deck.typesetBoxedText squares
+    (boxText,textHeight) = card.typesetBoxedText squares
     boxPosX = 20.0
     boxWidth = img.width.toFloat-(boxPosX*2)-shadowSize-(borderSize*2)-3
     boxHeight = (textheight+(textPadY*2)+(borderSize*2))
@@ -159,18 +159,18 @@ proc paintTextBoxOn(deck:BlueCard,img:var Image,squares:BoardSquares) =
   img = ctx.image
   img.fillText(boxText,translate vec2(textX,textY))
 
-proc titleArrangements(deck:BlueCard):(Arrangement,Arrangement,Arrangement) =
+proc titleArrangements(card:BlueCard):(Arrangement,Arrangement,Arrangement) =
   let 
     titleFont = setNewFont(point,46.0,color(1,1,0))
     titleStroke = setNewFont(point,46.0,color(0,0,0))
     titleShadow = setNewFont(point,46.0,color(0,0,0,50))
-  (titleFont.typeset(deck.title),
-  titleStroke.typeset(deck.title),
-  titleShadow.typeset(deck.title))
+  (titleFont.typeset(card.title),
+  titleStroke.typeset(card.title),
+  titleShadow.typeset(card.title))
 
-proc paintTitleOn(deck:BlueCard,img:var Image,borderSize:float) =
+proc paintTitleOn(card:BlueCard,img:var Image,borderSize:float) =
   let
-    (title,strokeTitle,shadowTitle) = deck.titleArrangements
+    (title,strokeTitle,shadowTitle) = card.titleArrangements
     shadowOffset = 2.0
     titleX = 10.0+borderSize
     titleY = 5.0+borderSize
@@ -178,14 +178,14 @@ proc paintTitleOn(deck:BlueCard,img:var Image,borderSize:float) =
   img.fillText(title,translate vec2(titleX,titleY))
   img.strokeText(strokeTitle,translate vec2(titleX,titleY),0.75)
 
-proc paintBackgroundImage(deck:BlueCard,ctx:Context,borderSize:float):Image =
+proc paintBackgroundImage(card:BlueCard,ctx:Context,borderSize:float):Image =
   result = ctx.image
-  case deck.cardKind
+  case card.cardKind
   of Plan:
     result.draw(planbg,translate vec2(borderSize,borderSize))
   else:discard
 
-proc paintBackground(deck:BlueCard,borderSize:float):Image =
+proc paintBackground(card:BlueCard,borderSize:float):Image =
   let
     shadowSize = 5.0
     offset = shadowSize+borderSize
@@ -197,18 +197,18 @@ proc paintBackground(deck:BlueCard,borderSize:float):Image =
   ctx.fillRect(Rect(x:offset,y:offset,w:width,h:height))
   ctx.fillStyle = color(0,0,0)
   ctx.fillRect(Rect(x:0,y:0,w:width,h:height))
-  deck.paintBackgroundImage(ctx,borderSize)
+  card.paintBackgroundImage(ctx,borderSize)
 
-proc paintCardKindOn(deck:BlueCard,img:var Image,borderSize:float) =
+proc paintCardKindOn(card:BlueCard,img:var Image,borderSize:float) =
   let 
     kindFont = setNewFont(ibmplex,16.0,color(0,0,0))
-    cardKind = kindFont.typeset $deck.cardKind
+    cardKind = kindFont.typeset $card.cardKind
   img.fillText(cardKind,translate vec2(10+borderSize,60))
 
-proc paintIconsOn(deck:BlueCard,img:var Image,squares:BoardSquares) =
-  var requires = deck.squares.required
-  if deck.squares.oneInMany.len > 0:
-    requires.add deck.squares.oneInMany[0]
+proc paintIconsOn(card:BlueCard,img:var Image,squares:BoardSquares) =
+  var requires = card.squares.required
+  if card.squares.oneInMany.len > 0:
+    requires.add card.squares.oneInMany[0]
   let x_offset = if requires.len == 1: 100.0 else: 55.0
   var (x,y) = (x_offset,120.0)
   for idx,squareNr in requires:
@@ -218,18 +218,18 @@ proc paintIconsOn(deck:BlueCard,img:var Image,squares:BoardSquares) =
       x = x_offset+(if requires.len == 3: 45 else: 0)
       y += squares[squareNr].icon.height.toFloat*1.5
 
-proc paintBlue(deck:BlueCard,squares:BoardSquares):Image =
+proc paintBlue(card:BlueCard,squares:BoardSquares):Image =
   let borderSize = 1.0
-  result = deck.paintBackground borderSize
-  deck.paintTitleOn(result,borderSize)
-  deck.paintCardKindOn(result,borderSize)
-  deck.paintIconsOn(result,squares)
-  case deck.cardKind
-  of Plan: deck.paintTextBoxOn(result,squares)
+  result = card.paintBackground borderSize
+  card.paintTitleOn(result,borderSize)
+  card.paintCardKindOn(result,borderSize)
+  card.paintIconsOn(result,squares)
+  case card.cardKind
+  of Plan: card.paintTextBoxOn(result,squares)
   else:discard
 
 proc buildBlues(path:string):seq[BlueCard] =
-  result = lines(path).toSeq.parseProtoCards.newBlueCards
+  result = path.lines.toSeq.parseProtoCards.newBlueCards
   for deck in result.mitems:
     deck.img = deck.paintBlue squares
 
