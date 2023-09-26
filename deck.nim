@@ -276,8 +276,9 @@ var
   )
 
 proc drawCardSquares(b:var Boxy,blue:BlueCard) =
-  cardSquaresPainter.update = true
-  cardSquaresPainter.context = blue
+  if cardSquaresPainter.context.title != blue.title:
+    cardSquaresPainter.update = true
+    cardSquaresPainter.context = blue
   b.drawDynamicImage cardSquaresPainter
 
 proc paintCards*(b:var Boxy,deck:Deck,playerHand:seq[BlueCard]) =

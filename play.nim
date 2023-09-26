@@ -1,5 +1,6 @@
 import win
 import deck
+import strutils
 import sequtils
 import algorithm
 import random
@@ -36,6 +37,8 @@ var
   players*:seq[Player]
   turn*:Turn
 
+template turnPlayer*:untyped = players[turn.player]
+
 proc playerBatch(name:string,bgColor:PlayerColor,entries:seq[string],yOffset:int):Batch = 
   newBatch BatchInit(
     kind:TextBatch,
@@ -52,14 +55,23 @@ proc playerBatch(name:string,bgColor:PlayerColor,entries:seq[string],yOffset:int
 
 proc newPlayerBatches:array[6,Batch] =
   var yOffset = pby
-  for color in PlayerColor:
-    if color.ord > 0:
-      yOffset = pby+((result[color.ord-1].rect.h.toInt+15)*color.ord)
-    result[color.ord] = playerBatch($color,color,@[$playerKinds[color.ord]],yOffset)
-    result[color.ord].update = true
+  for i,player in players:
+    if i > 0:
+      yOffset = pby+((result[i-1].rect.h.toInt+15)*i)
+    result[i] = playerBatch($player.color,player.color,@[$playerKinds[player.color.ord]],yOffset)
+    result[i].update = true
 
-template turnPlayer*:untyped = players[turn.player]
-
+proc updateBatch(playerNr:int) =
+  let spans = @[
+    "Turn Nr: "&($turn.nr),
+    "Cards: "&($players[playerNr].hand.len),
+    "Cash: "&(insertSep($players[playerNr].cash,'.'))
+  ]
+  playerBatches[playerNr].setSpanTexts(spans)
+  playerBatches[playerNr].commands:
+    playerBatches[playerNr].text.hAlign = LeftAlign
+  playerBatches[playerNr].update = true
+  
 func nrOfPiecesOnBars(player:Player): int =
   player.pieces.countIt it in bars
 
@@ -135,16 +147,18 @@ proc newPlayers*:seq[Player] =
 
 proc nextPlayerTurn* =
   turnPlayer.turnNr = turn.nr
+  playerBatches[turn.player].update = true
   if turn.player == players.high:
     inc turn.nr
-    turn.player = 0
+    turn.player = players.low
   else: inc turn.player
+  playerBatches[turn.player].update = true
   turn.undrawnBlues = turnPlayer.nrOfPiecesOnBars
 
 proc drawPlayerBatches*(b:var Boxy) =
-  if turn.nr == 0:
-    for batch in playerBatches:
-      if batch.isActive: b.drawBatch batch
+  for batchNr,_ in players:
+    if playerBatches[batchNr].isActive: 
+      b.drawBatch playerBatches[batchNr]
 
 proc paintPieces*:Image =
   var ctx = newImage(boardImg.width,boardImg.height).newContext
@@ -175,6 +189,23 @@ var
     update:true
   )
 
+proc togglePlayerKind(batchNr:int) =
+  playerKinds[batchNr] = 
+    case playerKinds[batchNr]
+    of Human:Computer
+    of Computer:None
+    of None:Human
+  playerBatches[batchNr].setSpanText($playerKinds[batchNr],0)
+  playerBatches[batchNr].update = true
+  players[batchNr].kind = playerKinds[batchNr]
+  piecesImg.update = true
+
+proc playCard(deck:var Deck) =
+  for (_,slot) in turnPlayer.hand.cardSlots:
+    if mouseOn slot.area: 
+      playTo deck,slot.nr
+      break
+
 proc leftMousePressed*(m:KeyEvent,deck:var Deck) =
   if mouseOn deck.drawSlot.area:
     drawFrom deck,1
@@ -182,20 +213,18 @@ proc leftMousePressed*(m:KeyEvent,deck:var Deck) =
   else:
     let batchNr = mouseOnPlayerBatchNr()
     if batchNr != -1 and turn.nr == 0:
-      playerKinds[batchNr] = 
-        case playerKinds[batchNr]
-        of Human:Computer
-        of Computer:None
-        of None:Human
-      playerBatches[batchNr].setSpanText($playerKinds[batchNr],0)
-      playerBatches[batchNr].update = true
-      players[batchNr].kind = playerKinds[batchNr]
-      piecesImg.update = true
-    else:
-      for (_,slot) in turnPlayer.hand.cardSlots:
-        if mouseOn slot.area: 
-          playTo deck,slot.nr
-          break
+      togglePlayerKind batchNr
+    else: playCard deck
+
+proc rightMousePressed*(m:KeyEvent,deck:var Deck) =
+  if turn.nr == 0:
+    echo "start game"
+    inc turn.nr
+    players = newPlayers()
+    for player in players: echo player
+    playerBatches = newPlayerBatches()
+    echo "made it"
+  else: nextPlayerTurn()
 
 proc playerKindsFromFile:seq[PlayerKind] =
   try:
@@ -213,10 +242,13 @@ proc printPlayers =
     for field,value in player.fieldPairs:
       echo field,": ",value
 
-randomize()
-for i,kind in playerKindsFromFile(): playerKinds[i] = kind
-players = newDefaultPlayers()
-playerBatches = newPlayerBatches()
+proc initPlayers =
+  randomize()
+  for i,kind in playerKindsFromFile(): playerKinds[i] = kind
+  players = newDefaultPlayers()
+  playerBatches = newPlayerBatches()
+
+initPlayers()
 
 when isMainModule:
   printPlayers()

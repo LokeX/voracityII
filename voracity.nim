@@ -26,10 +26,12 @@ proc mouse(m:KeyEvent) =
   if m.leftMousePressed:
     blueDeck.leftMousePressed
     m.leftMousePressed blueDeck
+    for square in squares:
+      if mouseOn square.dims.area:
+        echo "mouse on square: ",square.name," ",square.nr
+  elif m.rightMousePressed: m.rightMousePressed blueDeck
 
 blueDeck.initCardSlots discardPile,popUpCard,drawPile
-nextPlayerTurn()
-drawFrom blueDeck
 addImage("bg",bg)
 addCall Call(draw:draw,mouse:mouse)
 runWin

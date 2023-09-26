@@ -388,6 +388,10 @@ proc input*(batch:Batch):string =
     batch.text.spans[^1].text
   else: "No input - batch is not InputBatch"
 
+proc setSpanTexts*(batch:Batch,spans:seq[string]) =
+  for i,span in batch.text.spans.mpairs:
+    span.text = spans[i]
+
 proc setSpans*(batch:Batch,spans:seq[Span]) =
   batch.text.spans = spans
   batch.setDimensions()

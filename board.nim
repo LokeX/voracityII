@@ -14,10 +14,6 @@ const
   (tyo,byo) = (70.0,690.0)
   (lxo,rxo) = (70.0,1030.0)
 
-  condos* = [31,32]
-  slums* = [56,58,59]
-  shops* = [23,34,42,44,50]
-  banks* = [3,14,24,38,52]
   highways* = [5,17,29,41,53]
   gasStations* = [2,15,27,37,47]
   bars* = [1,16,18,20,28,35,40,46,51,54]
@@ -75,6 +71,10 @@ proc paintSquares*(img:var Image,squareNrs:seq[int],color:Color) =
   ctx.fillStyle = color
   for i in squareNrs: 
     ctx.fillRect(squares[i].dims.rect)
+
+proc paintSquares*(squareNrs:seq[int],color:Color):Image =
+  result = newImage(boardImg.width,boardImg.height)
+  result.paintSquares(squareNrs,color)
 
 proc pieceOn*(color:PlayerColor,squareNr:int): Rect =
   let r = squares[squareNr].dims.rect
