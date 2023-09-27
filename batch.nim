@@ -79,15 +79,17 @@ func batchArea(batch:Batch):Area = (
   batch.pos.x+
   batch.text.bounds.width+
   (batch.border.size*2)+
+  (if batch.fixedBounds.width > 0: 0 else: 
   batch.padding.left+
-  batch.padding.right+
+  batch.padding.right)+
   batch.shadow.size,
   
   batch.pos.y+
   batch.text.bounds.height+
   (batch.border.size*2)+
+  (if batch.fixedBounds.height > 0: 0 else: 
   batch.padding.top+
-  batch.padding.bottom+
+  batch.padding.bottom)+
   batch.shadow.size)
 
 func shadowRect(batch:Batch):Rect = 

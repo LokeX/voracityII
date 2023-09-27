@@ -2,6 +2,7 @@ import win
 import deck
 import play
 import board
+import times
 
 const
   popUpCard = Rect(x:500,y:275,w:cardWidth,h:cardHeight)
@@ -21,6 +22,7 @@ proc draw(b:var Boxy) =
   b.drawDynamicImage piecesImg
   b.paintCards blueDeck,turnPlayer.hand
   b.drawPlayerBatches
+  b.drawCursor
 
 proc mouse(m:KeyEvent) =
   if m.leftMousePressed:
@@ -31,8 +33,15 @@ proc mouse(m:KeyEvent) =
         echo "mouse on square: ",square.name," ",square.nr
   elif m.rightMousePressed: m.rightMousePressed blueDeck
 
+proc timer = 
+  echo showCursor
+  showCursor = not showCursor
+
+proc timerCall:TimerCall =
+  TimerCall(call:timer,lastTime:cpuTime(),secs:0.4)
+
 blueDeck.initCardSlots discardPile,popUpCard,drawPile
 addImage("bg",bg)
-addCall Call(draw:draw,mouse:mouse)
-runWin
+addCall Call(draw:draw,mouse:mouse,timer:timerCall())
+runWinWith: callTimers()
 playerKindsToFile playerKinds
