@@ -34,7 +34,7 @@ type
     padding:(int,int,int,int)
 
 const
-  roboto = "fonts\\Roboto-Regular_1.ttf"
+  roboto = "fonts\\Kalam-Bold.ttf"
   fjallaOneRegular = "fonts\\FjallaOne-Regular.ttf"
   ibmBold = "fonts\\IBMPlexMono-Bold.ttf"
   settingsFile* = "settings.cfg"
@@ -98,7 +98,7 @@ proc batchSetup(playerNr:int):BatchSetup =
     result.hAlign = LeftAlign
     result.font = roboto
     result.fontSize = 18
-    result.padding = (20,20,20,20)
+    result.padding = (20,20,12,10)
   result.entries = playerBatchTxt(playerNr)
 
 proc newPlayerBatches:array[6,Batch] =
@@ -108,7 +108,7 @@ proc newPlayerBatches:array[6,Batch] =
   for playerNr,_ in players:
     if playerNr > 0: 
       yOffset = pby+((result[playerNr-1].rect.h.toInt+15)*playerNr)
-    setup = batchSetup(playerNr)
+    setup = batchSetup playerNr
     result[playerNr] = setup.playerBatch yOffset
     result[playerNr].update = true
 

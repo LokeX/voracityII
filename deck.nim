@@ -302,7 +302,8 @@ proc leftMousePressed*(deck:var Deck) =
     deck.show = Hand
 
 when isMainModule:
-  let cards = buildBlues "dat\\deck.txt"
+  let cards = buildBlues "dat\\blues.txt"
+  if not dirExists "cards": createDir "cards"
   for card in cards:
     echo card.title
     card.img.writeFile "cards\\"&card.title&".png"

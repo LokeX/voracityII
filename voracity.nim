@@ -10,7 +10,7 @@ const
   discardPile = Rect(x:1025,y:495,w:cardWidth*0.441,h:cardHeight*0.441)
 
 let
-  bg = readImage "pics\\bgblue.png"
+  bg = readImage "pics\\bggreen.png"
   bgRect = Rect(x:0,y:0,w:scaledWidth.toFloat,h:scaledHeight.toFloat)
 
 var 
@@ -33,9 +33,7 @@ proc mouse(m:KeyEvent) =
         echo "mouse on square: ",square.name," ",square.nr
   elif m.rightMousePressed: m.rightMousePressed blueDeck
 
-proc timer = 
-  echo showCursor
-  showCursor = not showCursor
+proc timer = showCursor = not showCursor
 
 proc timerCall:TimerCall =
   TimerCall(call:timer,lastTime:cpuTime(),secs:0.4)
