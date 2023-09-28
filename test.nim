@@ -21,7 +21,9 @@ for shape in shapes:
     echo prop,": ",value 
   echo ""
 echo shapes[Circle].area # <- A ShapeKind enumerated array of named tuples
-
+import os
+for f in walkDirs("*.*"):
+  echo f
 # Output ->
 
 # name: Circle

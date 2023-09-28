@@ -1,7 +1,10 @@
 import win
 import colors
+import strutils
 
 type
+  Dice = enum Die1 = 1,Die2 = 2,Die3 = 3,Die4 = 4,Die5 = 5,Die6 = 6
+  DiceRoll = tuple[die1,die2:int]
   BoardSquares* = array[61,Square]
   Square* = tuple[nr:int,name:string,dims:Dims,icon:Image]
   Dims = tuple[area:Area,rect:Rect]
@@ -13,10 +16,48 @@ const
   (tbxo,lryo) = (220.0,172.0)
   (tyo,byo) = (70.0,690.0)
   (lxo,rxo) = (70.0,1030.0)
+  maxRollFrames = 40
 
   highways* = [5,17,29,41,53]
   gasStations* = [2,15,27,37,47]
   bars* = [1,16,18,20,28,35,40,46,51,54]
+
+var
+  diceRoll*:DiceRoll = (3,4)
+  dieRollFrame* = maxRollFrames
+
+proc drawDice*(b:var Boxy) =
+  for field,die in diceRoll.fieldPairs:
+    b.drawImage($Dice(die),vec2(1450,field.substr(field.high).parseFloat*60))
+
+  # for die in Dice:
+  #   b.drawImage($die,vec2(die.ord.toFloat*200,100))
+
+# proc rotateDie(b:var Boxy,die:ImageHandle) =
+#   var (x,y,w,h) = die.area
+#   b.drawImage(
+#     dice[die.img.name.parseInt].intToStr,
+#     center = vec2((x.toFloat+(w/2)),y.toFloat+(h/2)),
+#     angle = (dieRollFrame*9).toFloat,
+#     tint = color(1,1,1,41-dieRollFrame.toFloat)
+#   )
+
+# proc rollDice*() = 
+#   for i,die in dice: dice[i] = rand(1..6)
+
+# proc isRollingDice*(): bool =
+#   dieRollFrame < maxRollFrames
+
+# proc isDouble*(): bool = dice[1] == dice[2]
+
+# proc startDiceRoll*() =
+#   if not isRollingDice(): 
+#     randomize()
+#     dieRollFrame = 0
+#     playSound("wuerfelbecher")
+
+# proc endDiceRoll* =
+#   dieRollFrame = maxRollFrames
 
 func squareDims:array[61,Dims] =
   result[0].rect = Rect(x:1225,y:150,w:35,h:100)
@@ -89,3 +130,11 @@ proc drawBoard*(b:var Boxy) =
   b.drawImage("board",boardPos)
 
 addImage("board",boardImg)
+for die in Dice: addImage $die,("pics\\diefaces\\"&($die.ord)&".gif").readImage
+
+# for i,dieImage in Dice.toseq.mapIt readImage ($it)&".gif":
+#   echo $Dice(i+1)
+#   addImage $Dice(i+1),dieImage
+
+for field,die in diceRoll.fieldPairs:
+  echo field,die

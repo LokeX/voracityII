@@ -23,6 +23,7 @@ proc draw(b:var Boxy) =
   b.paintCards blueDeck,turnPlayer.hand
   b.drawPlayerBatches
   b.drawCursor
+  b.drawDice
 
 proc mouse(m:KeyEvent) =
   if m.leftMousePressed:
