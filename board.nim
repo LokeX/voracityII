@@ -1,15 +1,24 @@
 import win
 import colors
 import strutils
+import random
+import megasound
 
 type
-  Dice = enum Die1 = 1,Die2 = 2,Die3 = 3,Die4 = 4,Die5 = 5,Die6 = 6
-  DiceRoll = tuple[die1,die2:int]
+  DieFaces* = enum 
+    DieFace1 = 1,DieFace2 = 2,DieFace3 = 3,
+    DieFace4 = 4,DieFace5 = 5,DieFace6 = 6
+  Dice* = array[1..2,DieFaces]
   BoardSquares* = array[61,Square]
   Square* = tuple[nr:int,name:string,dims:Dims,icon:Image]
-  Dims = tuple[area:Area,rect:Rect]
+  Dims* = tuple[area:Area,rect:Rect]
 
 const
+  diceRects = (Rect(x:1450,y:60,w:50,h:50),Rect(x:1450,y:120,w:50,h:50))
+  diceRollDims:array[1..2,Dims] = [
+    (diceRects[0].toArea,diceRects[0]),
+    (diceRects[1].toArea,diceRects[1])
+  ]
   boardPos = vec2(225,50)
   (bx*,by*) = (boardPos.x,boardPos.y)
   sqOff = 43.0
@@ -23,41 +32,48 @@ const
   bars* = [1,16,18,20,28,35,40,46,51,54]
 
 var
-  diceRoll*:DiceRoll = (3,4)
+  diceRoll*:Dice = [DieFace3,DieFace4]
   dieRollFrame* = maxRollFrames
 
+proc mouseOnDice*:bool = 
+  for dieDims in diceRollDims:
+    if mouseOn dieDims.area: return true
+
+proc rollDice*() = 
+  for die in diceRoll.mitems: die = DieFaces(rand(1..6))
+
+proc rotateDie(b:var Boxy,idx:int) =
+  b.drawImage(
+    $diceRoll[idx],
+    center = vec2(
+      (diceRollDims[idx].rect.x+(diceRollDims[idx].rect.w/2)),
+      diceRollDims[idx].rect.y+(diceRollDims[idx].rect.h/2)),
+    angle = (dieRollFrame*9).toFloat,
+    tint = color(1,1,1,41-dieRollFrame.toFloat)
+  )
+
 proc drawDice*(b:var Boxy) =
-  for field,die in diceRoll.fieldPairs:
-    b.drawImage($Dice(die),vec2(1450,field.substr(field.high).parseFloat*60))
+    if dieRollFrame == maxRollFrames:
+      for i,die in diceRoll:
+        b.drawImage($die,vec2(diceRollDims[i].rect.x,diceRollDims[i].rect.y))
+    else:
+      rollDice()
+      b.rotateDie(1)
+      b.rotateDie(2)
+      inc dieRollFrame
 
-  # for die in Dice:
-  #   b.drawImage($die,vec2(die.ord.toFloat*200,100))
+proc isRollingDice*(): bool =
+  dieRollFrame < maxRollFrames
 
-# proc rotateDie(b:var Boxy,die:ImageHandle) =
-#   var (x,y,w,h) = die.area
-#   b.drawImage(
-#     dice[die.img.name.parseInt].intToStr,
-#     center = vec2((x.toFloat+(w/2)),y.toFloat+(h/2)),
-#     angle = (dieRollFrame*9).toFloat,
-#     tint = color(1,1,1,41-dieRollFrame.toFloat)
-#   )
+proc isDouble*(): bool = diceRoll[1] == diceRoll[2]
 
-# proc rollDice*() = 
-#   for i,die in dice: dice[i] = rand(1..6)
+proc startDiceRoll*() =
+  if not isRollingDice(): 
+    dieRollFrame = 0
+    playSound("wuerfelbecher")
 
-# proc isRollingDice*(): bool =
-#   dieRollFrame < maxRollFrames
-
-# proc isDouble*(): bool = dice[1] == dice[2]
-
-# proc startDiceRoll*() =
-#   if not isRollingDice(): 
-#     randomize()
-#     dieRollFrame = 0
-#     playSound("wuerfelbecher")
-
-# proc endDiceRoll* =
-#   dieRollFrame = maxRollFrames
+proc endDiceRoll* =
+  dieRollFrame = maxRollFrames
 
 func squareDims:array[61,Dims] =
   result[0].rect = Rect(x:1225,y:150,w:35,h:100)
@@ -73,7 +89,7 @@ func squareDims:array[61,Dims] =
   for dim in result.mitems:
     dim.area = toArea(dim.rect.x+bx,dim.rect.y+by,dim.rect.w,dim.rect.h)
 
-const dims = squareDims()
+const dieDims = squareDims()
 
 proc paintIcon(path:string):Image =
   let 
@@ -100,7 +116,7 @@ proc buildBoardSquares*(path:string):BoardSquares =
   var count = 0
   for name in lines path:
     inc count
-    result[count] = (count,name,dims[count],nil)
+    result[count] = (count,name,dieDims[count],nil)
     result[count].icon = result[count].iconPath.paintIcon
 
 let 
@@ -129,12 +145,6 @@ proc pieceOn*(color:PlayerColor,squareNr:int): Rect =
 proc drawBoard*(b:var Boxy) =
   b.drawImage("board",boardPos)
 
+randomize()
 addImage("board",boardImg)
-for die in Dice: addImage $die,("pics\\diefaces\\"&($die.ord)&".gif").readImage
-
-# for i,dieImage in Dice.toseq.mapIt readImage ($it)&".gif":
-#   echo $Dice(i+1)
-#   addImage $Dice(i+1),dieImage
-
-for field,die in diceRoll.fieldPairs:
-  echo field,die
+for die in DieFaces: addImage $die,("pics\\diefaces\\"&($die.ord)&".gif").readImage

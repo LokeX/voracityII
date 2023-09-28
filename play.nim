@@ -183,8 +183,6 @@ proc newPlayers*:seq[Player] =
   playerSlots.filterIt it.kind != None
 
 proc nextPlayerTurn* =
-  echo "next turn"
-  playSound "carhorn-1"
   turnPlayer.turnNr = turn.nr
   turn.player.updateBatch
   if turn.player == players.high:
@@ -260,8 +258,9 @@ proc rightMousePressed*(m:KeyEvent,deck:var Deck) =
     inc turn.nr
     players = newPlayers()
     playerBatches = newPlayerBatches()
-    playSound "carhorn-1"
   else: nextPlayerTurn()
+  playSound "carhorn-1"
+  startDiceRoll()
 
 proc playerKindsFromFile:seq[PlayerKind] =
   try:

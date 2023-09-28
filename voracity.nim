@@ -3,6 +3,7 @@ import deck
 import play
 import board
 import times
+import megasound
 
 const
   popUpCard = Rect(x:500,y:275,w:cardWidth,h:cardHeight)
@@ -39,6 +40,7 @@ proc timer = showCursor = not showCursor
 proc timerCall:TimerCall =
   TimerCall(call:timer,lastTime:cpuTime(),secs:0.4)
 
+setVolume 0.15
 blueDeck.initCardSlots discardPile,popUpCard,drawPile
 addImage("bg",bg)
 addCall Call(draw:draw,mouse:mouse,timer:timerCall())
