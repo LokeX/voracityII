@@ -13,6 +13,7 @@ type
   BoardSquares* = array[61,Square]
   Square* = tuple[nr:int,name:string,dims:Dims,icon:Image]
   Dims* = tuple[area:Area,rect:Rect]
+  MoveSelection = tuple[fromSquare:int,toSquares:seq[int]]
 
 const
   diceRollRects = (Rect(x:1450,y:60,w:50,h:50),Rect(x:1450,y:120,w:50,h:50))
@@ -35,6 +36,16 @@ const
 var
   diceRoll*:Dice = [DieFace3,DieFace4]
   dieRollFrame* = maxRollFrames
+  moveSelection*:MoveSelection = (-1,@[])
+  dieEdit:int
+
+proc editDiceRoll*(input:string) =
+  var dieFace = try: input.parseInt except: 0
+  if input.toUpper == "D": dieEdit = 1 
+  elif dieEdit > 0 and dieFace in 1..6:
+    diceRoll[dieEdit] = DieFaces(dieFace)
+    dieEdit = if dieEdit == 2: 0 else: dieEdit + 1
+  else: dieEdit = 0
 
 proc mouseOnDice*:bool = 
   for dieDims in diceRollDims:
@@ -64,8 +75,7 @@ proc drawDice*(b:var Boxy) =
     b.rotateDie(2)
     inc dieRollFrame
 
-proc isRollingDice*(): bool =
-  dieRollFrame < maxRollFrames
+proc isRollingDice*(): bool = dieRollFrame < maxRollFrames
 
 proc isDouble*(): bool = diceRoll[1] == diceRoll[2]
 
@@ -74,8 +84,9 @@ proc startDiceRoll*() =
     dieRollFrame = 0
     playSound("wuerfelbecher")
 
-proc endDiceRoll* =
-  dieRollFrame = maxRollFrames
+proc endDiceRoll* = dieRollFrame = maxRollFrames
+
+proc mayReroll*:bool = isDouble() and not isRollingDice()
 
 func adjustToSquareNr*(adjustSquare:int): int =
   if adjustSquare > 60: adjustSquare - 60 else: adjustSquare

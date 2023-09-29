@@ -4,7 +4,6 @@ import play
 import board
 import times
 import megasound
-import strutils
 
 const
   popUpCard = Rect(x:500,y:275,w:cardWidth,h:cardHeight)
@@ -17,7 +16,6 @@ let
 
 var 
   blueDeck = newDeck "dat\\blues.txt"
-  dieEdit:int
 
 proc draw(b:var Boxy) =
   b.drawImage "bg",bgRect
@@ -27,23 +25,20 @@ proc draw(b:var Boxy) =
   b.drawPlayerBatches
   b.drawCursor
   if turn.nr > 0: b.drawDice
-  if turn.nr > 0 and not isRollingDice(): b.drawMoveToSquares mouseOnSquare()
+  if turn.nr > 0 and not isRollingDice(): 
+    b.drawMoveToSquares mouseOnSquare()
 
 proc mouse(m:KeyEvent) =
   if m.leftMousePressed:
     blueDeck.leftMousePressed
     m.leftMousePressed blueDeck
+    if turn.nr > 0 and mouseOnDice() and mayReroll(): 
+      startDiceRoll()
   elif m.rightMousePressed: m.rightMousePressed blueDeck
 
 proc keyboard (k:KeyboardEvent) =
   if k.button == ButtonUnknown and not isRollingDice():
-    let c = k.rune.toUTF8
-    var i = try: c.parseInt except: 0
-    if c.toUpper == "D": dieEdit = 1 
-    elif dieEdit > 0 and i in 1..6:
-      diceRoll[dieEdit] = DieFaces(i)
-      dieEdit = if dieEdit == 2: 0 else: dieEdit + 1
-    else: dieEdit = 0
+    editDiceRoll k.rune.toUTF8
 
 proc timer = showCursor = not showCursor
 

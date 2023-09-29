@@ -249,14 +249,22 @@ proc playCard(player:var Player,deck:var Deck) =
       turnPlayer.playTo deck,slot.nr
       break
 
+proc moveSelect(square:int) =
+  discard
+
 proc leftMousePressed*(m:KeyEvent,deck:var Deck) =
-  if mouseOn deck.drawSlot.area:
-    turnPlayer.drawFrom deck
-    # discard cashInPlans deck
-  else:
+  if turn.nr == 0:
     let batchNr = mouseOnPlayerBatchNr()
     if batchNr != -1 and turn.nr == 0:
       togglePlayerKind batchNr
+  elif mouseOn deck.drawSlot.area:
+    turnPlayer.drawFrom deck
+    # discard cashInPlans deck
+  elif not isRollingDice():
+    let square = mouseOnSquare()
+    if square != -1: 
+      if moveSelection.fromSquare == -1: 
+        square.moveSelect
     else: playCard turnPlayer,deck
 
 proc rightMousePressed*(m:KeyEvent,deck:var Deck) =
