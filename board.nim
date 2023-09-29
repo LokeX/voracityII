@@ -3,6 +3,7 @@ import colors
 import strutils
 import random
 import megasound
+import sequtils
 
 type
   DieFaces* = enum 
@@ -14,10 +15,10 @@ type
   Dims* = tuple[area:Area,rect:Rect]
 
 const
-  diceRects = (Rect(x:1450,y:60,w:50,h:50),Rect(x:1450,y:120,w:50,h:50))
+  diceRollRects = (Rect(x:1450,y:60,w:50,h:50),Rect(x:1450,y:120,w:50,h:50))
   diceRollDims:array[1..2,Dims] = [
-    (diceRects[0].toArea,diceRects[0]),
-    (diceRects[1].toArea,diceRects[1])
+    (diceRollRects[0].toArea,diceRollRects[0]),
+    (diceRollRects[1].toArea,diceRollRects[1])
   ]
   boardPos = vec2(225,50)
   (bx*,by*) = (boardPos.x,boardPos.y)
@@ -25,7 +26,7 @@ const
   (tbxo,lryo) = (220.0,172.0)
   (tyo,byo) = (70.0,690.0)
   (lxo,rxo) = (70.0,1030.0)
-  maxRollFrames = 40
+  maxRollFrames = 120
 
   highways* = [5,17,29,41,53]
   gasStations* = [2,15,27,37,47]
@@ -40,27 +41,28 @@ proc mouseOnDice*:bool =
     if mouseOn dieDims.area: return true
 
 proc rollDice*() = 
-  for die in diceRoll.mitems: die = DieFaces(rand(1..6))
+  for die in diceRoll.mitems: 
+    die = DieFaces(rand(1..6))
 
-proc rotateDie(b:var Boxy,idx:int) =
+proc rotateDie(b:var Boxy,die:int) =
   b.drawImage(
-    $diceRoll[idx],
+    $diceRoll[die],
     center = vec2(
-      (diceRollDims[idx].rect.x+(diceRollDims[idx].rect.w/2)),
-      diceRollDims[idx].rect.y+(diceRollDims[idx].rect.h/2)),
-    angle = (dieRollFrame*9).toFloat,
-    tint = color(1,1,1,41-dieRollFrame.toFloat)
+      (diceRollDims[die].rect.x+(diceRollDims[die].rect.w/2)),
+      diceRollDims[die].rect.y+(diceRollDims[die].rect.h/2)),
+    angle = (dieRollFrame*3).toFloat,
+    tint = color(1,1,1,1.toFloat)
   )
 
 proc drawDice*(b:var Boxy) =
-    if dieRollFrame == maxRollFrames:
-      for i,die in diceRoll:
-        b.drawImage($die,vec2(diceRollDims[i].rect.x,diceRollDims[i].rect.y))
-    else:
-      rollDice()
-      b.rotateDie(1)
-      b.rotateDie(2)
-      inc dieRollFrame
+  if dieRollFrame == maxRollFrames:
+    for i,die in diceRoll:
+      b.drawImage($die,vec2(diceRollDims[i].rect.x,diceRollDims[i].rect.y))
+  else:
+    rollDice()
+    b.rotateDie(1)
+    b.rotateDie(2)
+    inc dieRollFrame
 
 proc isRollingDice*(): bool =
   dieRollFrame < maxRollFrames
@@ -74,6 +76,32 @@ proc startDiceRoll*() =
 
 proc endDiceRoll* =
   dieRollFrame = maxRollFrames
+
+func adjustToSquareNr*(adjustSquare:int): int =
+  if adjustSquare > 60: adjustSquare - 60 else: adjustSquare
+
+func moveToSquare(fromSquare:int,die:int):int = adjustToSquareNr(fromSquare+die)
+
+func moveToSquares*(fromSquare,die:int):seq[int] =
+  if fromsquare != 0: result.add moveToSquare(fromSquare,die)
+  else: result.add highways.mapIt moveToSquare(it,die)
+  if fromSquare in highways or fromsquare == 0:      
+    result.add gasStations.mapIt moveToSquare(it,die)
+  result = result.filterIt(it != fromSquare).deduplicate
+
+func moveToSquares*(fromSquare:int):seq[int] =
+  if fromSquare == 0: 
+    result.add highways
+    result.add gasStations
+  elif fromSquare in highways: 
+    result.add gasStations
+
+func moveToSquares*(fromSquare:int,dice:Dice): seq[int] =
+  result.add moveToSquares fromSquare
+  for i,die in dice:
+    if i == 1 or dice[1] != dice[2]:
+      result.add moveToSquares(fromSquare,die.ord)
+  result.deduplicate
 
 func squareDims:array[61,Dims] =
   result[0].rect = Rect(x:1225,y:150,w:35,h:100)
@@ -123,6 +151,12 @@ let
   boardImg* = readImage "pics\\engboard.jpg"
   squares* = buildBoardSquares "dat\\board.txt"
 
+proc mouseOnSquare*:int =
+  result = -1
+  for square in squares:
+    if mouseOn square.dims.area:
+      return square.nr
+
 proc paintSquares*(img:var Image,squareNrs:seq[int],color:Color) =
   var ctx = img.newContext
   ctx.fillStyle = color
@@ -133,14 +167,25 @@ proc paintSquares*(squareNrs:seq[int],color:Color):Image =
   result = newImage(boardImg.width,boardImg.height)
   result.paintSquares(squareNrs,color)
 
+proc paintMoveToSquares*(squares:seq[int]):Image =
+  result = newImage(boardImg.width,boardImg.height)
+  result.paintSquares(squares.deduplicate,color(0,0,0,100))
+
+var 
+  moveToSquaresPainter* = DynamicImage[seq[int]](
+    name:"moveToSquares",
+    area:(bx.toInt,by.toInt,0,0),
+    updateImage:paintMoveToSquares,
+    update:true
+  )
+
 proc pieceOn*(color:PlayerColor,squareNr:int): Rect =
-  let r = squares[squareNr].dims.rect
-  if squareNr == 0:
-    result = Rect(x:r.x,y:r.y+6+(color.ord*15).toFloat,w:r.w-10,h:12)
-  elif r.w == 35:
-    result = Rect(x:r.x+5,y:r.y+6+(color.ord*15).toFloat,w:r.w-10,h:12)
-  else:
-    result = Rect(x:r.x+6+(color.ord*15).toFloat,y:r.y+5,w:12,h:r.h-10)
+  let 
+    r = squares[squareNr].dims.rect
+    colorOffset = (color.ord*15).toFloat
+  if squareNr == 0: Rect(x:r.x,y:r.y+6+colorOffset,w:r.w-10,h:12)
+  elif r.w == 35: Rect(x:r.x+5,y:r.y+6+colorOffset,w:r.w-10,h:12)
+  else: Rect(x:r.x+6+colorOffset,y:r.y+5,w:12,h:r.h-10)
 
 proc drawBoard*(b:var Boxy) =
   b.drawImage("board",boardPos)

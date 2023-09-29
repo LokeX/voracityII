@@ -11,6 +11,7 @@
         "c",
         "-r",
         "-d:release",
+        // "--verbosity:0",
         "voracity.nim"
       ],
       "problemMatcher": [],

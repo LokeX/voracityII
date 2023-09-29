@@ -115,23 +115,22 @@ proc newPlayerBatches:array[6,Batch] =
 func nrOfPiecesOnBars(player:Player): int =
   player.pieces.countIt it in bars
 
-proc drawFrom*(deck:var Deck) =
-  if turn.undrawnBlues > 0:
-    if deck.drawPile.len == 0:
-      deck.shufflePiles
-    turnPlayer.hand.add deck.drawPile.pop
-    dec turn.undrawnBlues
+func hasPieceOn*(player:Player,square:int):bool =
+  for pieceSquare in player.pieces:
+    if pieceSquare == square: return true
 
-proc drawFrom*(deck:var Deck,nrOfCards:int) =
-  for _ in 1..nrOfCards: drawFrom deck
+proc drawFrom*(player:var Player,deck:var Deck) =
+  if deck.drawPile.len == 0:
+    deck.shufflePiles
+  player.hand.add deck.drawPile.pop
 
-proc playTo*(deck:var Deck,idx:int) =
-  deck.discardPile.add turnPlayer.hand[idx]
-  turnPlayer.hand.del idx
+proc playTo*(player:var Player,deck:var Deck,card:int) =
+  deck.discardPile.add player.hand[card]
+  player.hand.del card
 
-proc discardCards*(deck:var Deck) =
+proc discardCards*(player:var Player,deck:var Deck) =
   while turnPlayer.hand.len > 3:
-    playTo deck,turnPlayer.hand.high
+    player.playTo deck,player.hand.high
 
 func requiredSquaresAndPieces*(plan:BlueCard):tuple[squares,nrOfPieces:seq[int]] =
   let squares = plan.squares.required.deduplicate
@@ -213,10 +212,17 @@ proc paintPieces*:Image =
         ctx.fillText($nrOfPiecesOnSquare,piece.x+2,piece.y+10)
   ctx.image
 
+proc drawMoveToSquares*(b:var Boxy,square:int) =
+  # let square = mouseOnSquare()
+  if square != -1 and turnPlayer.hasPieceOn square:
+    moveToSquaresPainter.context = square.moveToSquares diceRoll
+    moveToSquaresPainter.update = true
+    b.drawDynamicImage moveToSquaresPainter
+
 proc mouseOnPlayerBatchNr:int =
   result = -1
-  for i,batch in playerBatches:
-    if mouseOn batch: return i
+  for i,_ in players:
+    if mouseOn playerBatches[i]: return i
 
 var 
   piecesImg* = DynamicImage[void](
@@ -237,21 +243,21 @@ proc togglePlayerKind(batchNr:int) =
   players[batchNr].kind = playerKinds[batchNr]
   piecesImg.update = true
 
-proc playCard(deck:var Deck) =
-  for (_,slot) in turnPlayer.hand.cardSlots:
+proc playCard(player:var Player,deck:var Deck) =
+  for (_,slot) in player.hand.cardSlots:
     if mouseOn slot.area: 
-      playTo deck,slot.nr
+      turnPlayer.playTo deck,slot.nr
       break
 
 proc leftMousePressed*(m:KeyEvent,deck:var Deck) =
   if mouseOn deck.drawSlot.area:
-    drawFrom deck,1
+    turnPlayer.drawFrom deck
     # discard cashInPlans deck
   else:
     let batchNr = mouseOnPlayerBatchNr()
     if batchNr != -1 and turn.nr == 0:
       togglePlayerKind batchNr
-    else: playCard deck
+    else: playCard turnPlayer,deck
 
 proc rightMousePressed*(m:KeyEvent,deck:var Deck) =
   if turn.nr == 0:
