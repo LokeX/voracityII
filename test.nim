@@ -35,4 +35,3 @@ for f in walkDirs("*.*"):
 # perimeter: 40.0
 
 # 314.1592653589793
-

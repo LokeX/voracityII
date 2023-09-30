@@ -13,7 +13,7 @@ type
   BoardSquares* = array[61,Square]
   Square* = tuple[nr:int,name:string,dims:Dims,icon:Image]
   Dims* = tuple[area:Area,rect:Rect]
-  MoveSelection = tuple[fromSquare:int,toSquares:seq[int]]
+  MoveSelection* = tuple[hoverSquare,fromSquare:int,toSquares:seq[int]]
 
 const
   diceRollRects = (Rect(x:1450,y:60,w:50,h:50),Rect(x:1450,y:120,w:50,h:50))
@@ -36,7 +36,7 @@ const
 var
   diceRoll*:Dice = [DieFace3,DieFace4]
   dieRollFrame* = maxRollFrames
-  moveSelection*:MoveSelection = (-1,@[])
+  moveSelection*:MoveSelection = (-1,-1,@[])
   dieEdit:int
 
 proc editDiceRoll*(input:string) =
@@ -168,6 +168,10 @@ proc mouseOnSquare*:int =
     if mouseOn square.dims.area:
       return square.nr
 
+func noDiceUsedToMove*(fromSquare,toSquare:int):bool =
+  (fromSquare == 0 or fromSquare in highways) and
+  (tosquare in highways or toSquare in gasStations)
+
 proc paintSquares*(img:var Image,squareNrs:seq[int],color:Color) =
   var ctx = img.newContext
   ctx.fillStyle = color
@@ -197,6 +201,16 @@ proc pieceOn*(color:PlayerColor,squareNr:int): Rect =
   if squareNr == 0: Rect(x:r.x,y:r.y+6+colorOffset,w:r.w-10,h:12)
   elif r.w == 35: Rect(x:r.x+5,y:r.y+6+colorOffset,w:r.w-10,h:12)
   else: Rect(x:r.x+6+colorOffset,y:r.y+5,w:12,h:r.h-10)
+
+proc drawMoveToSquares*(b:var Boxy,square:int) =
+  if square != moveSelection.hoverSquare:
+    moveToSquaresPainter.context = square.moveToSquares diceRoll
+    moveToSquaresPainter.update = true
+    moveSelection.hoverSquare = square
+  b.drawDynamicImage moveToSquaresPainter
+
+proc drawMoveToSquares*(b:var Boxy) =
+  b.drawDynamicImage moveToSquaresPainter
 
 proc drawBoard*(b:var Boxy) =
   b.drawImage("board",boardPos)

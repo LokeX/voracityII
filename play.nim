@@ -200,24 +200,20 @@ proc paintPieces*:Image =
   var ctx = newImage(boardImg.width,boardImg.height).newContext
   ctx.font = ibmBold
   ctx.fontSize = 10
-  for player in (if turn.nr == 0: players.filterIt(it.kind != None) else: players):
+  for i,player in (if turn.nr == 0: players.filterIt(it.kind != None) else: players):
     for square in player.pieces.deduplicate():
       let 
         nrOfPiecesOnSquare = player.pieces.filterIt(it == square).len
         piece = player.color.pieceOn(square)
       ctx.fillStyle = playerColors[player.color]
       ctx.fillRect(piece)
+      if turn.nr > 0 and i == turn.player and square == moveSelection.fromSquare:
+        ctx.fillStyle = contrastColors[player.color]
+        ctx.fillRect(Rect(x:piece.x+4,y:piece.y+4,w:piece.w-8,h:piece.h-8))
       if nrOfPiecesOnSquare > 1:
         ctx.fillStyle = contrastColors[player.color]
         ctx.fillText($nrOfPiecesOnSquare,piece.x+2,piece.y+10)
   ctx.image
-
-proc drawMoveToSquares*(b:var Boxy,square:int) =
-  # let square = mouseOnSquare()
-  if square != -1 and turnPlayer.hasPieceOn square:
-    moveToSquaresPainter.context = square.moveToSquares diceRoll
-    moveToSquaresPainter.update = true
-    b.drawDynamicImage moveToSquaresPainter
 
 proc mouseOnPlayerBatchNr:int =
   result = -1
@@ -243,14 +239,34 @@ proc togglePlayerKind(batchNr:int) =
   players[batchNr].kind = playerKinds[batchNr]
   piecesImg.update = true
 
-proc playCard(player:var Player,deck:var Deck) =
+proc mouseOnCardSlot(player:var Player,deck:var Deck):int =
+  result = -1
   for (_,slot) in player.hand.cardSlots:
-    if mouseOn slot.area: 
-      turnPlayer.playTo deck,slot.nr
-      break
+    if mouseOn slot.area: return slot.nr
 
-proc moveSelect(square:int) =
-  discard
+proc canSelect(square:int):bool =
+  turnPlayer.hasPieceOn(square) and
+  (not turn.diceMoved or square in highways or 
+  (square == 0 and turnPlayer.cash >= 5000))
+
+proc select(square:int) =
+  if canSelect square:
+    moveSelection = (-1,square,moveToSquares(square,diceRoll))
+    moveToSquaresPainter.context = moveSelection.toSquares
+    moveToSquaresPainter.update = true
+    piecesImg.update = true
+    playSound "carstart-1"
+
+func pieceOnSquare(player:Player,square:int):int =
+  for i,piece in player.pieces:
+    if piece == square: return i
+
+proc moveTo(toSquare:int) =
+  turn.diceMoved = not noDiceUsedToMove(moveSelection.fromSquare,toSquare)
+  turnPlayer.pieces[turnPlayer.pieceOnSquare moveSelection.fromSquare] = toSquare
+  moveSelection.fromSquare = -1
+  piecesImg.update = true
+  playSound "driveBy"
 
 proc leftMousePressed*(m:KeyEvent,deck:var Deck) =
   if turn.nr == 0:
@@ -259,22 +275,30 @@ proc leftMousePressed*(m:KeyEvent,deck:var Deck) =
       togglePlayerKind batchNr
   elif mouseOn deck.drawSlot.area:
     turnPlayer.drawFrom deck
-    # discard cashInPlans deck
   elif not isRollingDice():
     let square = mouseOnSquare()
     if square != -1: 
-      if moveSelection.fromSquare == -1: 
-        square.moveSelect
-    else: playCard turnPlayer,deck
+      if moveSelection.fromSquare == -1 or square notIn moveSelection.toSquares:
+        select square
+      elif moveSelection.fromSquare != -1:
+        moveTo square
+    else: 
+      let slotNr = turnPlayer.mouseOnCardSlot deck
+      if slotNr != -1:
+        turnPlayer.playTo deck,slotNr
 
 proc rightMousePressed*(m:KeyEvent,deck:var Deck) =
-  if turn.nr == 0:
-    inc turn.nr
-    players = newPlayers()
-    playerBatches = newPlayerBatches()
-  else: nextPlayerTurn()
-  playSound "carhorn-1"
-  startDiceRoll()
+  if moveSelection.fromSquare != -1:
+    moveSelection.fromSquare = -1
+    piecesImg.update = true
+  else:
+    if turn.nr == 0:
+      inc turn.nr
+      players = newPlayers()
+      playerBatches = newPlayerBatches()
+    else: nextPlayerTurn()
+    playSound "carhorn-1"
+    startDiceRoll()
 
 proc playerKindsFromFile:seq[PlayerKind] =
   try:

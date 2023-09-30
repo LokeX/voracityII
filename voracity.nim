@@ -26,7 +26,12 @@ proc draw(b:var Boxy) =
   b.drawCursor
   if turn.nr > 0: b.drawDice
   if turn.nr > 0 and not isRollingDice(): 
-    b.drawMoveToSquares mouseOnSquare()
+    if moveSelection.fromSquare != -1:
+      b.drawMoveToSquares
+    else:
+      let square = mouseOnSquare()
+      if square != -1 and turnPlayer.hasPieceOn square:
+        b.drawMoveToSquares square
 
 proc mouse(m:KeyEvent) =
   if m.leftMousePressed:
