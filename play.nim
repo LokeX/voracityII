@@ -40,6 +40,7 @@ const
   settingsFile* = "settings.cfg"
   defaultPlayerKinds = @[Human,Computer,None,None,None,None]
   (pbx,pby) = (20,20)
+  cashToWin = 250_000
 
 var
   playerKinds*:array[6,PlayerKind]
@@ -198,6 +199,7 @@ proc newPlayers*:seq[Player] =
   playerSlots.filterIt it.kind != None
 
 proc nextPlayerTurn* =
+  turn.diceMoved = false
   turnPlayer.turnNr = turn.nr
   turn.player.updateBatch
   if turn.player == players.high:
@@ -243,6 +245,16 @@ var
     updateImage:paintPieces,
     update:true
   )
+
+proc setupNewGame(deck:var Deck) =
+  turn = (0,0,false,0)
+  # turn.nr = 0
+  # turn.diceMoved = false  
+  # turn.undrawnBlues = 0
+  deck.resetDeck
+  players = newDefaultPlayers()
+  playerBatches = newPlayerBatches()
+  piecesImg.update = true
 
 proc togglePlayerKind(batchNr:int) =
   playerKinds[batchNr] = 
@@ -307,7 +319,7 @@ proc drawCardFrom(deck:var Deck) =
   turnPlayer.drawFrom deck
   dec turn.undrawnBlues
   nrOfUndrawnBluesPainter.update = true
-  playerBatches[turn.player].update = true
+  turn.player.updateBatch
   playSound "page-flip-2"
 
 proc togglePlayerKind =
@@ -326,7 +338,10 @@ proc leftMousePressed*(m:KeyEvent,deck:var Deck) =
       elif moveSelection.fromSquare != -1:
         moveTo square
         if deck.cashInPlans.len > 0:
+          turn.player.updateBatch
           playSound "coins-to-table-2"
+          if turnPlayer.cash >= cashToWin:
+            playSound "applause-2"
     elif turnPlayer.hand.len > 3: 
       let slotNr = turnPlayer.mouseOnCardSlot deck
       if slotNr != -1:
@@ -336,6 +351,8 @@ proc rightMousePressed*(m:KeyEvent,deck:var Deck) =
   if moveSelection.fromSquare != -1:
     moveSelection.fromSquare = -1
     piecesImg.update = true
+  elif turnPlayer.cash >= cashToWin:
+    setupNewGame deck
   else:
     if turn.nr == 0:
       inc turn.nr

@@ -255,6 +255,7 @@ proc newDeck*(path:string):Deck =
 proc resetDeck*(deck:var Deck) =
   deck.discardPile.setLen 0
   deck.drawPile = deck.fullDeck
+  deck.drawPile.shuffle
 
 proc shufflePiles*(deck:var Deck) =
   deck.drawPile.add deck.discardPile
