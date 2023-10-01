@@ -25,13 +25,9 @@ proc draw(b:var Boxy) =
   b.drawPlayerBatches
   b.drawCursor
   if turn.nr > 0: b.drawDice
-  if turn.nr > 0 and not isRollingDice(): 
-    if moveSelection.fromSquare != -1:
-      b.drawMoveToSquares
-    else:
-      let square = mouseOnSquare()
-      if square != -1 and turnPlayer.hasPieceOn square:
-        b.drawMoveToSquares square
+  if turn.nr > 0 and not isRollingDice(): b.drawSquares
+  if turn.nr > 0 and turn.undrawnBlues > 0: 
+    b.drawDynamicImage nrOfUndrawnBluesPainter
 
 proc mouse(m:KeyEvent) =
   if m.leftMousePressed:

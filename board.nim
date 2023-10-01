@@ -61,7 +61,7 @@ proc rotateDie(b:var Boxy,die:int) =
     center = vec2(
       (diceRollDims[die].rect.x+(diceRollDims[die].rect.w/2)),
       diceRollDims[die].rect.y+(diceRollDims[die].rect.h/2)),
-    angle = (dieRollFrame*3).toFloat,
+    angle = ((dieRollFrame div 3)*9).toFloat,
     tint = color(1,1,1,1.toFloat)
   )
 
@@ -201,13 +201,6 @@ proc pieceOn*(color:PlayerColor,squareNr:int): Rect =
   if squareNr == 0: Rect(x:r.x,y:r.y+6+colorOffset,w:r.w-10,h:12)
   elif r.w == 35: Rect(x:r.x+5,y:r.y+6+colorOffset,w:r.w-10,h:12)
   else: Rect(x:r.x+6+colorOffset,y:r.y+5,w:12,h:r.h-10)
-
-proc drawMoveToSquares*(b:var Boxy,square:int) =
-  if square != moveSelection.hoverSquare:
-    moveToSquaresPainter.context = square.moveToSquares diceRoll
-    moveToSquaresPainter.update = true
-    moveSelection.hoverSquare = square
-  b.drawDynamicImage moveToSquaresPainter
 
 proc drawMoveToSquares*(b:var Boxy) =
   b.drawDynamicImage moveToSquaresPainter

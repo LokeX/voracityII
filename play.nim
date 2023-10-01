@@ -58,6 +58,22 @@ proc drawCursor*(b:var Boxy) =
       cursor = Rect(x:x,y:y,w:20,h:20)
     b.drawRect(cursor,contrastColors[players[turn.player].color])
 
+proc paintUndrawnBlues:Image =
+  var ctx = newImage(110,180).newContext
+  ctx.font = fjallaOneRegular
+  ctx.fontSize = 160
+  ctx.fillStyle = color(1,1,0)
+  ctx.fillText($turn.undrawnBlues,20,160)
+  ctx.image
+
+var 
+  nrOfUndrawnBluesPainter* = DynamicImage[void](
+    name:"undrawBlues",
+    area:(855,495,0,0),
+    updateImage:paintUndrawnBlues,
+    update:true
+  )
+
 proc playerBatch(setup:BatchSetup,yOffset:int):Batch = 
   newBatch BatchInit(
     kind:TextBatch,
@@ -261,20 +277,47 @@ func pieceOnSquare(player:Player,square:int):int =
   for i,piece in player.pieces:
     if piece == square: return i
 
+proc drawMoveToSquares*(b:var Boxy,square:int) =
+  if square != moveSelection.hoverSquare and turnPlayer.hasPieceOn(square):
+    moveToSquaresPainter.context = square.moveToSquares diceRoll
+    moveToSquaresPainter.update = true
+    moveSelection.hoverSquare = square
+  b.drawDynamicImage moveToSquaresPainter
+
+proc drawSquares*(b:var Boxy) =
+  if moveSelection.fromSquare != -1:
+    b.drawMoveToSquares
+  else:
+    let square = mouseOnSquare()
+    if square != -1 and turnPlayer.hasPieceOn square:
+      b.drawMoveToSquares square
+
 proc moveTo(toSquare:int) =
   turn.diceMoved = not noDiceUsedToMove(moveSelection.fromSquare,toSquare)
   turnPlayer.pieces[turnPlayer.pieceOnSquare moveSelection.fromSquare] = toSquare
   moveSelection.fromSquare = -1
   piecesImg.update = true
   playSound "driveBy"
+  if toSquare in bars:
+    inc turn.undrawnBlues
+    nrOfUndrawnBluesPainter.update = true
+    playSound "can-open-1"
+
+proc drawCardFrom(deck:var Deck) =
+  turnPlayer.drawFrom deck
+  dec turn.undrawnBlues
+  nrOfUndrawnBluesPainter.update = true
+  playerBatches[turn.player].update = true
+  playSound "page-flip-2"
+
+proc togglePlayerKind =
+  let batchNr = mouseOnPlayerBatchNr()
+  if batchNr != -1 and turn.nr == 0:
+    togglePlayerKind batchNr
 
 proc leftMousePressed*(m:KeyEvent,deck:var Deck) =
-  if turn.nr == 0:
-    let batchNr = mouseOnPlayerBatchNr()
-    if batchNr != -1 and turn.nr == 0:
-      togglePlayerKind batchNr
-  elif mouseOn deck.drawSlot.area:
-    turnPlayer.drawFrom deck
+  if turn.nr == 0: togglePlayerKind()
+  elif turn.undrawnBlues > 0 and mouseOn deck.drawSlot.area: drawCardFrom deck
   elif not isRollingDice():
     let square = mouseOnSquare()
     if square != -1: 
@@ -282,7 +325,9 @@ proc leftMousePressed*(m:KeyEvent,deck:var Deck) =
         select square
       elif moveSelection.fromSquare != -1:
         moveTo square
-    else: 
+        if deck.cashInPlans.len > 0:
+          playSound "coins-to-table-2"
+    elif turnPlayer.hand.len > 3: 
       let slotNr = turnPlayer.mouseOnCardSlot deck
       if slotNr != -1:
         turnPlayer.playTo deck,slotNr
@@ -296,7 +341,9 @@ proc rightMousePressed*(m:KeyEvent,deck:var Deck) =
       inc turn.nr
       players = newPlayers()
       playerBatches = newPlayerBatches()
-    else: nextPlayerTurn()
+    else: 
+      turnPlayer.discardCards deck
+      nextPlayerTurn()
     playSound "carhorn-1"
     startDiceRoll()
 
