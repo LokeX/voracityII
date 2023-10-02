@@ -153,6 +153,7 @@ func iconPath(square:Square):string =
 
 proc buildBoardSquares*(path:string):BoardSquares =
   var count = 0
+  result[0] = (0,"Removed",dieDims[0],nil)
   for name in lines path:
     inc count
     result[count] = (count,name,dieDims[count],nil)

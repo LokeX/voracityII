@@ -223,7 +223,7 @@ proc drawPlayerBatches*(b:var Boxy) =
       b.drawBatch playerBatches[batchNr]
 
 proc paintPieces*:Image =
-  var ctx = newImage(boardImg.width,boardImg.height).newContext
+  var ctx = newImage(squares[0].dims.area.x2-bx.toInt,boardImg.height).newContext
   ctx.font = ibmBold
   ctx.fontSize = 10
   for i,player in (if turn.nr == 0: players.filterIt(it.kind != None) else: players):
@@ -347,6 +347,8 @@ func singlePieceOn(players:seq[Player],square:int):SinglePiece =
 proc removePiece(dialogResult:string) =
   if dialogResult == "Yes":
     players[singlePiece.playerNr].pieces[singlePiece.pieceNr] = 0
+    playSound "Gunshot"
+    playSound "Deanscream-2"
   moveTo moveSelection.toSquare
   playCashPlansTo blueDeck
 
@@ -356,7 +358,7 @@ proc move(square:int) =
   if singlePiece.playerNr != -1:
     let entries:seq[string] = @[
       "Remove piece on:\n",
-      squares[square].name&"?\n",
+      squares[square].name&" Nr."&($squares[square].nr)&"?\n",
       "\n",
       "Yes\n",
       "No",
