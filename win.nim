@@ -36,6 +36,7 @@ type
     secs*:float
   Call* = object
     reciever*:string
+    active* = true
     mouseMoved*:proc()
     keyboard*:proc(keyboard:KeyboardEvent)
     mouse*:proc(mouse:KeyEvent)
@@ -73,6 +74,20 @@ var
 
 bxy.scale(boxyScale)
 
+proc addCall*(call:Call) = calls.add(call)
+
+proc excludeInputCallsExcept*(reciever:string) =
+  for call in calls.mitems:
+    call.active = call.reciever == reciever
+
+proc includeInputCallsExcept*(reciever:string) =
+  for call in calls.mitems:
+    call.active = call.reciever != reciever
+
+proc includeAllCalls* =
+  for call in calls.mitems:
+    call.active = true
+
 proc removeImg*(key:string) =
   bxy.removeImage key
 
@@ -92,8 +107,6 @@ func setNewFont*(typeFace:Typeface,size:float = 12.0,color:Color = color(1,1,1))
 
 proc addImage*(key:string,img:Image) = bxy.addImage(key,img)
   
-proc addCall*(call:Call) = calls.add(call)
-
 func keyReleased*(event:KeyEvent):bool = event.keyState.released
 
 func keyPressed*(event:KeyEvent):bool = event.keyState.down
@@ -208,8 +221,9 @@ func isMouseKey(button:Button):bool =
 proc callBack(button:Button) =
   for call in calls:
     if button.isMouseKey:
-      if call.mouse != nil: call.mouse(newKeyEvent(button))
-    elif call.keyboard != nil: 
+      if call.mouse != nil and call.active: 
+        call.mouse(newKeyEvent(button))
+    elif call.keyboard != nil and call.active: 
       call.keyboard(newKeyboardEvent(button,"¤".toRunes[0]))
 
 window.onButtonRelease = proc(button:Button) = button.callBack
@@ -230,23 +244,24 @@ window.onFrame = proc() =
 window.onRune = proc(rune:Rune) =
   var button:Button
   for call in calls:
-    if call.keyboard != nil: 
+    if call.keyboard != nil and call.active: 
       call.keyboard(newKeyboardEvent(button,rune))
 
 window.onMouseMove = proc() =
   for call in calls:
-    if call.mouseMoved != nil: 
+    if call.mouseMoved != nil and call.active: 
       call.mouseMoved()
 
 proc callCycles* =
-  for call in calls.mitems:
-    if call.cycle != nil: call.cycle()
+  for call in calls:
+    if call.cycle != nil and call.active: call.cycle()
 
 proc callTimers* =
   for call in calls.mitems:
-    if call.timer.call != nil and cpuTime()-call.timer.lastTime > call.timer.secs:
-      call.timer.lastTime = cpuTime()
-      call.timer.call()
+    if call.timer.call != nil and call.active:
+      if cpuTime()-call.timer.lastTime > call.timer.secs:
+        call.timer.lastTime = cpuTime()
+        call.timer.call()
 
 template runWinWith*(body:untyped) =
   window.visible = true

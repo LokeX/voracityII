@@ -20,6 +20,7 @@ type
     padding:tuple[left,right,top,bottom:int]
     shadow:tuple[size:int,offSetFactor:float,color:Color]
     fixedBounds:tuple[width,height:int]
+    centerOnWin:bool
   Border* = tuple[size:int,angle:float,color:Color]
   Line = tuple[color,bgColor:Color,border:Border]
   Title = tuple[on:bool,line:Line]
@@ -69,6 +70,7 @@ type
     border*:(int,float,Color)
     shadow*:(int,float,Color)
     fixedBounds*:(int,int)
+    centerOnWin*:bool
 
 func textBounds(bounds:Vec2):(int,int) = (bounds[0].toInt,bounds[1].toInt)
 
@@ -293,7 +295,7 @@ func selectionArea(batch:Batch,selection:int):Area =
     (x,y) = (batch.pos.x+selectionPos.x.toInt,batch.pos.y+selectionPos.y.toInt)
   (x,y,x+batch.selector.img.width,y+batch.selector.img.height)
 
-proc mouseOnSelectionArea(batch:Batch):int =
+proc mouseOnSelectionArea*(batch:Batch):int =
   for idx,area in batch.selector.selectionAreas:
     if mouseOn area: return idx+batch.selector.selectionRange.a
   return -1
@@ -353,6 +355,12 @@ template initBatch*(batchKind:BatchKind,batch,userInitBlock:untyped):Batch =
   if batch.title.on: batch.text.spans[0].font.paint = batch.title.line.color
   batch.text.pos = batch.textPos
   batch.updateImage = paint
+  if batch.centerOnWin:
+    batch.rect.x = (scaledWidth.toFloat-batch.rect.w)/2
+    batch.rect.y = (scaledHeight.toFloat-batch.rect.h)/3
+    batch.area = batch.rect.toArea
+    batch.pos = (batch.rect.x.toInt,batch.rect.y.toInt)
+    echo batch.area
   if batch.kind == MenuBatch: 
     batch.selector.selectionRange = selectionRange
     batch.selector.selection = batch.selector.selectionRange.a
@@ -381,6 +389,7 @@ proc newBatch*(batchInit:BatchInit):Batch =
       batch.selector.line = batchInit.selectorLine
     batch.border = batchInit.border
     batch.shadow = batchInit.shadow
+    batch.centerOnWin = batchInit.centerOnWin
 
 proc selection*(batch:Batch):int = 
   if batch.kind == MenuBatch: batch.selector.selection else: -1

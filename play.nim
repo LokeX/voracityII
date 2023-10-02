@@ -167,7 +167,7 @@ func cashablePlans*(player:Player):tuple[cashable,notCashable:seq[BlueCard]] =
     if player.isCashable plan: result.cashable.add plan
     else: result.notCashable.add plan
 
-proc cashInPlans*(deck:var Deck):seq[BlueCard] =
+proc cashInPlansTo*(deck:var Deck):seq[BlueCard] =
   let (cashable,notCashable) = turnPlayer.cashablePlans
   for plan in cashable.sortedByIt it.cash:
     deck.discardPile.add plan
@@ -248,9 +248,6 @@ var
 
 proc setupNewGame(deck:var Deck) =
   turn = (0,0,false,0)
-  # turn.nr = 0
-  # turn.diceMoved = false  
-  # turn.undrawnBlues = 0
   deck.resetDeck
   players = newDefaultPlayers()
   playerBatches = newPlayerBatches()
@@ -299,10 +296,8 @@ proc drawMoveToSquares*(b:var Boxy,square:int) =
 proc drawSquares*(b:var Boxy) =
   if moveSelection.fromSquare != -1:
     b.drawMoveToSquares
-  else:
-    let square = mouseOnSquare()
-    if square != -1 and turnPlayer.hasPieceOn square:
-      b.drawMoveToSquares square
+  elif (let square = mouseOnSquare(); square != -1) and turnPlayer.hasPieceOn square:
+    b.drawMoveToSquares square
 
 proc moveTo(toSquare:int) =
   turn.diceMoved = not noDiceUsedToMove(moveSelection.fromSquare,toSquare)
@@ -327,24 +322,31 @@ proc togglePlayerKind =
   if batchNr != -1 and turn.nr == 0:
     togglePlayerKind batchNr
 
+proc playCashPlansTo(deck:var Deck) =
+  if cashInPlansTo(deck).len > 0:
+    turn.player.updateBatch
+    playSound "coins-to-table-2"
+    if turnPlayer.cash >= cashToWin:
+      playSound "applause-2"
+
+func singlePieceOn(players:seq[Player],square:int):bool =
+  players.anyIt it.pieces.anyIt it == square
+
+# proc move(square:int) =
+#   if players.singlePieceOn square:
+
 proc leftMousePressed*(m:KeyEvent,deck:var Deck) =
   if turn.nr == 0: togglePlayerKind()
   elif turn.undrawnBlues > 0 and mouseOn deck.drawSlot.area: drawCardFrom deck
   elif not isRollingDice():
-    let square = mouseOnSquare()
-    if square != -1: 
+    if (let square = mouseOnSquare(); square != -1): 
       if moveSelection.fromSquare == -1 or square notIn moveSelection.toSquares:
         select square
       elif moveSelection.fromSquare != -1:
         moveTo square
-        if deck.cashInPlans.len > 0:
-          turn.player.updateBatch
-          playSound "coins-to-table-2"
-          if turnPlayer.cash >= cashToWin:
-            playSound "applause-2"
+        playCashPlansTo deck
     elif turnPlayer.hand.len > 3: 
-      let slotNr = turnPlayer.mouseOnCardSlot deck
-      if slotNr != -1:
+      if (let slotNr = turnPlayer.mouseOnCardSlot deck; slotNr != -1):
         turnPlayer.playTo deck,slotNr
 
 proc rightMousePressed*(m:KeyEvent,deck:var Deck) =
