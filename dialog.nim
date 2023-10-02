@@ -3,7 +3,7 @@ import strutils
 import win except strip
 
 const
-  dialogReciever = "kill_dialog"
+  thisDialog = "dialog"
   robotoRegular = "fonts\\Roboto-Regular_1.ttf"
 
 var 
@@ -28,8 +28,6 @@ var
     "Yes\n",
     "No",
   ]
-
-var
   menuBatch:Batch
   returnSelection:proc(s:string)
 
@@ -42,16 +40,18 @@ proc startDialog*(entries:seq[string],selRange:HSlice[int,int],call:proc(s:strin
   menuBatchInit.selectionRange = selRange
   menuBatch = newBatch menuBatchInit
   returnSelection = call
-  excludeInputCallsExcept dialogReciever
+  pushCalls()
+  excludeInputCallsExcept thisDialog
   menuBatch.isActive = true
 
 proc endDialog(selected:string) =
   menuBatch.isActive = false
-  includeInputCallsExcept dialogReciever
+  popCalls()
+  # includeInputCallsExcept thisDialog
   returnSelection selected
 
 proc draw(b:var Boxy) =
-  if menuBatch.isActive:
+  if menuBatch != nil and menuBatch.isActive:
     b.drawDynamicImage menuBatch
 
 proc keyboard(k:KeyboardEvent) = 
@@ -64,12 +64,12 @@ proc mouse(m:KeyEvent) =
     endDialog menuEntries[menuBatch.selection].strip
 
 proc mouseMoved =
-  if mouseOn menuBatch: 
+  if menuBatch.isActive and mouseOn menuBatch: 
     menuBatch.mouseSelect
 
 var 
-  call = Call(
-    reciever:dialogReciever,
+  dialogCall* = Call(
+    reciever:thisDialog,
     draw:draw,
     keyboard:keyboard,
     mouse:mouse,
@@ -77,7 +77,7 @@ var
     active:false
   )
 
-addCall call
+# addCall call
 when isMainModule:
   startDialog(menuEntries,3..4,recieveMessage)
   runWin

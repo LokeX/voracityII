@@ -8,6 +8,7 @@ import batch
 import colors
 import board
 import megasound
+import dialog
 
 type
   PlayerKind* = enum Human,Computer,None
@@ -32,6 +33,7 @@ type
     font:string
     fontSize:float
     padding:(int,int,int,int)
+  SinglePiece = tuple[playerNr,pieceNr:int]
 
 const
   roboto = "fonts\\Kalam-Bold.ttf"
@@ -41,13 +43,19 @@ const
   defaultPlayerKinds = @[Human,Computer,None,None,None,None]
   (pbx,pby) = (20,20)
   cashToWin = 250_000
+  popUpCard = Rect(x:500,y:275,w:cardWidth,h:cardHeight)
+  drawPile = Rect(x:855,y:495,w:110,h:180)
+  discardPile = Rect(x:1025,y:495,w:cardWidth*0.441,h:cardHeight*0.441)
 
-var
+
+var 
+  blueDeck* = newDeck "dat\\blues.txt"
   playerKinds*:array[6,PlayerKind]
   playerBatches*:array[6,Batch]
   players*:seq[Player]
   turn*:Turn
   showCursor*:bool
+  singlePiece:SinglePiece
 
 template turnPlayer*:untyped = players[turn.player]
 
@@ -70,7 +78,7 @@ proc paintUndrawnBlues:Image =
 var 
   nrOfUndrawnBluesPainter* = DynamicImage[void](
     name:"undrawBlues",
-    area:(855,495,0,0),
+    area:(855,495,0,0), # may do drawpile.toArea
     updateImage:paintUndrawnBlues,
     update:true
   )
@@ -246,9 +254,9 @@ var
     update:true
   )
 
-proc setupNewGame(deck:var Deck) =
+proc setupNewGame =
   turn = (0,0,false,0)
-  deck.resetDeck
+  blueDeck.resetDeck
   players = newDefaultPlayers()
   playerBatches = newPlayerBatches()
   piecesImg.update = true
@@ -276,7 +284,7 @@ proc canSelect(square:int):bool =
 
 proc select(square:int) =
   if canSelect square:
-    moveSelection = (-1,square,moveToSquares(square,diceRoll))
+    moveSelection = (-1,square,-1,moveToSquares(square,diceRoll))
     moveToSquaresPainter.context = moveSelection.toSquares
     moveToSquaresPainter.update = true
     piecesImg.update = true
@@ -329,39 +337,62 @@ proc playCashPlansTo(deck:var Deck) =
     if turnPlayer.cash >= cashToWin:
       playSound "applause-2"
 
-func singlePieceOn(players:seq[Player],square:int):bool =
-  players.anyIt it.pieces.anyIt it == square
+func singlePieceOn(players:seq[Player],square:int):SinglePiece =
+  result = (-1,-1)
+  if players.mapIt(it.pieces.countIt it == square).sum == 1:
+    for playerNr,player in players:
+      for pieceNr,piece in player.pieces:
+        if piece == square: return (playerNr,pieceNr)
 
-# proc move(square:int) =
-#   if players.singlePieceOn square:
+proc removePiece(dialogResult:string) =
+  if dialogResult == "Yes":
+    players[singlePiece.playerNr].pieces[singlePiece.pieceNr] = 0
+  moveTo moveSelection.toSquare
+  playCashPlansTo blueDeck
 
-proc leftMousePressed*(m:KeyEvent,deck:var Deck) =
+proc move(square:int) =
+  moveSelection.toSquare = square
+  singlePiece = players.singlePieceOn square
+  if singlePiece.playerNr != -1:
+    let entries:seq[string] = @[
+      "Remove piece on:\n",
+      squares[square].name&"?\n",
+      "\n",
+      "Yes\n",
+      "No",
+    ]
+    startDialog(entries,3..4,removePiece)
+  else: 
+    moveTo square
+    playCashPlansTo blueDeck
+
+proc leftMouse*(m:KeyEvent) =
   if turn.nr == 0: togglePlayerKind()
-  elif turn.undrawnBlues > 0 and mouseOn deck.drawSlot.area: drawCardFrom deck
+  elif turn.undrawnBlues > 0 and mouseOn blueDeck.drawSlot.area: 
+    drawCardFrom blueDeck
   elif not isRollingDice():
     if (let square = mouseOnSquare(); square != -1): 
       if moveSelection.fromSquare == -1 or square notIn moveSelection.toSquares:
         select square
       elif moveSelection.fromSquare != -1:
-        moveTo square
-        playCashPlansTo deck
+        move square
     elif turnPlayer.hand.len > 3: 
-      if (let slotNr = turnPlayer.mouseOnCardSlot deck; slotNr != -1):
-        turnPlayer.playTo deck,slotNr
+      if (let slotNr = turnPlayer.mouseOnCardSlot blueDeck; slotNr != -1):
+        turnPlayer.playTo blueDeck,slotNr
 
-proc rightMousePressed*(m:KeyEvent,deck:var Deck) =
+proc rightMouse*(m:KeyEvent) =
   if moveSelection.fromSquare != -1:
     moveSelection.fromSquare = -1
     piecesImg.update = true
   elif turnPlayer.cash >= cashToWin:
-    setupNewGame deck
+    setupNewGame()
   else:
     if turn.nr == 0:
       inc turn.nr
       players = newPlayers()
       playerBatches = newPlayerBatches()
     else: 
-      turnPlayer.discardCards deck
+      turnPlayer.discardCards blueDeck
       nextPlayerTurn()
     playSound "carhorn-1"
     startDiceRoll()
@@ -389,6 +420,7 @@ proc initPlayers =
   playerBatches = newPlayerBatches()
 
 initPlayers()
+blueDeck.initCardSlots discardPile,popUpCard,drawPile
 
 when isMainModule:
   printPlayers()

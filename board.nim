@@ -13,7 +13,7 @@ type
   BoardSquares* = array[61,Square]
   Square* = tuple[nr:int,name:string,dims:Dims,icon:Image]
   Dims* = tuple[area:Area,rect:Rect]
-  MoveSelection* = tuple[hoverSquare,fromSquare:int,toSquares:seq[int]]
+  MoveSelection* = tuple[hoverSquare,fromSquare,toSquare:int,toSquares:seq[int]]
 
 const
   diceRollRects = (Rect(x:1450,y:60,w:50,h:50),Rect(x:1450,y:120,w:50,h:50))
@@ -36,7 +36,7 @@ const
 var
   diceRoll*:Dice = [DieFace3,DieFace4]
   dieRollFrame* = maxRollFrames
-  moveSelection*:MoveSelection = (-1,-1,@[])
+  moveSelection*:MoveSelection = (-1,-1,-1,@[])
   dieEdit:int
 
 proc editDiceRoll*(input:string) =

@@ -68,11 +68,17 @@ window.makeContextCurrent
 loadExtensions()
 
 var
-  calls:seq[Call]
+  pushedCalls,calls:seq[Call]
   specialKeys:SpecialKeys
   bxy = newBoxy()
 
 bxy.scale(boxyScale)
+
+proc pushCalls* =
+  pushedCalls = calls
+
+proc popCalls* =
+  calls = pushedCalls
 
 proc addCall*(call:Call) = calls.add(call)
 

@@ -33,3 +33,14 @@ echo shapes[Circle].area # <- A ShapeKind enumerated array of named tuples
 # perimeter: 40.0
 
 # 314.1592653589793
+
+type
+  refA = ref A
+  A = object
+    g:int
+
+var
+  t:refA
+  t2 = A(g:12)
+
+t[] = t2
