@@ -9,6 +9,7 @@ import colors
 import board
 import megasound
 import dialog
+# import eval
 
 type
   PlayerKind* = enum Human,Computer,None
@@ -42,7 +43,7 @@ const
   settingsFile* = "settings.cfg"
   defaultPlayerKinds = @[Human,Computer,None,None,None,None]
   (pbx,pby) = (20,20)
-  cashToWin = 250_000
+  cashToWin* = 250_000
   popUpCard = Rect(x:500,y:275,w:cardWidth,h:cardHeight)
   drawPile = Rect(x:855,y:495,w:110,h:180)
   discardPile = Rect(x:1025,y:495,w:cardWidth*0.441,h:cardHeight*0.441)
@@ -55,7 +56,7 @@ var
   players*:seq[Player]
   turn*:Turn
   showCursor*:bool
-  singlePiece:SinglePiece
+  singlePiece*:SinglePiece
 
 template turnPlayer*:untyped = players[turn.player]
 
@@ -193,11 +194,11 @@ proc newDefaultPlayers*:seq[Player] =
 
 proc newPlayers*:seq[Player] =
   var 
-    randomPosition = rand(1..6)
-    playerSlots:array[1..6,Player]
+    randomPosition = rand(5)
+    playerSlots:array[6,Player]
   for player in players:
     while playerSlots[randomPosition].cash != 0: 
-      randomPosition = rand(1..6)
+      randomPosition = rand(5)
     playerSlots[randomPosition] = Player(
       color:player.color,
       kind:player.kind,
@@ -277,13 +278,13 @@ proc mouseOnCardSlot(player:var Player,deck:var Deck):int =
   for (_,slot) in player.hand.cardSlots:
     if mouseOn slot.area: return slot.nr
 
-proc canSelect(square:int):bool =
-  turnPlayer.hasPieceOn(square) and
+proc canMovePieceFrom*(player:Player,square:int):bool =
+  player.hasPieceOn(square) and
   (not turn.diceMoved or square in highways or 
-  (square == 0 and turnPlayer.cash >= 5000))
+  (square == 0 and player.cash >= 5000))
 
 proc select(square:int) =
-  if canSelect square:
+  if turnPlayer.canMovePieceFrom square:
     moveSelection = (-1,square,-1,moveToSquares(square,diceRoll))
     moveToSquaresPainter.context = moveSelection.toSquares
     moveToSquaresPainter.update = true
@@ -310,6 +311,9 @@ proc drawSquares*(b:var Boxy) =
 proc moveTo(toSquare:int) =
   turn.diceMoved = not noDiceUsedToMove(moveSelection.fromSquare,toSquare)
   turnPlayer.pieces[turnPlayer.pieceOnSquare moveSelection.fromSquare] = toSquare
+  if moveSelection.fromSquare == 0: 
+    turnPlayer.cash -= 5000
+    updateBatch turn.player
   moveSelection.fromSquare = -1
   piecesImg.update = true
   playSound "driveBy"
@@ -326,8 +330,7 @@ proc drawCardFrom(deck:var Deck) =
   playSound "page-flip-2"
 
 proc togglePlayerKind =
-  let batchNr = mouseOnPlayerBatchNr()
-  if batchNr != -1 and turn.nr == 0:
+  if (let batchNr = mouseOnPlayerBatchNr(); batchNr != -1) and turn.nr == 0:
     togglePlayerKind batchNr
 
 proc playCashPlansTo(deck:var Deck) =
@@ -337,25 +340,28 @@ proc playCashPlansTo(deck:var Deck) =
     if turnPlayer.cash >= cashToWin:
       playSound "applause-2"
 
-func singlePieceOn(players:seq[Player],square:int):SinglePiece =
+func nrOfPiecesOn*(players:seq[Player],square:int):int =
+  players.mapIt(it.pieces.countIt it == square).sum
+
+func singlePieceOn*(players:seq[Player],square:int):SinglePiece =
   result = (-1,-1)
-  if players.mapIt(it.pieces.countIt it == square).sum == 1:
+  if players.nrOfPiecesOn(square) == 1:
     for playerNr,player in players:
       for pieceNr,piece in player.pieces:
         if piece == square: return (playerNr,pieceNr)
 
-proc removePiece(dialogResult:string) =
-  if dialogResult == "Yes":
+proc removePieceAndMove*(confirmedKill:string) =
+  if confirmedKill == "Yes":
     players[singlePiece.playerNr].pieces[singlePiece.pieceNr] = 0
     playSound "Gunshot"
     playSound "Deanscream-2"
   moveTo moveSelection.toSquare
   playCashPlansTo blueDeck
 
-proc move(square:int) =
+proc move*(square:int) =
   moveSelection.toSquare = square
   singlePiece = players.singlePieceOn square
-  if singlePiece.playerNr != -1:
+  if turnPlayer.kind == Human and singlePiece.playerNr != -1:
     let entries:seq[string] = @[
       "Remove piece on:\n",
       squares[square].name&" Nr."&($squares[square].nr)&"?\n",
@@ -363,7 +369,7 @@ proc move(square:int) =
       "Yes\n",
       "No",
     ]
-    startDialog(entries,3..4,removePiece)
+    startDialog(entries,3..4,removePieceAndMove)
   else: 
     moveTo square
     playCashPlansTo blueDeck

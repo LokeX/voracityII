@@ -17,8 +17,9 @@ type
       squares*:PlanSquares
       cash*:int
     else:discard
+    eval*:int
   Deck* = object 
-    fullDeck,drawPile*,discardPile*:seq[BlueCard]
+    fullDeck*,drawPile*,discardPile*:seq[BlueCard]
     popUpSlot,drawSlot*,discardSlot*:CardSlot
     show:Show
   CardSlot = tuple[nr:int,name:string,area:Area,rect:Rect]
