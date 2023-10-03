@@ -109,7 +109,7 @@ proc newPlayerBatches*:array[6,Batch] =
     result[playerNr] = setup.playerBatch yOffset
     result[playerNr].update = true
 
-func nrOfPiecesOnBars(player:Player): int =
+func nrOfPiecesOnBars*(player:Player): int =
   player.pieces.countIt it in bars
 
 func hasPieceOn*(player:Player,square:int):bool =

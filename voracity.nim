@@ -6,6 +6,7 @@ import board
 import times
 import megasound
 import dialog
+import ai
 
 let
   bg = readImage "pics\\bggreen.png"
@@ -35,15 +36,30 @@ proc keyboard (k:KeyboardEvent) =
   if k.button == ButtonUnknown and not isRollingDice():
     editDiceRoll k.rune.toUTF8
 
+proc cycle = 
+  if turnPlayer.kind == Computer and aiTurn():
+    aiTakeTurn()
+
 proc timer = showCursor = not showCursor
 
 proc timerCall:TimerCall =
   TimerCall(call:timer,lastTime:cpuTime(),secs:0.4)
 
+var
+  call = Call(
+    draw:draw,
+    mouse:mouse,
+    keyboard:keyboard,
+    cycle:cycle,
+    timer:timerCall()
+  )
+
 setVolume 0.15
 addImage("bg",bg)
-addCall Call(draw:draw,mouse:mouse,keyboard:keyboard,timer:timerCall())
+addCall call
 addCall dialogCall
 echo "still here"
-runWinWith: callTimers()
+runWinWith: 
+  callCycles()
+  callTimers()
 playerKindsToFile playerKinds

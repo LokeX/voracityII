@@ -184,13 +184,13 @@ proc evalBlues(hypothetical:Hypothetic): seq[BlueCard] =
   result.sort((a,b) => b.eval - a.eval)
 
 func comboMatch(comboA,comboB:seq[BlueCard]): bool =
-  comboA.allIt(it in comboB)
+  comboA.mapIt(it.title).allIt(it in comboB.mapIt it.title)
 
 proc blueCombos(sortCards,combo:seq[BlueCard],combos:var seq[seq[BlueCard]]) =
   if combo.len < 3:
     let cardsNotInCombo = 
       if combo.len > 0: 
-        sortCards.filterIt(it notIn combo)
+        sortCards.filterIt(it.title notIn combo.mapIt(it.title))
       else: sortCards
     for card in cardsNotInCombo:
       var newCombo = combo
@@ -224,7 +224,7 @@ proc comboSortBlues*(hypothetical:Hypothetic): seq[BlueCard] =
     result.add evalBlues((
       hypothetical.board,
       hypothetical.pieces,
-      hypothetical.cards.filterIt(it notIn bestCombo))
+      hypothetical.cards.filterIt(it.title notIn bestCombo.mapIt(it.title)))
     )
   else: return hypothetical.evalBlues
 
@@ -264,7 +264,7 @@ proc evalMove(hypothetical:Hypothetic,pieceNr,toSquare:int): int =
   if hypothetical.friendlyFireAdviced (pieceNr,0,pieces[pieceNr],toSquare,0):
     pieces[pieceNr] = 0 else: pieces[pieceNr] = toSquare
   let
-    cards = hypothetical.cards.filterIt(it notIn hypothetical.player.cashablePlans.cashable)
+    cards = hypothetical.cards.filterIt(it.title notIn hypothetical.player.cashablePlans.cashable.mapIt(it.title))
     before = (hypothetical.board,pieces,hypothetical.cards.threeBest).evalPos
     after = (hypothetical.board,pieces,hypothetical.comboSortBlues(cards).threeBest).evalPos
   before+(before-after)

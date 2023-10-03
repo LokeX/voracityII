@@ -10,9 +10,9 @@ import os
 
 var
   aiDone,aiWorking:bool
-  autoEndTurn = true
+  autoEndTurn* = true
 
-proc aiTurn(): bool =
+proc aiTurn*(): bool =
   not aiWorking and 
   turn.nr != 0 and 
   turnPlayer.kind == Computer and 
@@ -21,6 +21,7 @@ proc aiTurn(): bool =
 proc drawCards() =
   while turn.undrawnBlues > 0:
     turnPlayer.drawFrom blueDeck
+    dec turn.undrawnBlues
     echo $turnPlayer.color&" player draws: ",turnPlayer.hand[^1].title
     playSound("page-flip-2")
     let cashedPlans = cashInPlansTo blueDeck
@@ -53,7 +54,7 @@ func cardsThatRequire(cards:seq[BlueCard],square:int): seq[BlueCard] =
 proc planChanceOn(square:int): float =
   let 
     knownCards = knownBlues()
-    unknownCards = blueDeck.fullDeck.filterIt(it notIn knownCards)
+    unknownCards = blueDeck.fullDeck.filterIt(it.title notIn knownCards.mapIt(it.title))
   unknownCards.cardsThatRequire(square).len.toFloat/unknownCards.len.toFloat
 
 proc hasPlanChanceOn(player:Player,square:int): float =
@@ -86,12 +87,6 @@ proc moveAi(hypothetical:Hypothetic): Hypothetic =
       moveSelection.toSquare = move.toSquare
       removePieceAndMove("Yes")
     else: move move.toSquare
-    #  echo "move: ",move
-    # moveFromTo(move.fromSquare,move.toSquare)
-    # if removePiece:
-    #   removePlayersPiece(pieceToRemove)
-    #   playSound("Gunshot")
-    #   playSound("Deanscream-2")
     result = hypothetical
     result.pieces = turnPlayer.pieces
   else:
@@ -110,16 +105,17 @@ proc aiDraw(hypothetical:Hypothetic): Hypothetic =
   drawCards()
   result = hypothetical
   result.cards = turnPlayer.hand
-  result.cards = result.comboSortBlues()
+  result.cards = result.comboSortBlues
   turnPlayer.hand = result.cards
-  hypothetical.echoCards()
+  hypothetical.echoCards
 
-proc aiTakeTurn() =
+proc aiTakeTurn*() =
   aiWorking = true
   echo $turnPlayer.color&" player takes turn:"
+  turn.undrawnBlues = turnPlayer.nrOfPiecesOnBars
   var hypothetical = hypotheticalInit(turnPlayer).aiDraw
-  if not hypothetical.reroll():
-    hypothetical = hypothetical.moveAi()
+  if not hypothetical.reroll:
+    hypothetical = hypothetical.moveAi
     hypothetical = hypothetical.aiDraw
     # if autoEndTurn and not gameWon(): 
     #   endTurn()
@@ -128,7 +124,7 @@ proc aiTakeTurn() =
     aiReroll()
   aiDone = true
 
-proc keyboard (k:KeyEvent) =
+proc aiKeyb*(k:KeyEvent) =
   if k.button == KeyE: autoEndTurn = not autoEndTurn
   # if k.button == KeyN:
   #   echo "n key: new game"
@@ -138,14 +134,7 @@ proc keyboard (k:KeyEvent) =
   #   playSound("carhorn-1")
   #   newGameSetup()
 
-proc mouse (m:KeyEvent) =
-  if m.rightMousePressed:
-    if aiDone:
-      aiDone = false
-      aiWorking = false
-
-proc cycle() =
-  if aiTurn(): aiTakeTurn()
-
-# proc initCityai*() =
-#   addCall(newCall("cityai",keyboard,mouse,nil,cycle))
+proc aiRightMouse*(m:KeyEvent) =
+  if aiDone:
+    aiDone = false
+    aiWorking = false
