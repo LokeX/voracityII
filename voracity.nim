@@ -21,7 +21,7 @@ proc draw(b:var Boxy) =
   b.drawCursor
   if turn.nr > 0: b.drawDice
   if turn.nr > 0 and not isRollingDice(): b.drawSquares
-  if turn.nr > 0 and turn.undrawnBlues > 0: 
+  if turn.nr > 0 and turnPlayer.kind == Human and turn.undrawnBlues > 0: 
     b.drawDynamicImage nrOfUndrawnBluesPainter
 
 proc mouse(m:KeyEvent) =
@@ -30,13 +30,17 @@ proc mouse(m:KeyEvent) =
     m.leftMouse()
     if turn.nr > 0 and mouseOnDice() and mayReroll(): 
       startDiceRoll()
-  elif m.rightMousePressed: m.rightMouse
+  elif m.rightMousePressed: 
+    if turnPlayer.kind == Computer: 
+      m.aiRightMouse
+    m.rightMouse
 
 proc keyboard (k:KeyboardEvent) =
   if k.button == ButtonUnknown and not isRollingDice():
     editDiceRoll k.rune.toUTF8
 
 proc cycle = 
+  echo aiWorking
   if turnPlayer.kind == Computer and aiTurn():
     aiTakeTurn()
 

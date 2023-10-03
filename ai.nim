@@ -9,7 +9,7 @@ import megasound
 import os
 
 var
-  aiDone,aiWorking:bool
+  aiDone*,aiWorking*:bool
   autoEndTurn* = true
 
 proc aiTurn*(): bool =
@@ -117,11 +117,10 @@ proc aiTakeTurn*() =
   if not hypothetical.reroll:
     hypothetical = hypothetical.moveAi
     hypothetical = hypothetical.aiDraw
-    # if autoEndTurn and not gameWon(): 
-    #   endTurn()
-    #   aiWorking = false
-  else:
-    aiReroll()
+    if autoEndTurn and not turnPlayer.cash >= cashToWin: 
+      nextPlayerTurn()
+      aiWorking = false
+  else: aiReroll()
   aiDone = true
 
 proc aiKeyb*(k:KeyEvent) =
