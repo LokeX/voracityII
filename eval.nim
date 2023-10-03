@@ -5,6 +5,7 @@ import sequtils
 import math
 import algorithm
 import sugar
+import threadpool
 
 const
   highwayVal* = 1000
@@ -191,14 +192,10 @@ proc blueCombos(sortCards,combo:seq[BlueCard],combos:var seq[seq[BlueCard]]) =
       blueCombos(cardsNotInCombo,newCombo,combos)
   elif not combos.anyIt(it.comboMatch(combo)): combos.add combo
 
-func bestBlueCombo(hypothetical:Hypothetic,combos:seq[seq[BlueCard]]): seq[BlueCard] =
-  var evals:seq[tuple[eval:int,combo:seq[BlueCard]]]
-  for combo in combos:
-    let eval = evalPos(
-      (baseEvalBoard(hypothetical),
-      hypothetical.pieces,combo)
-    )
-    evals.add (eval,combo)
+proc bestBlueCombo(hypothetical:Hypothetic,combos:seq[seq[BlueCard]]): seq[BlueCard] =
+  var evals:seq[tuple[eval:int,combo:seq[BlueCard]]] = zip(combos.mapIt(
+    evalPos((baseEvalBoard(hypothetical),hypothetical.pieces,it))
+  ),combos)
   evals.sortedByIt(it.eval)[^1].combo
 
 proc comboSortBlues*(hypothetical:Hypothetic): seq[BlueCard] =
@@ -232,9 +229,9 @@ func friendlyFireBest(hypothetical:Hypothetic,move:Move): bool =
   let killEval = hypoMove.evalPos
   killEval > eval
   
-func friendlyFireAdviced*(hypothetical:Hypothetic,move:Move): bool =
+proc friendlyFireAdviced*(hypothetical:Hypothetic,move:Move): bool =
   move.fromSquare != 0 and
-  hypothetical.piecesOn(move.toSquare) > 0 and 
+  turnPlayer.hasPieceOn(move.toSquare) and 
   hypothetical.requiredPiecesOn(move.toSquare) < 2 and
   hypothetical.friendlyFireBest(move)
 
@@ -267,6 +264,7 @@ proc bestMove(hypothetical:Hypothetic,pieceNr,fromSquare,die:int): Move =
 proc move*(hypothetical:Hypothetic,dice:openArray[int]): Move = 
   var moves:seq[Move]
   for pieceNr,fromSquare in hypothetical.pieces:
+    # moves = dice.mapIt(spawn hypothetical.bestMove(pieceNr,fromSquare,it)).mapIt ^it
     for die in dice:
       moves.add hypothetical.bestMove(pieceNr,fromSquare,die)
   moves.sortedByIt(it.eval)[^1]

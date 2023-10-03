@@ -79,12 +79,11 @@ proc moveAi(hypothetical:Hypothetic): Hypothetic =
   let 
     move = hypothetical.move([diceRoll[1].ord,diceRoll[2].ord])
     currentPosEval = hypothetical.evalPos()
+  moveSelection.fromSquare = move.fromSquare
+  moveSelection.toSquare = move.toSquare
   if move.eval.toFloat >= currentPosEval.toFloat*0.75:
-    # let removePiece = hypothetical.aiRemovePiece(move)
     if hypothetical.aiRemovePiece(move):
       singlePiece = players.singlePieceOn(move.toSquare)
-      moveSelection.fromSquare = move.fromSquare
-      moveSelection.toSquare = move.toSquare
       removePieceAndMove("Yes")
     else: move move.toSquare
     result = hypothetical

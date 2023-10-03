@@ -47,7 +47,6 @@ proc startDialog*(entries:seq[string],selRange:HSlice[int,int],call:proc(s:strin
 proc endDialog(selected:string) =
   menuBatch.isActive = false
   popCalls()
-  # includeInputCallsExcept thisDialog
   returnSelection selected
 
 proc draw(b:var Boxy) =
@@ -77,7 +76,7 @@ var
     active:false
   )
 
-# addCall call
 when isMainModule:
+  addCall dialogCall
   startDialog(menuEntries,3..4,recieveMessage)
   runWin

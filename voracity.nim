@@ -40,7 +40,6 @@ proc keyboard (k:KeyboardEvent) =
     editDiceRoll k.rune.toUTF8
 
 proc cycle = 
-  echo aiWorking
   if turnPlayer.kind == Computer and aiTurn():
     aiTakeTurn()
 
@@ -58,11 +57,10 @@ var
     timer:timerCall()
   )
 
-setVolume 0.15
+setVolume 0.20
 addImage("bg",bg)
 addCall call
 addCall dialogCall
-echo "still here"
 runWinWith: 
   callCycles()
   callTimers()
