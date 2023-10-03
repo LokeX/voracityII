@@ -172,6 +172,7 @@ proc handleMoveTo(square:int) =
   moveTo square
   playCashPlansTo blueDeck
   turnPlayer.hand = turnPlayer.sortBlues
+  playerBatches[turn.player].update = true
 
 proc removePieceAndMove*(confirmedKill:string) =
   if confirmedKill == "Yes":

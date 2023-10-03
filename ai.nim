@@ -19,6 +19,8 @@ proc aiTurn*(): bool =
   not isRollingDice()
 
 proc drawCards() =
+  if turn.undrawnBlues > 0: 
+    playerBatches[turn.player].update = true
   while turn.undrawnBlues > 0:
     turnPlayer.drawFrom blueDeck
     dec turn.undrawnBlues
@@ -63,8 +65,9 @@ proc hasPlanChanceOn(player:Player,square:int): float =
 proc enemyKill(hypothetical:Hypothetic,move:Move): bool =
   if turnPlayer.hasPieceOn(move.toSquare): return false else:
     let 
-      planChance = players[players.singlePieceOn(move.toSquare)
-        .playerNr].hasPlanChanceOn(move.toSquare)
+      planChance = 
+        players[players.singlePieceOn(move.toSquare).playerNr]
+        .hasPlanChanceOn(move.toSquare)
       barKill = move.toSquare in bars and (
         hypothetical.countBars() > 1 or players.len < 3
       )
@@ -82,8 +85,12 @@ proc moveAi(hypothetical:Hypothetic): Hypothetic =
   moveSelection.fromSquare = move.fromSquare
   moveSelection.toSquare = move.toSquare
   if move.eval.toFloat >= currentPosEval.toFloat*0.75:
+    echo "ai move:"
+    echo move
     if hypothetical.aiRemovePiece(move):
       singlePiece = players.singlePieceOn(move.toSquare)
+      echo "ai kills piece:"
+      echo singlePiece
       removePieceAndMove("Yes")
     else: move move.toSquare
     result = hypothetical
@@ -111,7 +118,7 @@ proc aiDraw(hypothetical:Hypothetic): Hypothetic =
 proc aiTakeTurn*() =
   aiWorking = true
   echo $turnPlayer.color&" player takes turn:"
-  turn.undrawnBlues = turnPlayer.nrOfPiecesOnBars
+  # turn.undrawnBlues = turnPlayer.nrOfPiecesOnBars
   var hypothetical = hypotheticalInit(turnPlayer).aiDraw
   if not hypothetical.reroll:
     hypothetical = hypothetical.moveAi

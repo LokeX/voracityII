@@ -150,8 +150,8 @@ func evalSquare(hypothetical:Hypothetic,square:int): int =
   .mapIt(((baseSquareVals[it]+blueSquareValues[it].toFloat)*squarePercent[it]).toInt)
   .sum
 
-func evalPos*(hypothetical:Hypothetic): int = 
-  hypothetical.pieces.mapIt(hypothetical.evalSquare(it)).sum
+proc evalPos*(hypothetical:Hypothetic):int {.thread.} = 
+  hypothetical.pieces.mapIt(spawn hypothetical.evalSquare(it)).mapIt(^it).sum
 
 func baseEvalBoard*(hypothetical:Hypothetic): EvalBoard =
   result[0] = 4000
@@ -164,14 +164,14 @@ func baseEvalBoard*(hypothetical:Hypothetic): EvalBoard =
   #   if players.nrOfPiecesOn(square) == 1:
   #     result[square] += 2000
 
-func evalBlue(hypothetical:Hypothetic,card:BlueCard): int =
+proc evalBlue(hypothetical:Hypothetic,card:BlueCard): int =
   evalPos (
     baseEvalBoard(hypothetical),
     hypothetical.pieces,
     @[card]
   )
 
-func evalBlues(hypothetical:Hypothetic): seq[BlueCard] =
+proc evalBlues(hypothetical:Hypothetic): seq[BlueCard] =
   for card in hypothetical.cards:
     result.add card
     result[^1].eval = hypothetical.evalBlue(card)
@@ -221,7 +221,7 @@ proc comboSortBlues(hypothetical:Hypothetic,cards:seq[BlueCard]): seq[BlueCard] 
 func player(hypothetical:Hypothetic): Player =
   Player(pieces:hypothetical.pieces,hand:hypothetical.cards)
 
-func friendlyFireBest(hypothetical:Hypothetic,move:Move): bool =
+proc friendlyFireBest(hypothetical:Hypothetic,move:Move): bool =
   var hypoMove = hypothetical
   hypoMove.pieces[move.pieceNr] = move.toSquare
   let eval = hypoMove.evalPos
