@@ -1,4 +1,4 @@
-import play
+import game
 import board
 import deck
 import sequtils
@@ -306,3 +306,7 @@ proc hypotheticalInit*(player:Player): Hypothetic =
   ),
   player.pieces,
   player.hand)
+
+proc sortBlues*(player:Player):seq[BlueCard] =
+  player.hypotheticalInit.comboSortBlues
+

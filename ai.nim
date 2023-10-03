@@ -1,6 +1,7 @@
 import win
 import board
 import play
+import game
 import deck
 import eval
 import sequtils
@@ -10,9 +11,6 @@ import os
 var
   aiDone,aiWorking:bool
   autoEndTurn = true
-
-proc sortBlues*(player:Player):seq[BlueCard] =
-  player.hypotheticalInit.comboSortBlues
 
 proc aiTurn(): bool =
   not aiWorking and 
