@@ -180,8 +180,6 @@ proc removePieceAndMove*(confirmedKill:string) =
     playSound "Gunshot"
     playSound "Deanscream-2"
   handleMoveTo moveSelection.toSquare
-  # moveTo moveSelection.toSquare
-  # playCashPlansTo blueDeck
 
 proc move*(square:int) =
   moveSelection.toSquare = square
@@ -196,8 +194,6 @@ proc move*(square:int) =
     ]
     startDialog(entries,3..4,removePieceAndMove)
   else: handleMoveTo square
-    # moveTo square
-    # playCashPlansTo blueDeck
 
 proc leftMouse*(m:KeyEvent) =
   if turn.nr == 0: togglePlayerKind()

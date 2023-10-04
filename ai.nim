@@ -22,10 +22,12 @@ proc drawCards() =
   if turn.undrawnBlues > 0: 
     playerBatches[turn.player].update = true
   while turn.undrawnBlues > 0:
+    # echo "here"
     turnPlayer.drawFrom blueDeck
     dec turn.undrawnBlues
     echo $turnPlayer.color&" player draws: ",turnPlayer.hand[^1].title
     playSound("page-flip-2")
+    # echo "here"
     let cashedPlans = cashInPlansTo blueDeck
     if cashedPlans.len > 0: 
       playSound("coins-to-table-2")
@@ -111,7 +113,8 @@ proc aiDraw(hypothetical:Hypothetic): Hypothetic =
   drawCards()
   result = hypothetical
   result.cards = turnPlayer.hand
-  result.cards = result.comboSortBlues
+  echo "here"
+  result.cards = result.evalBlues
   turnPlayer.hand = result.cards
   hypothetical.echoCards
 

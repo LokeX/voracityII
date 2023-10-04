@@ -97,7 +97,7 @@ func oneRequiredBonus(hypothetical:Hypothetic,card:BlueCard,square:int): int =
     result = hypothetical.oneInMoreBonus(card,square)
   else: result = 20_000 
 
-func blueBonus(hypothetical:Hypothetic,card:BlueCard,square:int): int =
+func blueBonus(hypothetical:Hypothetic,card:BlueCard,square:int):int =
   let
     requiredSquares = card.squares.required.deduplicate
     squareIndex = requiredSquares.find(square)
@@ -122,14 +122,14 @@ func blueBonus(hypothetical:Hypothetic,card:BlueCard,square:int): int =
             nrOfPieces += piecesOn[square]
         result = (card.cash div nrOfPiecesRequired)*nrOfPieces
 
-func blueVals*(hypothetical:Hypothetic,squares:seq[int]): seq[int] =
+func blueVals*(hypothetical:Hypothetic,squares:seq[int]):seq[int] =
   result.setLen(squares.len)
   if hypothetical.cards.len > 0:
     for i,square in squares:
       for card in hypothetical.cards:
         result[i] += hypothetical.blueBonus(card,square)
 
-func posPercentages(hypothetical:Hypothetic,squares:seq[int]): seq[float] =
+func posPercentages(hypothetical:Hypothetic,squares:seq[int]):seq[float] =
   var freePieces:int
   for i,square in squares:
     let freePiecesOnSquare = hypothetical.freePiecesOn(square)
@@ -140,7 +140,7 @@ func posPercentages(hypothetical:Hypothetic,squares:seq[int]): seq[float] =
     else:
       result.add posPercent[i].pow(freePieces.toFloat)
 
-func evalSquare(hypothetical:Hypothetic,square:int): int =
+func evalSquare(hypothetical:Hypothetic,square:int):int =
   let 
     squares = toSeq(square..square+posPercent.len-1).mapIt(adjustToSquareNr(it))
     blueSquareValues = hypothetical.blueVals(squares)
@@ -150,19 +150,21 @@ func evalSquare(hypothetical:Hypothetic,square:int): int =
   .mapIt(((baseSquareVals[it]+blueSquareValues[it].toFloat)*squarePercent[it]).toInt)
   .sum
 
-proc evalPos*(hypothetical:Hypothetic):int {.thread.} = 
+proc evalPos*(hypothetical:Hypothetic):int = 
   hypothetical.pieces.mapIt(spawn hypothetical.evalSquare(it)).mapIt(^it).sum
+  # if the program crashes (it should not: the thread is pure): restore this line -->
+  # hypothetical.pieces.mapIt(hypothetical.evalSquare(it)).sum
 
-func baseEvalBoard*(hypothetical:Hypothetic): EvalBoard =
+proc baseEvalBoard*(hypothetical:Hypothetic): EvalBoard =
   result[0] = 4000
   for highway in highways: 
     result[highway] = highwayVal
   for bar in bars: 
     result[bar] = barVal(hypothetical)
     if hypothetical.piecesOn(bar) == 1: result[bar] *= 2
-  # for square in 1..60:
-  #   if players.nrOfPiecesOn(square) == 1:
-  #     result[square] += 2000
+  for square in 1..60:
+    if players.nrOfPiecesOn(square) == 1:
+      result[square] += 2000
 
 proc evalBlue(hypothetical:Hypothetic,card:BlueCard): int =
   evalPos (
@@ -171,52 +173,16 @@ proc evalBlue(hypothetical:Hypothetic,card:BlueCard): int =
     @[card]
   )
 
-proc evalBlues(hypothetical:Hypothetic): seq[BlueCard] =
+proc evalBlues*(hypothetical:Hypothetic): seq[BlueCard] =
   for card in hypothetical.cards:
     result.add card
     result[^1].eval = hypothetical.evalBlue(card)
   result.sort((a,b) => b.eval - a.eval)
 
-func comboMatch(comboA,comboB:seq[BlueCard]): bool =
-  comboA.mapIt(it.title).allIt(it in comboB.mapIt it.title)
-
-proc blueCombos(sortCards,combo:seq[BlueCard],combos:var seq[seq[BlueCard]]) =
-  if combo.len < 3:
-    let cardsNotInCombo = 
-      if combo.len > 0: 
-        sortCards.filterIt(it.title notIn combo.mapIt(it.title))
-      else: sortCards
-    for card in cardsNotInCombo:
-      var newCombo = combo
-      newCombo.add card    
-      blueCombos(cardsNotInCombo,newCombo,combos)
-  elif not combos.anyIt(it.comboMatch(combo)): combos.add combo
-
-proc bestBlueCombo(hypothetical:Hypothetic,combos:seq[seq[BlueCard]]): seq[BlueCard] =
-  var evals:seq[tuple[eval:int,combo:seq[BlueCard]]] = zip(combos.mapIt(
-    evalPos((baseEvalBoard(hypothetical),hypothetical.pieces,it))
-  ),combos)
-  evals.sortedByIt(it.eval)[^1].combo
-
-proc comboSortBlues*(hypothetical:Hypothetic): seq[BlueCard] =
-  if hypothetical.cards.len > 3:
-    var 
-      combo:seq[BlueCard]
-      combos:seq[seq[BlueCard]]
-    hypothetical.cards.blueCombos(combo,combos)
-    let bestCombo = hypothetical.bestBlueCombo(combos)
-    result.add bestCombo
-    result.add evalBlues((
-      hypothetical.board,
-      hypothetical.pieces,
-      hypothetical.cards.filterIt(it.title notIn bestCombo.mapIt(it.title)))
-    )
-  else: return hypothetical.evalBlues
-
-proc comboSortBlues(hypothetical:Hypothetic,cards:seq[BlueCard]): seq[BlueCard] =
+proc evalBlues(hypothetical:Hypothetic,cards:seq[BlueCard]):seq[BlueCard] =
   var hypo = hypothetical
   hypo.cards = cards
-  hypo.comboSortBlues
+  hypo.evalBlues
 
 func player(hypothetical:Hypothetic): Player =
   Player(pieces:hypothetical.pieces,hand:hypothetical.cards)
@@ -231,7 +197,7 @@ proc friendlyFireBest(hypothetical:Hypothetic,move:Move): bool =
   
 proc friendlyFireAdviced*(hypothetical:Hypothetic,move:Move): bool =
   move.fromSquare != 0 and
-  turnPlayer.hasPieceOn(move.toSquare) and 
+  hypothetical.piecesOn(move.toSquare) > 0 and 
   hypothetical.requiredPiecesOn(move.toSquare) < 2 and
   hypothetical.friendlyFireBest(move)
 
@@ -249,7 +215,7 @@ proc evalMove(hypothetical:Hypothetic,pieceNr,toSquare:int): int =
   let
     cards = hypothetical.cards.filterIt(it.title notIn hypothetical.player.cashablePlans.cashable.mapIt(it.title))
     before = (hypothetical.board,pieces,hypothetical.cards.threeBest).evalPos
-    after = (hypothetical.board,pieces,hypothetical.comboSortBlues(cards).threeBest).evalPos
+    after = (hypothetical.board,pieces,hypothetical.evalBlues(cards).threeBest).evalPos
   before+(before-after)
 
 proc bestMove(hypothetical:Hypothetic,pieceNr,fromSquare,die:int): Move =
@@ -280,7 +246,7 @@ proc bestDiceMoves*(hypothetical:Hypothetic): seq[Move] =
     result.add dieMoves[dieMoves.mapIt(it.eval).maxIndex()]
   result.sortedByIt(it.eval)
 
-func hypotheticalInit*(player:Player): Hypothetic =
+proc hypotheticalInit*(player:Player): Hypothetic =
   var board:EvalBoard
   (baseEvalBoard(
     (board,
@@ -291,5 +257,5 @@ func hypotheticalInit*(player:Player): Hypothetic =
   player.hand)
 
 proc sortBlues*(player:Player):seq[BlueCard] =
-  player.hypotheticalInit.comboSortBlues
+  player.hypotheticalInit.evalBlues
 
