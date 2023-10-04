@@ -80,6 +80,15 @@ proc aiRemovePiece(hypothetical:Hypothetic,move:Move): bool =
   players.nrOfPiecesOn(move.toSquare) == 1 and (hypothetical.friendlyFireAdviced(move) or 
   hypothetical.enemyKill(move))
 
+proc aiDraw(hypothetical:Hypothetic): Hypothetic =
+  drawCards()
+  result = hypothetical
+  result.cards = turnPlayer.hand
+  if result.cards.len > 3:
+    result.cards = result.evalBluesThreaded
+    turnPlayer.hand = result.cards
+  hypothetical.echoCards
+
 proc moveAi(hypothetical:Hypothetic): Hypothetic =
   let 
     move = hypothetical.move([diceRoll[1].ord,diceRoll[2].ord])
@@ -95,7 +104,9 @@ proc moveAi(hypothetical:Hypothetic): Hypothetic =
       echo singlePiece
       removePieceAndMove("Yes")
     else: move move.toSquare
-    result = hypothetical
+    if turn.undrawnBlues > 0:
+      result = hypothetical.aiDraw
+    else: result = hypothetical
     result.pieces = turnPlayer.pieces
   else:
     echo "ai skips move:"
@@ -108,15 +119,6 @@ proc aiReroll() =
   sleep(1000)
   startDiceRoll()
   aiWorking = false
-
-proc aiDraw(hypothetical:Hypothetic): Hypothetic =
-  drawCards()
-  result = hypothetical
-  result.cards = turnPlayer.hand
-  echo "here"
-  result.cards = result.evalBlues
-  turnPlayer.hand = result.cards
-  hypothetical.echoCards
 
 proc aiTakeTurn*() =
   aiWorking = true

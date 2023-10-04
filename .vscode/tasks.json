@@ -11,6 +11,7 @@
         "c",
         "-r",
         "-d:release",
+        "--parallelBuild:6",
         // "--verbosity:0",
         "voracity.nim"
       ],

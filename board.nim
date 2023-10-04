@@ -88,10 +88,11 @@ proc endDiceRoll* = dieRollFrame = maxRollFrames
 
 proc mayReroll*:bool = isDouble() and not isRollingDice()
 
-func adjustToSquareNr*(adjustSquare:int): int =
+template adjustToSquareNr*(adjustSquare:untyped): untyped =
   if adjustSquare > 60: adjustSquare - 60 else: adjustSquare
 
-func moveToSquare(fromSquare:int,die:int):int = adjustToSquareNr(fromSquare+die)
+func moveToSquare(fromSquare:int,die:int):int = 
+  adjustToSquareNr fromSquare+die
 
 func moveToSquares*(fromSquare,die:int):seq[int] =
   if fromsquare != 0: result.add moveToSquare(fromSquare,die)
