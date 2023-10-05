@@ -8,45 +8,8 @@ import sequtils
 import megasound
 import os
 
-var
-  aiDone*,aiWorking*:bool
-  autoEndTurn* = true
-
-proc aiTurn*(): bool =
-  not aiWorking and 
-  turn.nr != 0 and 
-  turnPlayer.kind == Computer and 
-  not isRollingDice()
-
-proc drawCards() =
-  if turn.undrawnBlues > 0: 
-    playerBatches[turn.player].update = true
-  while turn.undrawnBlues > 0:
-    # echo "here"
-    turnPlayer.drawFrom blueDeck
-    dec turn.undrawnBlues
-    echo $turnPlayer.color&" player draws: ",turnPlayer.hand[^1].title
-    playSound("page-flip-2")
-    # echo "here"
-    let cashedPlans = cashInPlansTo blueDeck
-    if cashedPlans.len > 0: 
-      playSound("coins-to-table-2")
-      echo $turnPlayer.color&" player cashes plans:"
-      for plan in cashedPlans: echo plan.title
-
-proc reroll(hypothetical:Hypothetic): bool =
-  let 
-    bestDiceMoves = hypothetical.bestDiceMoves()
-    bestDice = bestDiceMoves.mapIt(it.die)
-  echo "dice: ",diceRoll
-  echo "bestDice:"
-  echo bestDice
-  isDouble() and diceRoll[1].ord notIn bestDice[^2..^1]
-
-proc echoCards(hypothetical:Hypothetic) =
-  for card in hypothetical.cards:
-    echo "card: ",card.title
-    echo "eval: ",card.eval
+type
+  Phase = enum Await,Draw,Reroll,AiMove,PostMove,EndTurn
 
 proc knownBlues(): seq[BlueCard] =
   result.add blueDeck.discardPile
@@ -80,71 +43,124 @@ proc aiRemovePiece(hypothetical:Hypothetic,move:Move): bool =
   players.nrOfPiecesOn(move.toSquare) == 1 and (hypothetical.friendlyFireAdviced(move) or 
   hypothetical.enemyKill(move))
 
-proc aiDraw(hypothetical:Hypothetic): Hypothetic =
-  drawCards()
-  result = hypothetical
-  result.cards = turnPlayer.hand
-  if result.cards.len > 3:
-    result.cards = result.evalBluesThreaded
-    turnPlayer.hand = result.cards
-  hypothetical.echoCards
+var
+  autoEndTurn* = true
+  hypo:Hypothetic
+  phase:Phase = Await
 
-proc moveAi(hypothetical:Hypothetic): Hypothetic =
+proc aiTurn*(): bool =
+  turn.nr != 0 and 
+  turnPlayer.kind == Computer and 
+  not isRollingDice()
+
+proc echoCards =
+  for card in hypo.cards:
+    echo "card: ",card.title
+    echo "eval: ",card.eval
+
+proc drawCard =
+  turnPlayer.drawFrom blueDeck
+  dec turn.undrawnBlues
+  echo $turnPlayer.color&" player draws: ",turnPlayer.hand[^1].title
+  playSound("page-flip-2")    
+
+proc cashPlans =
+  if (let cashedPlans = cashInPlansTo blueDeck; cashedPlans.len > 0): 
+    playSound("coins-to-table-2")
+    echo $turnPlayer.color&" player cashes plans:"
+    for plan in cashedPlans: echo plan.title
+
+proc drawCards() =
+  while turn.undrawnBlues > 0:
+    drawCard()
+    cashPlans()
+  hypo.cards = turnPlayer.hand
+  if hypo.cards.len > 3:
+    hypo.cards = hypo.evalBluesThreaded
+    turnPlayer.hand = hypo.cards
+  echoCards()
+
+proc aiDraw =
+  drawCards()
+  phase = Reroll
+
+proc reroll(hypothetical:Hypothetic): bool =
   let 
-    move = hypothetical.move([diceRoll[1].ord,diceRoll[2].ord])
-    currentPosEval = hypothetical.evalPos()
-  moveSelection.fromSquare = move.fromSquare
-  moveSelection.toSquare = move.toSquare
-  if move.eval.toFloat >= currentPosEval.toFloat*0.75:
-    echo "ai move:"
-    echo move
-    if hypothetical.aiRemovePiece(move):
-      singlePiece = players.singlePieceOn(move.toSquare)
-      echo "ai kills piece:"
-      echo singlePiece
-      removePieceAndMove("Yes")
-    else: move move.toSquare
-    if turn.undrawnBlues > 0:
-      result = hypothetical.aiDraw
-    else: result = hypothetical
-    result.pieces = turnPlayer.pieces
-  else:
-    echo "ai skips move:"
-    echo "currentPosEval: ",currentPosEval
-    echo "moveEval: ",move.eval
-    return hypothetical
+    bestDiceMoves = hypothetical.bestDiceMoves()
+    bestDice = bestDiceMoves.mapIt(it.die)
+  echo "dice: ",diceRoll
+  echo "bestDice:"
+  echo bestDice
+  isDouble() and diceRoll[1].ord notIn bestDice[^2..^1]
 
 proc aiReroll() =
   echo "reroll"
   sleep(1000)
   startDiceRoll()
-  aiWorking = false
+
+proc moveAi =
+  let 
+    move = hypo.move([diceRoll[1].ord,diceRoll[2].ord])
+    currentPosEval = hypo.evalPos()
+  moveSelection.fromSquare = move.fromSquare
+  moveSelection.toSquare = move.toSquare
+  if move.eval.toFloat >= currentPosEval.toFloat*0.75:
+    echo "ai move:"
+    echo move
+    if hypo.aiRemovePiece(move):
+      singlePiece = players.singlePieceOn(move.toSquare)
+      echo "ai kills piece:"
+      echo singlePiece
+      removePieceAndMove("Yes")
+    else: move move.toSquare
+    hypo.pieces = turnPlayer.pieces
+  else:
+    echo "ai skips move:"
+    echo "currentPosEval: ",currentPosEval
+    echo "moveEval: ",move.eval
+  phase = PostMove
+
+proc startTurn = 
+  echo $turnPlayer.color&" player takes turn:"
+  hypo = hypotheticalInit(turnPlayer)
+  phase = Draw
+
+proc drawPhase =
+  aiDraw()
+  phase = Reroll
+
+proc rerollPhase =
+  if hypo.reroll: aiReroll()
+  else: phase = AiMove
+
+proc postMovePhase =
+  aiDraw()
+  phase = EndTurn
+
+proc endTurn =
+  echo "ai end of turn"
+  if autoEndTurn and turnPlayer.cash < cashToWin: 
+    echo "auto end turn"
+    turnPlayer.discardCards blueDeck
+    nextPlayerTurn()
+    playSound "carhorn-1"
+    startDiceRoll()
+    phase = Await
 
 proc aiTakeTurn*() =
-  aiWorking = true
-  echo $turnPlayer.color&" player takes turn:"
-  # turn.undrawnBlues = turnPlayer.nrOfPiecesOnBars
-  var hypothetical = hypotheticalInit(turnPlayer).aiDraw
-  if not hypothetical.reroll:
-    hypothetical = hypothetical.moveAi
-    hypothetical = hypothetical.aiDraw
-    if autoEndTurn and not turnPlayer.cash >= cashToWin: 
-      nextPlayerTurn()
-      aiWorking = false
-  else: aiReroll()
-  aiDone = true
+  case phase
+  of Await: startTurn()
+  of Draw: drawPhase()
+  of Reroll: rerollPhase()
+  of AiMove: moveAi()
+  of PostMove: postMovePhase()
+  of EndTurn: endTurn()
+  turn.player.updateBatch
 
 proc aiKeyb*(k:KeyEvent) =
   if k.button == KeyE: autoEndTurn = not autoEndTurn
-  # if k.button == KeyN:
-  #   echo "n key: new game"
-  #   aiWorking = false
-  #   aiDone = true
-  #   endDiceRoll()
-  #   playSound("carhorn-1")
-  #   newGameSetup()
 
 proc aiRightMouse*(m:KeyEvent) =
-  if aiDone:
-    aiDone = false
-    aiWorking = false
+  if phase == EndTurn:
+    phase = Await
+

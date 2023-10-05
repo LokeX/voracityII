@@ -88,7 +88,7 @@ proc endDiceRoll* = dieRollFrame = maxRollFrames
 
 proc mayReroll*:bool = isDouble() and not isRollingDice()
 
-template adjustToSquareNr*(adjustSquare:untyped): untyped =
+template adjustToSquareNr*(adjustSquare:untyped):untyped =
   if adjustSquare > 60: adjustSquare - 60 else: adjustSquare
 
 func moveToSquare(fromSquare:int,die:int):int = 
@@ -108,7 +108,7 @@ func moveToSquares*(fromSquare:int):seq[int] =
   elif fromSquare in highways: 
     result.add gasStations
 
-func moveToSquares*(fromSquare:int,dice:Dice): seq[int] =
+func moveToSquares*(fromSquare:int,dice:Dice):seq[int] =
   result.add moveToSquares fromSquare
   for i,die in dice:
     if i == 1 or dice[1] != dice[2]:
@@ -128,8 +128,6 @@ func squareDims:array[61,Dims] =
         result[1+(i-6)].rect = Rect(x:rxo,y:lryo+(i.toFloat*sqOff),w:100,h:35)
   for dim in result.mitems:
     dim.area = toArea(dim.rect.x+bx,dim.rect.y+by,dim.rect.w,dim.rect.h)
-
-const dieDims = squareDims()
 
 proc paintIcon(path:string):Image =
   let 
@@ -153,6 +151,7 @@ func iconPath(square:Square):string =
   )&".png"
 
 proc buildBoardSquares*(path:string):BoardSquares =
+  const dieDims = squareDims()
   var count = 0
   result[0] = (0,"Removed",dieDims[0],nil)
   for name in lines path:

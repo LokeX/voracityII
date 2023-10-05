@@ -217,14 +217,13 @@ proc rightMouse*(m:KeyEvent) =
     piecesImg.update = true
   elif turnPlayer.cash >= cashToWin:
     setupNewGame()
-  else:
-    if turn.nr == 0:
-      inc turn.nr
-      players = newPlayers()
-      playerBatches = newPlayerBatches()
-    else: 
-      turnPlayer.discardCards blueDeck
-      nextPlayerTurn()
-    playSound "carhorn-1"
-    startDiceRoll()
+  elif turn.nr == 0:
+    inc turn.nr
+    players = newPlayers()
+    playerBatches = newPlayerBatches()
+  else: 
+    turnPlayer.discardCards blueDeck
+    nextPlayerTurn()
+  playSound "carhorn-1"
+  startDiceRoll()
 

@@ -1,4 +1,3 @@
-# import times
 import game
 import board
 import deck
@@ -72,7 +71,7 @@ func requiredSquaresIn(card:BlueCard,covers:seq[Cover]): bool =
     requiredCounts = requiredDistinct.mapIt(required.count(it))
     coverSquares = covers.mapIt(it.square)
     coversCount = requiredDistinct.mapIt(coverSquares.count(it))
-  toSeq(0..requiredCounts.len-1).allIt(coversCount[it] >= requiredCounts[it])
+  toSeq(0..requiredCounts.high).allIt(coversCount[it] >= requiredCounts[it])
 
 func isCovered(hypothetical:Hypothetic,card:BlueCard): bool =
   let covers = hypothetical.blueCovers(card)
@@ -95,8 +94,8 @@ func oneInMoreBonus(hypothetical:Hypothetic,card:BlueCard,square:int):int =
 
 func oneRequiredBonus(hypothetical:Hypothetic,card:BlueCard,square:int): int =
   if card.squares.oneInMany.len > 0:
-    result = hypothetical.oneInMoreBonus(card,square)
-  else: result = 20_000 
+    hypothetical.oneInMoreBonus(card,square)
+  else: 20_000 
 
 func blueBonus(hypothetical:Hypothetic,card:BlueCard,square:int):int =
   let
@@ -116,11 +115,12 @@ func blueBonus(hypothetical:Hypothetic,card:BlueCard,square:int):int =
         hasCover = hypothetical.isCovered(card)
       if freePieces < 1 and hasCover:
         var nrOfPieces = 1
-        for square in 0..requiredSquares.len-1:
-          if piecesOn[square] > requiredPiecesOn[square]:
-            nrOfPieces += requiredPiecesOn[square]
-          else:
-            nrOfPieces += piecesOn[square]
+        for square in 0..requiredSquares.high:
+          nrOfPieces += min(piecesOn[square],requiredPiecesOn[square])
+          # if piecesOn[square] > requiredPiecesOn[square]:
+          #   nrOfPieces += requiredPiecesOn[square]
+          # else:
+          #   nrOfPieces += piecesOn[square]
         result = (card.cash div nrOfPiecesRequired)*nrOfPieces
 
 func blueVals*(hypothetical:Hypothetic,squares:seq[int]):seq[int] =
@@ -181,10 +181,10 @@ func evalBlues(hypothetical:Hypothetic,cards:seq[BlueCard]):seq[BlueCard] =
   hypo.evalBlues
 
 proc evalBluesThreaded*(hypothetical:Hypothetic): seq[BlueCard] =
-  let evals = hypothetical.cards.mapIt(spawn hypothetical.evalBlue it).mapIt ^it
+  let evals = hypothetical.cards.mapIt(spawn hypothetical.evalBlue it)
   for i,card in hypothetical.cards:
     result.add card
-    result[^1].eval = evals[i] #hypothetical.evalBlue(card)
+    result[^1].eval = ^evals[i] #hypothetical.evalBlue(card)
   result.sort((a,b) => b.eval - a.eval)
 
 func player(hypothetical:Hypothetic): Player =
@@ -221,7 +221,7 @@ func evalMove(hypothetical:Hypothetic,pieceNr,toSquare:int): int =
     after = (hypothetical.board,pieces,hypothetical.evalBlues(cards).threeBest).evalPos
   before+(before-after)
 
-func bestMove(hypothetical:Hypothetic,pieceNr,fromSquare,die:int): Move =
+func bestMove(hypothetical:Hypothetic,pieceNr,fromSquare,die:int):Move =
   let
     squares = moveToSquares(fromSquare,die)
     evals = squares.mapIt(hypothetical.evalMove(pieceNr,it))
@@ -230,28 +230,27 @@ func bestMove(hypothetical:Hypothetic,pieceNr,fromSquare,die:int): Move =
     eval = evals[bestEval]
   (pieceNr,die,fromSquare,bestSquare,eval)
 
-proc move*(hypothetical:Hypothetic,dice:openArray[int]): Move = 
+proc move*(hypothetical:Hypothetic,dice:openArray[int]):Move = 
   var flowMoves:seq[FlowVar[Move]]
   for pieceNr,fromSquare in hypothetical.pieces:
     for die in dice:
       flowMoves.add spawn hypothetical.bestMove(pieceNr,fromSquare,die)
-  let moves = flowMoves.mapIt ^it
-  moves.sortedByIt(it.eval)[^1]
+  flowMoves.mapIt(^it).sortedByIt(it.eval)[^1]
 
-proc diceMoves(hypothetical:Hypothetic): seq[Move] =
-  var flowDice:seq[FlowVar[Move]]
+proc diceMoves(hypothetical:Hypothetic):seq[FlowVar[Move]] =
+  # var flowDice:seq[FlowVar[Move]]
   for pieceNr,fromSquare in hypothetical.pieces:
-    for die in 1..6: flowDice.add spawn hypothetical.bestMove(pieceNr,fromSquare,die)
-  result = flowDice.mapIt(^it)
+    for die in 1..6: result.add spawn hypothetical.bestMove(pieceNr,fromSquare,die)
+  # flowDice.mapIt(^it)
 
-proc bestDiceMoves*(hypothetical:Hypothetic): seq[Move] =
-  let moves = hypothetical.diceMoves()
+proc bestDiceMoves*(hypothetical:Hypothetic):seq[Move] =
+  let moves = hypothetical.diceMoves().mapIt ^it
   for die in 1..6:
     let dieMoves = moves.filterIt(it.die == die)
     result.add dieMoves[dieMoves.mapIt(it.eval).maxIndex()]
   result.sortedByIt(it.eval)
 
-proc hypotheticalInit*(player:Player): Hypothetic =
+proc hypotheticalInit*(player:Player):Hypothetic =
   var board:EvalBoard
   (baseEvalBoard(
     (board,

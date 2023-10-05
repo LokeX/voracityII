@@ -16,31 +16,16 @@ const shapes = [ # <- yes, shapes are compiletime resolved
   Circle:Shape(kind:Circle,r:10).buildShapeProps,
   Rectangle:Shape(kind:Rectangle,w:10,h:10).buildShapeProps,
 ]
+template area(shape:untyped):untyped = shapes[shape].area
+template perimeter(shape:untyped):untyped = shapes[shape].perimeter
+
 for shape in shapes:
   for prop,value in shape.fieldPairs: 
     echo prop,": ",value 
   echo ""
-echo shapes[Circle].area # <- A ShapeKind enumerated array of named tuples
 
-# Output ->
+echo Circle.area # <- A ShapeKind enumerated array of named tuples
+echo Circle.perimeter # <- A ShapeKind enumerated array of named tuples
+echo Rectangle.area # <- A ShapeKind enumerated array of named tuples
+echo Rectangle.perimeter # <- A ShapeKind enumerated array of named tuples
 
-# name: Circle
-# area: 314.1592653589793
-# perimeter: 62.83185307179586
-
-# name: Rectangle
-# area: 100.0
-# perimeter: 40.0
-
-# 314.1592653589793
-
-type
-  refA = ref A
-  A = object
-    g:int
-
-var
-  t:refA
-  t2 = A(g:12)
-
-t[] = t2
