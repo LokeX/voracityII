@@ -238,17 +238,15 @@ proc move*(hypothetical:Hypothetic,dice:openArray[int]):Move =
   flowMoves.mapIt(^it).sortedByIt(it.eval)[^1]
 
 proc diceMoves(hypothetical:Hypothetic):seq[FlowVar[Move]] =
-  # var flowDice:seq[FlowVar[Move]]
   for pieceNr,fromSquare in hypothetical.pieces:
     for die in 1..6: result.add spawn hypothetical.bestMove(pieceNr,fromSquare,die)
-  # flowDice.mapIt(^it)
 
 proc bestDiceMoves*(hypothetical:Hypothetic):seq[Move] =
-  let moves = hypothetical.diceMoves().mapIt ^it
+  let moves = hypothetical.diceMoves.mapIt ^it
   for die in 1..6:
-    let dieMoves = moves.filterIt(it.die == die)
-    result.add dieMoves[dieMoves.mapIt(it.eval).maxIndex()]
-  result.sortedByIt(it.eval)
+    let dieMoves = moves.filterIt it.die == die
+    result.add dieMoves[dieMoves.mapIt(it.eval).maxIndex]
+  result.sortedByIt it.eval
 
 proc hypotheticalInit*(player:Player):Hypothetic =
   var board:EvalBoard

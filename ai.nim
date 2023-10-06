@@ -11,28 +11,28 @@ import os
 type
   Phase = enum Await,Draw,Reroll,AiMove,PostMove,EndTurn
 
-proc knownBlues(): seq[BlueCard] =
-  result.add blueDeck.discardPile
-  result.add turnPlayer.hand
+func knownBlues(player:Player,deck:Deck): seq[BlueCard] =
+  result.add deck.discardPile
+  result.add player.hand
 
-func cardsThatRequire(cards:seq[BlueCard],square:int): seq[BlueCard] =
+func require(cards:seq[BlueCard],square:int): seq[BlueCard] =
   cards.filterIt(square in it.squares.required or square in it.squares.oneInMany)
 
-proc planChanceOn(square:int): float =
+func hasPlanChanceOn(player:Player,square:int,deck:Deck): float =
   let 
-    knownCards = knownBlues()
-    unknownCards = blueDeck.fullDeck.filterIt(it.title notIn knownCards.mapIt(it.title))
-  unknownCards.cardsThatRequire(square).len.toFloat/unknownCards.len.toFloat
+    knownCards = player.knownBlues deck
+    unknownCards = deck.fullDeck.filterIt(it.title notIn knownCards.mapIt(it.title))
+    chance = unknownCards.require(square).len.toFloat/unknownCards.len.toFloat
+  chance*player.hand.len.toFloat
 
-proc hasPlanChanceOn(player:Player,square:int): float =
-  planChanceOn(square)*player.hand.len.toFloat
+# proc hasPlanChanceOn(player:Player,square:int): float =
+#   planChanceOn(square)*player.hand.len.toFloat
 
 proc enemyKill(hypothetical:Hypothetic,move:Move): bool =
   if turnPlayer.hasPieceOn(move.toSquare): return false else:
     let 
-      planChance = 
-        players[players.singlePieceOn(move.toSquare).playerNr]
-        .hasPlanChanceOn(move.toSquare)
+      pieceNr = players.singlePieceOn(move.toSquare).playerNr
+      planChance = players[pieceNr].hasPlanChanceOn(move.toSquare,blueDeck)
       barKill = move.toSquare in bars and (
         hypothetical.countBars() > 1 or players.len < 3
       )
@@ -70,7 +70,7 @@ proc cashPlans =
     echo $turnPlayer.color&" player cashes plans:"
     for plan in cashedPlans: echo plan.title
 
-proc drawCards() =
+proc drawCards =
   while turn.undrawnBlues > 0:
     drawCard()
     cashPlans()
@@ -78,10 +78,10 @@ proc drawCards() =
   if hypo.cards.len > 3:
     hypo.cards = hypo.evalBluesThreaded
     turnPlayer.hand = hypo.cards
-  echoCards()
 
 proc aiDraw =
   drawCards()
+  echoCards()
   phase = Reroll
 
 proc reroll(hypothetical:Hypothetic): bool =
@@ -92,11 +92,6 @@ proc reroll(hypothetical:Hypothetic): bool =
   echo "bestDice:"
   echo bestDice
   isDouble() and diceRoll[1].ord notIn bestDice[^2..^1]
-
-proc aiReroll() =
-  echo "reroll"
-  sleep(1000)
-  startDiceRoll()
 
 proc moveAi =
   let 
@@ -130,7 +125,10 @@ proc drawPhase =
   phase = Reroll
 
 proc rerollPhase =
-  if hypo.reroll: aiReroll()
+  if hypo.reroll: 
+    echo "reroll"
+    sleep(1000)
+    startDiceRoll()
   else: phase = AiMove
 
 proc postMovePhase =
@@ -163,4 +161,4 @@ proc aiKeyb*(k:KeyEvent) =
 proc aiRightMouse*(m:KeyEvent) =
   if phase == EndTurn:
     phase = Await
-
+ 

@@ -44,7 +44,6 @@ const
   drawPile = Rect(x:855,y:495,w:110,h:180)
   discardPile = Rect(x:1025,y:495,w:cardWidth*0.441,h:cardHeight*0.441)
 
-
 var 
   blueDeck* = newDeck "dat\\blues.txt"
   playerKinds*:array[6,PlayerKind]
@@ -65,6 +64,8 @@ proc playerBatch(setup:BatchSetup,yOffset:int):Batch =
     hAlign:setup.hAlign,
     fixedBounds:(175,110),
     font:(setup.font,setup.fontSize,contrastColors[setup.bgColor]),
+    border:(0,15,color(0,1,1)),
+    # opacity:50,
     bgColor:playerColors[setup.bgColor],
     shadow:(10,1.75,color(255,255,255,200))
   )
@@ -120,6 +121,7 @@ proc drawFrom*(player:var Player,deck:var Deck) =
   if deck.drawPile.len == 0:
     deck.shufflePiles
   player.hand.add deck.drawPile.pop
+  deck.lastDrawn = player.hand[^1].title
 
 proc playTo*(player:var Player,deck:var Deck,card:int) =
   deck.discardPile.add player.hand[card]
@@ -191,6 +193,7 @@ proc nextPlayerTurn* =
   else: inc turn.player
   turn.player.updateBatch
   turn.undrawnBlues = turnPlayer.nrOfPiecesOnBars
+  blueDeck.lastDrawn = ""
 
 proc playerKindsFromFile:seq[PlayerKind] =
   try:

@@ -118,7 +118,10 @@ func pieceOnSquare(player:Player,square:int):int =
 
 proc drawMoveToSquares*(b:var Boxy,square:int) =
   if square != moveSelection.hoverSquare and turnPlayer.hasPieceOn(square):
-    moveToSquaresPainter.context = square.moveToSquares diceRoll
+    if turn.diceMoved:
+      moveToSquaresPainter.context = square.moveToSquares
+    else:
+      moveToSquaresPainter.context = square.moveToSquares diceRoll
     moveToSquaresPainter.update = true
     moveSelection.hoverSquare = square
   b.drawDynamicImage moveToSquaresPainter
@@ -199,6 +202,7 @@ proc leftMouse*(m:KeyEvent) =
   if turn.nr == 0: togglePlayerKind()
   elif turn.undrawnBlues > 0 and mouseOn blueDeck.drawSlot.area: 
     drawCardFrom blueDeck
+    playCashPlansTo blueDeck
     turnPlayer.hand = turnPlayer.sortBlues
   elif not isRollingDice():
     if (let square = mouseOnSquare(); square != -1): 

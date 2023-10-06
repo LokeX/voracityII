@@ -16,6 +16,9 @@ proc draw(b:var Boxy) =
   b.drawImage "bg",bgRect
   b.drawBoard
   b.drawDynamicImage piecesImg
+  if turnPlayer.kind == Computer:
+    blueDeck.reveal = Back
+  else: blueDeck.reveal = Front
   b.paintCards blueDeck,turnPlayer.hand
   b.drawPlayerBatches
   b.drawCursor
@@ -23,6 +26,8 @@ proc draw(b:var Boxy) =
   if turn.nr > 0 and not isRollingDice(): b.drawSquares
   if turn.nr > 0 and turnPlayer.kind == Human and turn.undrawnBlues > 0: 
     b.drawDynamicImage nrOfUndrawnBluesPainter
+  if blueDeck.lastDrawn.len > 0 and mouseOn blueDeck.drawSlot.area:
+    b.drawImage(blueDeck.lastDrawn,blueDeck.popUpSlot.rect)
 
 proc mouse(m:KeyEvent) =
   if m.leftMousePressed:

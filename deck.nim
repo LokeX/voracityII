@@ -6,6 +6,7 @@ import board
 
 type
   Show* = enum Hand,Discard
+  Reveal* = enum Front,Back
   ProtoCard = array[4,string]
   PlanSquares = tuple[required,oneInMany:seq[int]]
   CardKind* = enum Plan,Event,News,Talent,Mission
@@ -20,8 +21,10 @@ type
     eval*:int
   Deck* = object 
     fullDeck*,drawPile*,discardPile*:seq[BlueCard]
-    popUpSlot,drawSlot*,discardSlot*:CardSlot
+    popUpSlot*,drawSlot*,discardSlot*:CardSlot
+    lastDrawn*:string
     show:Show
+    reveal*:Reveal
   CardSlot = tuple[nr:int,name:string,area:Area,rect:Rect]
 
 const
@@ -52,6 +55,7 @@ const
 
 let
   planbg = readImage "pics\\planbg.jpg"
+  blueBack = readImage "pics\\blueback.jpg"
   roboto = readTypeface "fonts\\Roboto-Regular_1.ttf"
   point = readTypeface "fonts\\StintUltraCondensed-Regular.ttf"
   ibmplex = readTypeFace "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
@@ -248,8 +252,9 @@ proc newDeck*(path:string):Deck =
   result.drawPile = result.fullDeck
   result.drawPile.shuffle
   result.initCardSlots
-  result.drawSlot.name = "drawpile"
-  removeImg(result.drawSlot.name)
+  addImage("blueback",blueBack)
+  # result.drawSlot.name = "drawpile"
+  # removeImg(result.drawSlot.name)
   for card in result.fullDeck:
     addImage(card.title,card.img)
 
@@ -257,6 +262,7 @@ proc resetDeck*(deck:var Deck) =
   deck.discardPile.setLen 0
   deck.drawPile = deck.fullDeck
   deck.drawPile.shuffle
+  deck.lastDrawn = ""
 
 proc shufflePiles*(deck:var Deck) =
   deck.drawPile.add deck.discardPile
@@ -290,7 +296,9 @@ proc paintCards*(b:var Boxy,deck:Deck,playerHand:seq[BlueCard]) =
       b.drawImage(deck.discardPile[^1].title,deck.popUpSlot.rect)
       b.drawCardSquares deck.discardPile[^1]
   for (card,slot) in (if deck.show == Hand: playerHand else: deck.discardPile).cardSlots:
-    b.drawImage(card.title,slot.rect)
+    if deck.show == Hand and deck.reveal == Back:
+      b.drawImage("blueback",slot.rect)
+    else: b.drawImage(card.title,slot.rect)
     if mouseOn slot.area:
       b.drawImage(card.title,deck.popUpSlot.rect)
       b.drawCardSquares card
