@@ -64,7 +64,8 @@ proc playerBatch(setup:BatchSetup,yOffset:int):Batch =
     hAlign:setup.hAlign,
     fixedBounds:(175,110),
     font:(setup.font,setup.fontSize,contrastColors[setup.bgColor]),
-    border:(0,15,color(0,1,1)),
+    border:(3,20,contrastColors[setup.bgColor]),
+    blur:2,
     # opacity:50,
     bgColor:playerColors[setup.bgColor],
     shadow:(10,1.75,color(255,255,255,200))

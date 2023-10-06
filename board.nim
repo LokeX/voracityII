@@ -75,9 +75,9 @@ proc drawDice*(b:var Boxy) =
     b.rotateDie(2)
     inc dieRollFrame
 
-proc isRollingDice*(): bool = dieRollFrame < maxRollFrames
+proc isRollingDice*: bool = dieRollFrame < maxRollFrames
 
-proc isDouble*(): bool = diceRoll[1] == diceRoll[2]
+proc isDouble*: bool = diceRoll[1] == diceRoll[2]
 
 proc startDiceRoll*() =
   if not isRollingDice(): 

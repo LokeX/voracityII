@@ -73,7 +73,7 @@ iterator cardSlots*(cards:seq[BlueCard]):(BlueCard,CardSlot) =
       yield (cards[i],slots[i])
       inc i
 
-func parseProtoCards(lines:seq[string]):seq[ProtoCard] =
+func parseProtoCards(lines:sink seq[string]):seq[ProtoCard] =
   var 
     cardLine:int
     protoCard:ProtoCard 
@@ -95,7 +95,7 @@ func parseCardKindFrom(kind:string):CardKind =
       .find kind[0..kind.high-1].toLower) 
   except: raise(newException(CatchableError,"Error, parsing CardKind: "&kind))
 
-func buildPlanFrom(protoCard:ProtoCard):BlueCard =
+func buildPlanFrom(protoCard:sink ProtoCard):BlueCard =
   result = BlueCard(title:protoCard[1],cardKind:Plan)
   result.squares = (
     parseCardSquares(protoCard[2],['{','}']),
@@ -290,6 +290,8 @@ proc drawCardSquares(b:var Boxy,blue:BlueCard) =
   b.drawDynamicImage cardSquaresPainter
 
 proc paintCards*(b:var Boxy,deck:Deck,playerHand:seq[BlueCard]) =
+  if deck.lastDrawn.len > 0 and mouseOn deck.drawSlot.area:
+    b.drawImage(deck.lastDrawn,deck.popUpSlot.rect)
   if deck.discardPile.len > 0:
     b.drawImage(deck.discardPile[^1].title,deck.discardSlot.rect)
     if mouseOn deck.discardSlot.area:

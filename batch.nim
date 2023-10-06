@@ -15,6 +15,7 @@ type
     font:Font
     text:Text
     opacity:float = 1
+    blur:float
     background:Image
     border:Border
     padding:tuple[left,right,top,bottom:int]
@@ -66,6 +67,7 @@ type
     hAlign*:HorizontalAlignment
     font*:(string,float,Color)
     opacity*:float
+    blur*:float
     bgColor*:Color = color(255,255,255)
     border*:(int,float,Color)
     shadow*:(int,float,Color)
@@ -154,7 +156,7 @@ proc paintLineBackground(batch:Batch,color:Color,border:Border):Image =
   ctx.fillRoundedRect(ctx.lineInnerRect(border.size.toFloat),border.angle)
   ctx.image
 
-proc paintTitleBackgroundOn(batch:Batch,img:Image):Image =
+proc paintTitleBackgroundOn(batch:Batch,img:sink Image):Image =
   result = img
   result.draw(
     batch.paintLineBackground(batch.title.line.bgColor,batch.title.line.border),
@@ -170,8 +172,9 @@ proc paintBackground(batch:Batch):Image =
   ctx.fillRoundedRect(batch.outerRect,batch.border.angle)
   ctx.fillStyle = batch.text.bgColor
   ctx.fillRoundedRect(batch.innerRect,batch.border.angle)
-  if batch.title.on: batch.paintTitleBackgroundOn ctx.image
-  else: ctx.image
+  if batch.title.on: ctx.image = batch.paintTitleBackgroundOn ctx.image
+  if batch.blur > 0: ctx.image.blur batch.blur
+  ctx.image
 
 proc paintSelector(batch:Batch):Image =
   batch.paintLineBackground(batch.selector.line.bgColor,batch.selector.line.border)
@@ -187,7 +190,7 @@ proc typeSet(batch:Batch):Arrangement = batch.text.spans.typeset(
   hAlign = batch.text.hAlign,
   wrap = false)
 
-proc drawSelectorOn(batch:Batch,img:Image):Image =
+proc drawSelectorOn(batch:Batch,img:sink Image):Image =
   img.draw(batch.selector.img,translate batch.linePos(batch.selector.selection))
   img
 
@@ -207,7 +210,7 @@ proc cursorRect(batch:Batch):Rect =
     (w,h) = (batch.font.size/2,batch.font.size)
   Rect(x:x,y:y,w:w,h:h)
 
-proc paintCursorOn(batch:Batch,img:Image):Image =
+proc paintCursorOn(batch:Batch,img:sink Image):Image =
   let ctx = img.newContext
   ctx.fillStyle = batch.input.cursor.color
   ctx.fillRect batch.cursorRect
@@ -382,6 +385,7 @@ proc newBatch*(batchInit:BatchInit):Batch =
     batch.text.hAlign = batchInit.hAlign
     batch.fixedBounds = batchInit.fixedBounds
     if batchInit.opacity > 0: batch.opacity = batchInit.opacity
+    if batchInit.blur > 0: batch.blur = batchInit.blur
     if batchInit.titleOn:
       batch.title.on = true
       batch.title.line = batchInit.titleLine
