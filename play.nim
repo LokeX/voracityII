@@ -76,7 +76,7 @@ var
     update:true
   )
 
-proc setupNewGame =
+proc setupNewGame* =
   turn = (0,0,false,0)
   blueDeck.resetDeck
   players = newDefaultPlayers()

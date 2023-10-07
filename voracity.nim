@@ -8,6 +8,7 @@ import megasound
 import dialog
 import ai
 import menu
+import batch
 
 let
   bg = readImage "pics\\downtown-city-skyline-river.jpg"
@@ -18,7 +19,7 @@ proc draw(b:var Boxy) =
   b.drawBoard
   b.drawDynamicImage piecesImg
   b.drawPlayerBatches
-  b.drawMenu
+  b.drawDynamicImage mainMenu
   if turn.nr > 0: 
     if turnPlayer.kind == Computer:
       blueDeck.reveal = Back
@@ -30,10 +31,18 @@ proc draw(b:var Boxy) =
     if turnPlayer.kind == Human and turn.undrawnBlues > 0: 
       b.drawDynamicImage nrOfUndrawnBluesPainter
 
+proc menuSelection =
+  if mouseOnMenuSelection("Quit Voracity"):
+    window.closeRequested = true
+  elif mouseOnMenuSelection("Start Game") or mouseOnMenuSelection("End Turn"):
+    nextTurn()
+  elif mouseOnMenuSelection("New Game"):
+    setupNewGame()
+
 proc mouse(m:KeyEvent) =
   if m.leftMousePressed:
-    if menu.mouseOnSelection("Quit Voracity"):
-      window.closeRequested = true
+    if mouseOnMenuselection():
+      menuSelection()
     else:
       blueDeck.leftMousePressed
       m.leftMouse()
@@ -44,7 +53,9 @@ proc mouse(m:KeyEvent) =
       m.aiRightMouse
     m.rightMouse
 
-proc mouseMoved = mouseOnMenu()
+proc mouseMoved = 
+  if mouseOn mainMenu.area:
+    mainMenu.mouseSelect
 
 proc keyboard (key:KeyboardEvent) =
   if key.button == ButtonUnknown and not isRollingDice():
