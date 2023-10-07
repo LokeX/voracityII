@@ -4,7 +4,7 @@ import win except strip
 
 const
   thisDialog = "dialog"
-  robotoRegular = "fonts\\Roboto-Regular_1.ttf"
+  robotoRegular* = "fonts\\Roboto-Regular_1.ttf"
 
 var 
   selectorBorder*:Border = (0,10,color(1,0,0))

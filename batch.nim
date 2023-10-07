@@ -398,6 +398,10 @@ proc newBatch*(batchInit:BatchInit):Batch =
 proc selection*(batch:Batch):int = 
   if batch.kind == MenuBatch: batch.selector.selection else: -1
 
+proc setSelectionRange*(batch:Batch,selectionRange:HSlice[int,int]) =
+  if batch.kind == MenuBatch:
+    batch.selector.selectionRange = selectionRange
+
 proc input*(batch:Batch):string =
   if batch.kind == InputBatch: 
     batch.text.spans[^1].text

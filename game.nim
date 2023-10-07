@@ -7,6 +7,7 @@ import random
 import batch
 import colors
 import board
+import megasound
 
 type
   PlayerKind* = enum Human,Computer,None
@@ -66,9 +67,9 @@ proc playerBatch(setup:BatchSetup,yOffset:int):Batch =
     font:(setup.font,setup.fontSize,contrastColors[setup.bgColor]),
     border:(3,20,contrastColors[setup.bgColor]),
     blur:2,
-    # opacity:50,
+    opacity:50,
     bgColor:playerColors[setup.bgColor],
-    shadow:(10,1.75,color(255,255,255,200))
+    shadow:(10,1.75,color(255,255,255,100))
   )
 
 proc playerBatchTxt(playerNr:int):seq[string] =

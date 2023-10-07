@@ -17,7 +17,7 @@ type
 
 const
   diceRollRects = (Rect(x:1450,y:60,w:50,h:50),Rect(x:1450,y:120,w:50,h:50))
-  diceRollDims:array[1..2,Dims] = [
+  diceRollDims*:array[1..2,Dims] = [
     (diceRollRects[0].toArea,diceRollRects[0]),
     (diceRollRects[1].toArea,diceRollRects[1])
   ]
@@ -211,4 +211,4 @@ proc drawBoard*(b:var Boxy) =
 
 randomize()
 addImage("board",boardImg)
-for die in DieFaces: addImage $die,("pics\\diefaces\\"&($die.ord)&".gif").readImage
+for die in DieFaces: addImage $die,("pics\\diefaces\\"&($die.ord)&".png").readImage

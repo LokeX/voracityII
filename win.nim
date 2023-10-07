@@ -122,6 +122,9 @@ func down*(event:KeyboardEvent,b:Button):bool =
 
 func isKey*(b1:Button,b2:Button):bool = b1 == b2
 
+func pressedIs*(k:KeyboardEvent, button:Button):bool = 
+  k.keyPressed and k.button == button
+
 func hasRune*(k:KeyboardEvent):bool = k.rune.toUTF8 != "¤"
 
 func leftMousePressed*(m:KeyEvent):bool =
@@ -260,11 +263,11 @@ window.onMouseMove = proc() =
 
 proc callCycles* =
   for call in calls:
-    if call.cycle != nil and call.active: call.cycle()
+    if call.cycle != nil: call.cycle()
 
 proc callTimers* =
   for call in calls.mitems:
-    if call.timer.call != nil and call.active:
+    if call.timer.call != nil:
       if cpuTime()-call.timer.lastTime > call.timer.secs:
         call.timer.lastTime = cpuTime()
         call.timer.call()

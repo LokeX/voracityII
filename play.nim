@@ -215,19 +215,22 @@ proc leftMouse*(m:KeyEvent) =
         turnPlayer.playTo blueDeck,slotNr
         turnPlayer.hand = turnPlayer.sortBlues
 
-proc rightMouse*(m:KeyEvent) =
-  if moveSelection.fromSquare != -1:
-    moveSelection.fromSquare = -1
-    piecesImg.update = true
-  elif turnPlayer.cash >= cashToWin:
+proc nextTurn* =
+  if turnPlayer.cash >= cashToWin:
     setupNewGame()
   elif turn.nr == 0:
     inc turn.nr
     players = newPlayers()
     playerBatches = newPlayerBatches()
+    # playSound "carstart-1"
   else: 
     turnPlayer.discardCards blueDeck
     nextPlayerTurn()
   playSound "carhorn-1"
   startDiceRoll()
 
+proc rightMouse*(m:KeyEvent) =
+  if moveSelection.fromSquare != -1:
+    moveSelection.fromSquare = -1
+    piecesImg.update = true
+  else: nextTurn()

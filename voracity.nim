@@ -7,9 +7,10 @@ import times
 import megasound
 import dialog
 import ai
+import menu
 
 let
-  bg = readImage "pics\\bggreen.png"
+  bg = readImage "pics\\downtown-city-skyline-river.jpg"
   bgRect = Rect(x:0,y:0,w:scaledWidth.toFloat,h:scaledHeight.toFloat)
 
 proc draw(b:var Boxy) =
@@ -17,6 +18,7 @@ proc draw(b:var Boxy) =
   b.drawBoard
   b.drawDynamicImage piecesImg
   b.drawPlayerBatches
+  b.drawMenu
   if turn.nr > 0: 
     if turnPlayer.kind == Computer:
       blueDeck.reveal = Back
@@ -30,18 +32,23 @@ proc draw(b:var Boxy) =
 
 proc mouse(m:KeyEvent) =
   if m.leftMousePressed:
-    blueDeck.leftMousePressed
-    m.leftMouse()
-    if turn.nr > 0 and mouseOnDice() and mayReroll(): 
-      startDiceRoll()
+    if menu.mouseOnSelection("Quit Voracity"):
+      window.closeRequested = true
+    else:
+      blueDeck.leftMousePressed
+      m.leftMouse()
+      if turn.nr > 0 and mouseOnDice() and mayReroll(): 
+        startDiceRoll()
   elif m.rightMousePressed: 
     if turnPlayer.kind == Computer: 
       m.aiRightMouse
     m.rightMouse
 
-proc keyboard (k:KeyboardEvent) =
-  if k.button == ButtonUnknown and not isRollingDice():
-    editDiceRoll k.rune.toUTF8
+proc mouseMoved = mouseOnMenu()
+
+proc keyboard (key:KeyboardEvent) =
+  if key.button == ButtonUnknown and not isRollingDice():
+    editDiceRoll key.rune.toUTF8
 
 proc cycle = 
   if turnPlayer.kind == Computer and aiTurn():
@@ -56,6 +63,7 @@ var
   call = Call(
     draw:draw,
     mouse:mouse,
+    mouseMoved:mouseMoved,
     keyboard:keyboard,
     cycle:cycle,
     timer:timerCall()
