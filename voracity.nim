@@ -10,12 +10,8 @@ import ai
 import menu
 import batch
 
-let
-  bg = readImage "pics\\downtown-city-skyline-river.jpg"
-  bgRect = Rect(x:0,y:0,w:scaledWidth.toFloat,h:scaledHeight.toFloat)
-
 proc draw(b:var Boxy) =
-  b.drawImage "bg",bgRect
+  b.drawImage backgrounds[bgSelected].name,bgRect
   b.drawBoard
   b.drawDynamicImage piecesImg
   b.drawPlayerBatches
@@ -34,14 +30,14 @@ proc draw(b:var Boxy) =
 proc menuSelection =
   if mouseOnMenuSelection("Quit Voracity"):
     window.closeRequested = true
-  elif mouseOnMenuSelection("Start Game") or mouseOnMenuSelection("End Turn"):
+  elif mouseOnMenuSelection("Start Game"):
     nextTurn()
   elif mouseOnMenuSelection("New Game"):
     setupNewGame()
 
 proc mouse(m:KeyEvent) =
   if m.leftMousePressed:
-    if mouseOnMenuselection():
+    if mouseOnMenuSelection():
       menuSelection()
     else:
       blueDeck.leftMousePressed
@@ -58,6 +54,15 @@ proc mouseMoved =
     mainMenu.mouseSelect
 
 proc keyboard (key:KeyboardEvent) =
+  if key.keyPressed:
+    case key.button
+    of KeyLeft: 
+      if bgSelected > 0: dec bgSelected 
+      else: bgSelected = backgrounds.high
+    of KeyRight:
+      if bgSelected < backgrounds.high: inc bgSelected 
+      else: bgSelected = backgrounds.low
+    else:discard
   if key.button == ButtonUnknown and not isRollingDice():
     editDiceRoll key.rune.toUTF8
 
@@ -81,7 +86,6 @@ var
   )
 
 setVolume 0.20
-addImage("bg",bg)
 addCall call
 addCall dialogCall
 runWinWith: 

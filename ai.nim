@@ -59,7 +59,7 @@ proc echoCards =
     echo "card: ",card.title
     echo "eval: ",card.eval
 
-proc drawCard =
+proc drawCard = #a menu problem HERE
   turnPlayer.drawFrom blueDeck
   dec turn.undrawnBlues
   echo $turnPlayer.color&" player draws: ",turnPlayer.hand[^1].title

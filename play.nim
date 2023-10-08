@@ -8,6 +8,7 @@ import sequtils
 import deck
 import batch
 import eval
+import menu
 
 type
   SinglePiece = tuple[playerNr,pieceNr:int]
@@ -82,6 +83,7 @@ proc setupNewGame* =
   players = newDefaultPlayers()
   playerBatches = newPlayerBatches()
   piecesImg.update = true
+  setMenuTo SetupMenu
 
 proc togglePlayerKind(batchNr:int) =
   playerKinds[batchNr] = 
@@ -163,6 +165,7 @@ proc playCashPlansTo(deck:var Deck) =
     playSound "coins-to-table-2"
     if turnPlayer.cash >= cashToWin:
       playSound "applause-2"
+      setMenuTo NewGameMenu
 
 func singlePieceOn*(players:seq[Player],square:int):SinglePiece =
   result = (-1,-1)
@@ -218,10 +221,12 @@ proc leftMouse*(m:KeyEvent) =
 proc nextTurn* =
   if turnPlayer.cash >= cashToWin:
     setupNewGame()
+    setMenuTo SetupMenu
   elif turn.nr == 0:
     inc turn.nr
     players = newPlayers()
     playerBatches = newPlayerBatches()
+    setMenuTo GameMenu
     # playSound "carstart-1"
   else: 
     turnPlayer.discardCards blueDeck

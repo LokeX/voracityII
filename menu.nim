@@ -3,19 +3,30 @@ import strutils
 import batch
 import dialog
 
-type 
-  MenuKind* = enum SetupMenu,GameMenu
+type
+  Background* = tuple[name:string,img:Image]
+  MenuKind* = enum SetupMenu,GameMenu,NewGameMenu
 
 const
-  menuEntries* = [
+  menuEntries = [
     SetupMenu: @["Start Game\n","Quit Voracity"],
-    GameMenu: @["End Turn\n","New Game","Quit Voracity"],
+    GameMenu: @["New Game\n","Quit Voracity"],
+    NewGameMenu: @["New Game\n","Quit Voracity"],
   ]
 
-var 
+let
+  bgRect* = Rect(x:0,y:0,w:scaledWidth.toFloat,h:scaledHeight.toFloat)
+  backgrounds*:array[3,Background] = [
+    ("skylines",readImage "pics\\2015-02-24-BestSkylines_11.jpg"),
+    ("darkgrain",readImage "pics\\dark-wood-grain.jpg"),
+    ("fireworks2",readImage "pics\\fireworks.jpg")
+  ]
+
+var
+  bgSelected* = 0
   menuKind:MenuKind
-  selectorBorder*:Border = (0,10,color(1,0,0))
-  menuBatchInit* = BatchInit(
+  selectorBorder:Border = (0,10,color(1,0,0))
+  menuBatchInit = BatchInit(
     kind:MenuBatch,
     name:"mainMenu",
     pos:(860,280),
@@ -32,10 +43,11 @@ var
   )
   mainMenu* = newBatch menuBatchInit
 
-proc setMenu*(kind:MenuKind,entries:seq[string]) =
+proc setMenuTo*(kind:MenuKind) =
   menuKind = kind
-  mainMenu.setSpanTexts entries
-  mainMenu.setSelectionRange 0..entries.high
+  bgSelected = menuKind.ord
+  mainMenu.resetSpanTexts menuEntries[menuKind]
+  mainMenu.setSelectionRange 0..menuEntries[menuKind].high
   mainMenu.update = true
 
 proc selection*:string =
@@ -48,6 +60,9 @@ proc mouseOnMenuSelection*(s:string):bool =
     menuEntries[menuKind][selection].strip == s
   else: false
 
-proc mouseOnMenuSelection*:bool = mainMenu.mouseOnSelectionArea != -1
+proc mouseOnMenuselection*:bool = mainMenu.mouseOnSelectionArea != -1
 
 proc menuIs*:MenuKind = menuKind
+
+for bg in backgrounds:
+  addImage(bg.name,bg.img)

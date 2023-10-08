@@ -194,7 +194,7 @@ proc drawSelectorOn(batch:Batch,img:sink Image):Image =
   img.draw(batch.selector.img,translate batch.linePos(batch.selector.selection))
   img
 
-proc setDimensions(batch:Batch) =
+proc setDimensions*(batch:Batch) =
   batch.text.bounds = batch.text.spans.layoutBounds.textBounds
   if batch.fixedBounds.width > 0: batch.text.bounds.width = batch.fixedBounds.width
   if batch.fixedBounds.height > 0: batch.text.bounds.height = batch.fixedBounds.height
@@ -401,15 +401,23 @@ proc selection*(batch:Batch):int =
 proc setSelectionRange*(batch:Batch,selectionRange:HSlice[int,int]) =
   if batch.kind == MenuBatch:
     batch.selector.selectionRange = selectionRange
+  batch.selector.selectionAreas = batch.computeSelectionAreas()
 
 proc input*(batch:Batch):string =
   if batch.kind == InputBatch: 
     batch.text.spans[^1].text
   else: "No input - batch is not InputBatch"
 
+proc resetSpanTexts*(batch:Batch,entries:seq[string]) =
+  batch.selector.selection = 0
+  batch.text.spans.setLen 0
+  batch.text.spans = batchSpans(entries,batch.font)
+  batch.setDimensions
+
 proc setSpanTexts*(batch:Batch,spans:seq[string]) =
   for i,span in batch.text.spans.mpairs:
     span.text = spans[i]
+  # batch.setDimensions()
 
 proc setSpans*(batch:Batch,spans:seq[Span]) =
   batch.text.spans = spans
