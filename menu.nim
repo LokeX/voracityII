@@ -23,6 +23,7 @@ let
   ]
 
 var
+  showMenu* = true
   bgSelected* = 0
   menuKind:MenuKind
   selectorBorder:Border = (0,10,color(1,0,0))

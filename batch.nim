@@ -417,7 +417,7 @@ proc resetSpanTexts*(batch:Batch,entries:seq[string]) =
 proc setSpanTexts*(batch:Batch,spans:seq[string]) =
   for i,span in batch.text.spans.mpairs:
     span.text = spans[i]
-  # batch.setDimensions()
+  batch.setDimensions
 
 proc setSpans*(batch:Batch,spans:seq[Span]) =
   batch.text.spans = spans

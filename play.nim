@@ -84,6 +84,7 @@ proc setupNewGame* =
   playerBatches = newPlayerBatches()
   piecesImg.update = true
   setMenuTo SetupMenu
+  playSound "carhorn-1"
 
 proc togglePlayerKind(batchNr:int) =
   playerKinds[batchNr] = 
@@ -227,10 +228,12 @@ proc nextTurn* =
     players = newPlayers()
     playerBatches = newPlayerBatches()
     setMenuTo GameMenu
+    showMenu = false
     # playSound "carstart-1"
   else: 
     turnPlayer.discardCards blueDeck
     nextPlayerTurn()
+    showMenu = false
   playSound "carhorn-1"
   startDiceRoll()
 
@@ -238,4 +241,6 @@ proc rightMouse*(m:KeyEvent) =
   if moveSelection.fromSquare != -1:
     moveSelection.fromSquare = -1
     piecesImg.update = true
+  elif not showMenu:
+    showMenu = true
   else: nextTurn()

@@ -15,7 +15,7 @@ proc draw(b:var Boxy) =
   b.drawBoard
   b.drawDynamicImage piecesImg
   b.drawPlayerBatches
-  b.drawDynamicImage mainMenu
+  if showMenu: b.drawDynamicImage mainMenu
   if turn.nr > 0: 
     if turnPlayer.kind == Computer:
       blueDeck.reveal = Back
