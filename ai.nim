@@ -6,7 +6,6 @@ import deck
 import eval
 import sequtils
 import megasound
-# import os
 import times
 
 type
@@ -36,8 +35,8 @@ func hasPlanChanceOn(player:Player,square:int,deck:Deck): float =
 proc enemyKill(hypothetical:Hypothetic,move:Move): bool =
   if turnPlayer.hasPieceOn(move.toSquare): return false else:
     let 
-      pieceNr = players.singlePieceOn(move.toSquare).playerNr
-      planChance = players[pieceNr].hasPlanChanceOn(move.toSquare,blueDeck)
+      playerNr = players.singlePieceOn(move.toSquare).playerNr
+      planChance = players[playerNr].hasPlanChanceOn(move.toSquare,blueDeck)
       barKill = move.toSquare in bars and (
         hypothetical.countBars() > 1 or players.len < 3
       )
@@ -119,6 +118,7 @@ proc moveAi =
   phase = PostMove
 
 proc startTurn = 
+  # diceRoll = [DieFace3,DieFace3]
   echo $turnPlayer.color&" player takes turn:"
   hypo = hypotheticalInit(turnPlayer)
   phase = Draw
@@ -131,11 +131,12 @@ proc rerollPhase =
   if diceReroll.isPausing and cpuTime() - diceReroll.pauseStartTime >= 0.75:
     diceReroll.isPausing = false
     startDiceRoll()
-  elif hypo.reroll: 
+  elif not diceReroll.isPausing and hypo.reroll: 
     echo "reroll"
     diceReroll.isPausing = true
     diceReroll.pauseStartTime = cpuTime()
-  else: phase = AiMove
+  elif not diceReroll.isPausing: 
+    phase = AiMove
 
 proc postMovePhase =
   aiDraw()

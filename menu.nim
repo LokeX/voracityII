@@ -51,11 +51,6 @@ proc setMenuTo*(kind:MenuKind) =
   mainMenu.setSelectionRange 0..menuEntries[menuKind].high
   mainMenu.update = true
 
-proc selection*:string =
-  if mainMenu.selection != -1:
-    menuEntries[menuKind][mainMenu.selection].strip
-  else: ""
-
 proc mouseOnMenuSelection*(s:string):bool =
   if (let selection = mainMenu.mouseOnSelectionArea; selection != -1):
     menuEntries[menuKind][selection].strip == s

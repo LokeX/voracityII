@@ -38,7 +38,6 @@ proc reallyNewGame =
     "Yes\n",
     "No",
   ]
-  # showMenu = false
   startDialog(entries,2..3,endGameConfirm)
 
 proc menuSelection =
@@ -47,7 +46,9 @@ proc menuSelection =
   elif mouseOnMenuSelection("Start Game") or mouseOnMenuselection("End Turn"):
     nextTurn()
   elif mouseOnMenuSelection("New Game"):
-    reallyNewGame()
+    if turnPlayer.cash >= cashToWin:
+      setupNewGame()
+    else: reallyNewGame()
 
 proc mouse(m:KeyEvent) =
   if m.leftMousePressed:
@@ -65,7 +66,7 @@ proc mouse(m:KeyEvent) =
     m.rightMouse
 
 proc mouseMoved = 
-  if mouseOn mainMenu.area:
+  if showMenu and mouseOn mainMenu.area:
     mainMenu.mouseSelect
 
 proc keyboard (key:KeyboardEvent) =

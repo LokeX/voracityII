@@ -402,6 +402,7 @@ proc setSelectionRange*(batch:Batch,selectionRange:HSlice[int,int]) =
   if batch.kind == MenuBatch:
     batch.selector.selectionRange = selectionRange
   batch.selector.selectionAreas = batch.computeSelectionAreas()
+  # batch.selector.selection = selectionRange.a
 
 proc input*(batch:Batch):string =
   if batch.kind == InputBatch: 
