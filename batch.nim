@@ -398,10 +398,10 @@ proc newBatch*(batchInit:BatchInit):Batch =
 proc selection*(batch:Batch):int = 
   if batch.kind == MenuBatch: batch.selector.selection else: -1
 
-proc setSelectionRange*(batch:Batch,selectionRange:HSlice[int,int]) =
-  if batch.kind == MenuBatch:
-    batch.selector.selectionRange = selectionRange
-  batch.selector.selectionAreas = batch.computeSelectionAreas()
+# proc setSelectionRange*(batch:Batch,selectionRange:HSlice[int,int]) =
+#   if batch.kind == MenuBatch:
+#     batch.selector.selectionRange = selectionRange
+#     batch.selector.selectionAreas = batch.computeSelectionAreas()
   # batch.selector.selection = selectionRange.a
 
 proc input*(batch:Batch):string =
@@ -409,11 +409,15 @@ proc input*(batch:Batch):string =
     batch.text.spans[^1].text
   else: "No input - batch is not InputBatch"
 
-proc resetSpanTexts*(batch:Batch,entries:seq[string]) =
-  batch.selector.selection = 0
-  batch.text.spans.setLen 0
-  batch.text.spans = batchSpans(entries,batch.font)
-  batch.setDimensions
+proc resetMenu*(batch:Batch,entries:seq[string],selectionRange:HSlice[int,int]) =
+  if batch.kind == MenuBatch:
+    batch.selector.selection = 0
+    batch.text.spans.setLen 0
+    batch.text.spans = batchSpans(entries,batch.font)
+    batch.setDimensions
+    batch.selector.selectionRange = selectionRange
+    batch.selector.selectionAreas = batch.computeSelectionAreas()
+  else: echo "error, cannot resetSpanTexts: batch is not MenuBatch"
 
 proc setSpanTexts*(batch:Batch,spans:seq[string]) =
   for i,span in batch.text.spans.mpairs:

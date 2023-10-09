@@ -47,8 +47,8 @@ var
 proc setMenuTo*(kind:MenuKind) =
   menuKind = kind
   bgSelected = menuKind.ord
-  mainMenu.resetSpanTexts menuEntries[menuKind]
-  mainMenu.setSelectionRange 0..menuEntries[menuKind].high
+  mainMenu.resetMenu menuEntries[menuKind],0..menuEntries[menuKind].high
+  # mainMenu.setSelectionRange 0..menuEntries[menuKind].high
   mainMenu.update = true
 
 proc mouseOnMenuSelection*(s:string):bool =
