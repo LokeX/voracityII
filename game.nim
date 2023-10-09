@@ -7,8 +7,7 @@ import random
 import batch
 import colors
 import board
-import megasound
-
+ 
 type
   PlayerKind* = enum Human,Computer,None
   Pieces* = array[5,int]
@@ -119,19 +118,21 @@ func hasPieceOn*(player:Player,square:int):bool =
   for pieceSquare in player.pieces:
     if pieceSquare == square: return true
 
-proc drawFrom*(player:var Player,deck:var Deck) =
-  if deck.drawPile.len == 0:
-    deck.shufflePiles
-  player.hand.add deck.drawPile.pop
-  deck.lastDrawn = player.hand[^1].title
+# proc drawFrom*(player:var Player,deck:var Deck) =
+#   player.hand.drawFrom deck
+  # if deck.drawPile.len == 0:
+  #   deck.shufflePiles
+  # player.hand.add deck.drawPile.pop
+  # deck.lastDrawn = player.hand[^1].title
 
-proc playTo*(player:var Player,deck:var Deck,card:int) =
-  deck.discardPile.add player.hand[card]
-  player.hand.del card
+# proc playTo*(player:var Player,deck:var Deck,card:int) =
+#   player.hand.playTo deck,card
+  # deck.discardPile.add player.hand[card]
+  # player.hand.del card
 
 proc discardCards*(player:var Player,deck:var Deck) =
-  while turnPlayer.hand.len > 3:
-    player.playTo deck,player.hand.high
+  while player.hand.len > 3:
+    player.hand.playTo deck,player.hand.high
 
 func requiredSquaresAndPieces*(plan:BlueCard):tuple[squares,nrOfPieces:seq[int]] =
   let squares = plan.squares.required.deduplicate

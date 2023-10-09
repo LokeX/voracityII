@@ -6,10 +6,18 @@ import deck
 import eval
 import sequtils
 import megasound
-import os
+# import os
+import times
 
 type
   Phase = enum Await,Draw,Reroll,AiMove,PostMove,EndTurn
+  DiceReroll = tuple[isPausing:bool,pauseStartTime:float]
+
+var
+  autoEndTurn* = true
+  hypo:Hypothetic
+  phase:Phase = Await
+  diceReroll:DiceReroll
 
 func knownBlues(player:Player,deck:Deck): seq[BlueCard] =
   result.add deck.discardPile
@@ -24,9 +32,6 @@ func hasPlanChanceOn(player:Player,square:int,deck:Deck): float =
     unknownCards = deck.fullDeck.filterIt(it.title notIn knownCards.mapIt(it.title))
     chance = unknownCards.require(square).len.toFloat/unknownCards.len.toFloat
   chance*player.hand.len.toFloat
-
-# proc hasPlanChanceOn(player:Player,square:int): float =
-#   planChanceOn(square)*player.hand.len.toFloat
 
 proc enemyKill(hypothetical:Hypothetic,move:Move): bool =
   if turnPlayer.hasPieceOn(move.toSquare): return false else:
@@ -44,11 +49,6 @@ proc aiRemovePiece(hypothetical:Hypothetic,move:Move): bool =
   (hypothetical.friendlyFireAdviced(move) or 
   hypothetical.enemyKill(move))
 
-var
-  autoEndTurn* = true
-  hypo:Hypothetic
-  phase:Phase = Await
-
 proc aiTurn*(): bool =
   turn.nr != 0 and 
   turnPlayer.kind == Computer and 
@@ -60,7 +60,7 @@ proc echoCards =
     echo "eval: ",card.eval
 
 proc drawCard = #a menu problem HERE
-  turnPlayer.drawFrom blueDeck
+  turnPlayer.hand.drawFrom blueDeck
   dec turn.undrawnBlues
   echo $turnPlayer.color&" player draws: ",turnPlayer.hand[^1].title
   playSound("page-flip-2")    
@@ -109,6 +109,8 @@ proc moveAi =
       echo singlePiece
       removePieceAndMove("Yes")
     else: move move.toSquare
+    moveSelection.fromSquare = -1
+    singlePiece.playerNr = -1
     hypo.pieces = turnPlayer.pieces
   else:
     echo "ai skips move:"
@@ -126,10 +128,13 @@ proc drawPhase =
   phase = Reroll
 
 proc rerollPhase =
-  if hypo.reroll: 
-    echo "reroll"
-    sleep(1000)
+  if diceReroll.isPausing and cpuTime() - diceReroll.pauseStartTime >= 0.75:
+    diceReroll.isPausing = false
     startDiceRoll()
+  elif hypo.reroll: 
+    echo "reroll"
+    diceReroll.isPausing = true
+    diceReroll.pauseStartTime = cpuTime()
   else: phase = AiMove
 
 proc postMovePhase =

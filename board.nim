@@ -39,17 +39,14 @@ var
   moveSelection*:MoveSelection = (-1,-1,-1,@[])
   dieEdit:int
 
-proc editDiceRoll*(input:string) =
-  var dieFace = try: input.parseInt except: 0
+proc editDiceRoll*(input:string) =  
   if input.toUpper == "D": dieEdit = 1 
-  elif dieEdit > 0 and dieFace in 1..6:
+  elif dieEdit > 0 and (let dieFace = try: input.parseInt except: 0; dieFace in 1..6):
     diceRoll[dieEdit] = DieFaces(dieFace)
     dieEdit = if dieEdit == 2: 0 else: dieEdit + 1
   else: dieEdit = 0
 
-proc mouseOnDice*:bool = 
-  for dieDims in diceRollDims:
-    if mouseOn dieDims.area: return true
+proc mouseOnDice*:bool = diceRollDims.anyIt mouseOn it.area
 
 proc rollDice*() = 
   for die in diceRoll.mitems: 
@@ -115,6 +112,10 @@ func moveToSquares*(fromSquare:int,dice:Dice):seq[int] =
       result.add moveToSquares(fromSquare,die.ord)
   result.deduplicate
 
+func noDiceUsedToMove*(fromSquare,toSquare:int):bool =
+  (fromSquare == 0 or fromSquare in highways) and
+  (tosquare in highways or toSquare in gasStations)
+
 func squareDims:array[61,Dims] =
   result[0].rect = Rect(x:1225,y:150,w:35,h:100)
   for i in 0..17:
@@ -129,6 +130,16 @@ func squareDims:array[61,Dims] =
   for dim in result.mitems:
     dim.area = toArea(dim.rect.x+bx,dim.rect.y+by,dim.rect.w,dim.rect.h)
 
+func iconPath(square:Square):string =
+  let squareName = square.name.toLower
+  "pics\\board_icons\\"&(
+    case squareName:
+    of "villa","condo","slum": "livingspaces"
+    of "bank","shop","bar","highway": squareName
+    of "gas station": "gas_station"
+    else: $square.nr
+  )&".png"
+
 proc paintIcon(path:string):Image =
   let 
     shadowSize = 4.0
@@ -139,16 +150,6 @@ proc paintIcon(path:string):Image =
     Rect(x:shadowSize,y:shadowSize,w:icon.width.toFloat,h:icon.height.toFloat))
   ctx.drawImage(icon,0,0)
   result = ctx.image
-
-func iconPath(square:Square):string =
-  let squareName = square.name.toLower
-  "pics\\board_icons\\"&(
-    case squareName:
-    of "villa","condo","slum": "livingspaces"
-    of "bank","shop","bar","highway": squareName
-    of "gas station": "gas_station"
-    else: $square.nr
-  )&".png"
 
 proc buildBoardSquares*(path:string):BoardSquares =
   const dieDims = squareDims()
@@ -168,10 +169,6 @@ proc mouseOnSquare*:int =
   for square in squares:
     if mouseOn square.dims.area:
       return square.nr
-
-func noDiceUsedToMove*(fromSquare,toSquare:int):bool =
-  (fromSquare == 0 or fromSquare in highways) and
-  (tosquare in highways or toSquare in gasStations)
 
 proc paintSquares*(img:var Image,squareNrs:seq[int],color:Color) =
   var ctx = img.newContext

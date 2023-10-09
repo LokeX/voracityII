@@ -269,6 +269,16 @@ proc shufflePiles*(deck:var Deck) =
   deck.discardPile.setLen 0
   deck.drawPile.shuffle
 
+proc drawFrom*(hand:var seq[BlueCard],deck:var Deck) =
+  if deck.drawPile.len == 0:
+    deck.shufflePiles
+  hand.add deck.drawPile.pop
+  deck.lastDrawn = hand[^1].title
+
+proc playTo*(hand:var seq[BlueCard],deck:var Deck,card:int) =
+  deck.discardPile.add hand[card]
+  hand.del card
+
 proc paintCardSquares*(blue:BlueCard):Image =
   result = newImage(boardImg.width,boardImg.height)
   result.paintSquares(blue.squares.required.deduplicate,color(0,0,0,100))

@@ -10,15 +10,16 @@ var
   selectorBorder*:Border = (0,10,color(1,0,0))
   menuBatchInit* = BatchInit(
     kind:MenuBatch,
-    name:"kill_dialog",
-    centerOnWin:true,
+    name:"dialog",
+    # centerOnWin:true,
+    pos:(500,275),
     padding:(20,20,20,20),
     hAlign:CenterAlign,
     font:(robotoRegular,25.0,color(1,1,0)),
     bgColor:color(0,0,0),
-    opacity:50,
+    opacity:25,
     selectorLine:(color(1,1,1),color(0,0,100),selectorBorder),
-    border:(5,15,color(1,1,1)),
+    border:(0,15,color(1,1,1)),
     shadow:(15,1.5,color(255,255,255,200))
   )
   menuEntries:seq[string] = @[
@@ -43,6 +44,8 @@ proc startDialog*(entries:seq[string],selRange:HSlice[int,int],call:proc(s:strin
   pushCalls()
   excludeInputCallsExcept thisDialog
   menuBatch.isActive = true
+  menuBatch.update = true
+  echo "dialog started"
 
 proc endDialog(selected:string) =
   menuBatch.isActive = false
@@ -59,7 +62,8 @@ proc keyboard(k:KeyboardEvent) =
   else: k.batchKeyb menuBatch
 
 proc mouse(m:KeyEvent) =
-  if m.leftMousePressed and menuBatch.mouseOnSelectionArea != -1:
+  if menuBatch.isActive and m.leftMousePressed and menuBatch.mouseOnSelectionArea != -1:
+    echo "end dialog"
     endDialog menuEntries[menuBatch.selection].strip
 
 proc mouseMoved =
@@ -76,7 +80,3 @@ var
     active:false
   )
 
-when isMainModule:
-  addCall dialogCall
-  startDialog(menuEntries,3..4,recieveMessage)
-  runWin

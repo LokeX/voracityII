@@ -27,17 +27,32 @@ proc draw(b:var Boxy) =
     if turnPlayer.kind == Human and turn.undrawnBlues > 0: 
       b.drawDynamicImage nrOfUndrawnBluesPainter
 
+proc endGameConfirm(message:string) =
+  echo message
+  if message == "Yes": setupNewGame()
+
+proc reallyNewGame =
+  let entries:seq[string] = @[
+    "Really end this game?\n",
+    "\n",
+    "Yes\n",
+    "No",
+  ]
+  # showMenu = false
+  startDialog(entries,2..3,endGameConfirm)
+
 proc menuSelection =
   if mouseOnMenuSelection("Quit Voracity"):
     window.closeRequested = true
-  elif mouseOnMenuSelection("Start Game"):
+  elif mouseOnMenuSelection("Start Game") or mouseOnMenuselection("End Turn"):
     nextTurn()
   elif mouseOnMenuSelection("New Game"):
-    setupNewGame()
+    reallyNewGame()
 
 proc mouse(m:KeyEvent) =
   if m.leftMousePressed:
-    if mouseOnMenuSelection():
+    echo "left mouse pressed"
+    if showMenu and mouseOnMenuSelection():
       menuSelection()
     else:
       blueDeck.leftMousePressed
@@ -77,6 +92,7 @@ proc timerCall:TimerCall =
 
 var
   call = Call(
+    reciever:"voracity",
     draw:draw,
     mouse:mouse,
     mouseMoved:mouseMoved,
@@ -87,7 +103,7 @@ var
 
 setVolume 0.20
 addCall call
-addCall dialogCall
+addCall dialogCall # we add dialog second - or it will be drawn beneath the board
 runWinWith: 
   callCycles()
   callTimers()

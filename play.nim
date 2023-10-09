@@ -150,7 +150,7 @@ proc moveTo(toSquare:int) =
     playSound "can-open-1"
 
 proc drawCardFrom(deck:var Deck) =
-  turnPlayer.drawFrom deck
+  turnPlayer.hand.drawFrom deck
   dec turn.undrawnBlues
   nrOfUndrawnBluesPainter.update = true
   turn.player.updateBatch
@@ -188,10 +188,13 @@ proc removePieceAndMove*(confirmedKill:string) =
     playSound "Deanscream-2"
   handleMoveTo moveSelection.toSquare
 
+proc canRemoveAPieceFrom(square:int):bool =
+  square notIn highways and square notIn gasStations
+
 proc move*(square:int) =
   moveSelection.toSquare = square
   singlePiece = players.singlePieceOn square
-  if turnPlayer.kind == Human and singlePiece.playerNr != -1:
+  if turnPlayer.kind == Human and singlePiece.playerNr != -1 and canRemoveAPieceFrom square:
     let entries:seq[string] = @[
       "Remove piece on:\n",
       squares[square].name&" Nr."&($squares[square].nr)&"?\n",
@@ -216,26 +219,28 @@ proc leftMouse*(m:KeyEvent) =
         move square
     elif turnPlayer.hand.len > 3: 
       if (let slotNr = turnPlayer.mouseOnCardSlot blueDeck; slotNr != -1):
-        turnPlayer.playTo blueDeck,slotNr
+        turnPlayer.hand.playTo blueDeck,slotNr
         turnPlayer.hand = turnPlayer.sortBlues
 
 proc nextTurn* =
   if turnPlayer.cash >= cashToWin:
     setupNewGame()
     setMenuTo SetupMenu
-  elif turn.nr == 0:
-    inc turn.nr
-    players = newPlayers()
-    playerBatches = newPlayerBatches()
-    setMenuTo GameMenu
-    showMenu = false
-    # playSound "carstart-1"
-  else: 
-    turnPlayer.discardCards blueDeck
-    nextPlayerTurn()
-    showMenu = false
+  else:
+    if turn.nr == 0:
+      inc turn.nr
+      players = newPlayers()
+      playerBatches = newPlayerBatches()
+      setMenuTo GameMenu
+      showMenu = false
+      # playSound "carstart-1"
+    else: 
+      playSound "page-flip-2"
+      turnPlayer.discardCards blueDeck
+      nextPlayerTurn()
+      showMenu = false
+    startDiceRoll()
   playSound "carhorn-1"
-  startDiceRoll()
 
 proc rightMouse*(m:KeyEvent) =
   if moveSelection.fromSquare != -1:

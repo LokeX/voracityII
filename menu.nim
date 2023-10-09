@@ -1,16 +1,16 @@
 import win except strip
 import strutils
 import batch
-import dialog
 
 type
   Background* = tuple[name:string,img:Image]
   MenuKind* = enum SetupMenu,GameMenu,NewGameMenu
 
 const
+  ibmPlexSansCondensedSemiBold = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
   menuEntries = [
     SetupMenu: @["Start Game\n","Quit Voracity"],
-    GameMenu: @["New Game\n","Quit Voracity"],
+    GameMenu: @["End Turn\n","New Game\n","Quit Voracity"],
     NewGameMenu: @["New Game\n","Quit Voracity"],
   ]
 
@@ -35,7 +35,7 @@ var
     selectionRange:0..menuEntries[menuKind].high,
     padding:(80,80,20,20),
     hAlign:CenterAlign,
-    font:(robotoRegular,30.0,color(1,1,0)),
+    font:(ibmPlexSansCondensedSemiBold,30.0,color(1,1,0)),
     bgColor:color(0,0,0),
     opacity:25,
     selectorLine:(color(1,1,1),color(100,0,0),selectorBorder),
