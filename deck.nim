@@ -3,6 +3,7 @@ import sequtils
 import strutils
 import random
 import board
+import misc
 
 type
   Show* = enum Hand,Discard
@@ -12,7 +13,6 @@ type
   CardKind* = enum Plan,Event,News,Talent,Mission
   BlueCard* = object
     title*:string
-    img*:Image
     case cardKind*:CardKind
     of Plan:
       squares*:PlanSquares
@@ -233,10 +233,10 @@ proc paintBlue(card:BlueCard,squares:BoardSquares):Image =
   of Plan: card.paintTextBoxOn(result,squares)
   else:discard
 
-proc buildBlues(path:string):seq[BlueCard] =
-  result = path.lines.toSeq.parseProtoCards.newBlueCards
-  for deck in result.mitems:
-    deck.img = deck.paintBlue squares
+proc buildBlues(path:string):tuple[blues:seq[BlueCard],imgs:seq[Image]] =
+  result.blues = path.lines.toSeq.parseProtoCards.newBlueCards
+  for blue in result.blues.mitems:
+    result.imgs.add blue.paintBlue squares
 
 proc initCardSlots*(deck:var Deck,discardRect = discardPile,
   popUpRect = popUpCard,drawRect = drawPile) =
@@ -248,15 +248,14 @@ proc initCardSlots*(deck:var Deck,discardRect = discardPile,
   deck.drawSlot.area = drawRect.toArea
 
 proc newDeck*(path:string):Deck =
-  result = Deck(fullDeck:path.buildBlues)
+  let (blues,imgs) = buildBlues path
+  result = Deck(fullDeck:blues)
   result.drawPile = result.fullDeck
   result.drawPile.shuffle
   result.initCardSlots
   addImage("blueback",blueBack)
-  # result.drawSlot.name = "drawpile"
-  # removeImg(result.drawSlot.name)
-  for card in result.fullDeck:
-    addImage(card.title,card.img)
+  for (blue,img) in zipem(blues,imgs):
+    addImage(blue.title,img)
 
 proc resetDeck*(deck:var Deck) =
   deck.discardPile.setLen 0
@@ -323,9 +322,9 @@ proc leftMousePressed*(deck:var Deck) =
   elif deck.show == Discard:
     deck.show = Hand
 
-when isMainModule:
-  let cards = buildBlues "dat\\blues.txt"
-  if not dirExists "cards": createDir "cards"
-  for card in cards:
-    echo card.title
-    card.img.writeFile "cards\\"&card.title&".png"
+# when isMainModule:
+#   let cards = buildBlues "dat\\blues.txt"
+#   if not dirExists "cards": createDir "cards"
+#   for card in cards:
+#     echo card.title
+#     card.img.writeFile "cards\\"&card.title&".png"

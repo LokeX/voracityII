@@ -169,7 +169,7 @@ func evalBlue(hypothetical:Hypothetic,card:BlueCard): int =
     @[card]
   )
 
-func evalBlues*(hypothetical:Hypothetic): seq[BlueCard] =
+func evalBlues*(hypothetical:Hypothetic):seq[BlueCard] =
   for card in hypothetical.cards:
     result.add card
     result[^1].eval = hypothetical.evalBlue(card)
