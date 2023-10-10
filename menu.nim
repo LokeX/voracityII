@@ -15,7 +15,6 @@ const
   ]
 
 let
-  bgRect* = Rect(x:0,y:0,w:scaledWidth.toFloat,h:scaledHeight.toFloat)
   backgrounds*:array[3,Background] = [
     ("skylines",readImage "pics\\2015-02-24-BestSkylines_11.jpg"),
     ("darkgrain",readImage "pics\\dark-wood-grain.jpg"),
@@ -23,6 +22,7 @@ let
   ]
 
 var
+  bgRect* = Rect(x:0,y:0,w:scaledWidth.toFloat,h:scaledHeight.toFloat)
   showMenu* = true
   bgSelected* = 0
   menuKind:MenuKind
@@ -47,8 +47,8 @@ var
 proc setMenuTo*(kind:MenuKind) =
   menuKind = kind
   bgSelected = menuKind.ord
+  bgRect.w = 0
   mainMenu.resetMenu menuEntries[menuKind],0..menuEntries[menuKind].high
-  # mainMenu.setSelectionRange 0..menuEntries[menuKind].high
   mainMenu.update = true
 
 proc mouseOnMenuSelection*(s:string):bool =

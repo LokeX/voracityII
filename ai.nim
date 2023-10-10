@@ -118,7 +118,6 @@ proc moveAi =
   phase = PostMove
 
 proc startTurn = 
-  # diceRoll = [DieFace3,DieFace3]
   echo $turnPlayer.color&" player takes turn:"
   hypo = hypotheticalInit(turnPlayer)
   phase = Draw
