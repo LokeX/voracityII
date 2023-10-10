@@ -66,7 +66,7 @@ proc playerBatch(setup:BatchSetup,yOffset:int):Batch =
     font:(setup.font,setup.fontSize,contrastColors[setup.bgColor]),
     border:(3,20,contrastColors[setup.bgColor]),
     blur:2,
-    opacity:50,
+    opacity:25,
     bgColor:playerColors[setup.bgColor],
     shadow:(10,1.75,color(255,255,255,100))
   )
@@ -117,18 +117,6 @@ func nrOfPiecesOnBars*(player:Player): int =
 func hasPieceOn*(player:Player,square:int):bool =
   for pieceSquare in player.pieces:
     if pieceSquare == square: return true
-
-# proc drawFrom*(player:var Player,deck:var Deck) =
-#   player.hand.drawFrom deck
-  # if deck.drawPile.len == 0:
-  #   deck.shufflePiles
-  # player.hand.add deck.drawPile.pop
-  # deck.lastDrawn = player.hand[^1].title
-
-# proc playTo*(player:var Player,deck:var Deck,card:int) =
-#   player.hand.playTo deck,card
-  # deck.discardPile.add player.hand[card]
-  # player.hand.del card
 
 proc discardCards*(player:var Player,deck:var Deck) =
   while player.hand.len > 3:

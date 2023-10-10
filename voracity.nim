@@ -9,6 +9,7 @@ import dialog
 import ai
 import menu
 import batch
+import sugar
 
 proc draw(b:var Boxy) =
   if oldBg != -1: b.drawImage backgrounds[oldBg].name,oldBgRect
@@ -28,34 +29,39 @@ proc draw(b:var Boxy) =
     if turnPlayer.kind == Human and turn.undrawnBlues > 0: 
       b.drawDynamicImage nrOfUndrawnBluesPainter
 
-proc endGameConfirm(message:string) =
-  if message == "Yes": setupNewGame()
-
-proc reallyNewGame =
+proc really(title:string,answer:string -> void) =
   let entries:seq[string] = @[
-    "Really end this game?\n",
+    "Really "&title&"\n",
     "\n",
     "Yes\n",
     "No",
   ]
   showMenu = false
-  startDialog(entries,2..3,endGameConfirm)
+  startDialog(entries,2..3,answer)
+
+proc confirmQuit = really("quit Voracity?",
+  (answer:string) => (if answer == "Yes": window.closeRequested = true)
+)
+
+proc confirmEndGame = really("end this game?",
+  (answer:string) => (if answer == "Yes": setupNewGame())
+)
 
 proc menuSelection =
   if mouseOnMenuSelection("Quit Voracity"):
-    window.closeRequested = true
-  elif mouseOnMenuSelection("Start Game") or mouseOnMenuselection("End Turn"):
+    confirmQuit()
+  elif mouseOnMenuSelection("Start Game") or mouseOnMenuSelection("End Turn"):
     nextTurn()
   elif mouseOnMenuSelection("New Game"):
     if turnPlayer.cash >= cashToWin:
       setupNewGame()
-    else: reallyNewGame()
+    else: confirmEndGame()
 
 proc mouse(m:KeyEvent) =
   if m.leftMousePressed:
     if showMenu and mouseOnMenuSelection():
       menuSelection()
-    else:
+    elif turnPlayer.kind == Human:
       blueDeck.leftMousePressed
       m.leftMouse()
       if turn.nr > 0 and mouseOnDice() and mayReroll(): 

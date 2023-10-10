@@ -304,7 +304,6 @@ proc mouseOnSelectionArea*(batch:Batch):int =
   return -1
 
 proc mouseSelect*(batch:Batch) = 
-  echo batch.area
   if batch.isActive and batch.kind == MenuBatch:
     let selection = batch.mouseOnSelectionArea
     if selection > -1 and batch.selector.selection != selection:

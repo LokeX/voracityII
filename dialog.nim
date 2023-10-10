@@ -12,7 +12,6 @@ var
   menuBatchInit* = BatchInit(
     kind:MenuBatch,
     name:"dialog",
-    # centerOnWin:true,
     pos:(menuPos.x,scaledHeight),
     padding:(20,20,20,20),
     hAlign:CenterAlign,
@@ -21,7 +20,7 @@ var
     opacity:25,
     selectorLine:(color(1,1,1),color(0,0,100),selectorBorder),
     border:(0,15,color(1,1,1)),
-    shadow:(15,1.5,color(255,255,255,200))
+    shadow:(15,1.5,color(255,255,255,150))
   )
   menuEntries:seq[string] = @[
     "Remove piece on:\n",
