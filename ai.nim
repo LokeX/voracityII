@@ -18,16 +18,16 @@ var
   phase:Phase = Await
   diceReroll:DiceReroll
 
-func knownBlues(player:Player,deck:Deck): seq[BlueCard] =
-  result.add deck.discardPile
-  result.add player.hand
+func knownBluesIn(discardPile,hand:seq[BlueCard]):seq[BlueCard] =
+  result.add discardPile
+  result.add hand
 
 func require(cards:seq[BlueCard],square:int): seq[BlueCard] =
   cards.filterIt(square in it.squares.required or square in it.squares.oneInMany)
 
 func hasPlanChanceOn(player:Player,square:int,deck:Deck): float =
   let 
-    knownCards = player.knownBlues deck
+    knownCards = knownBluesIn(deck.discardPile,player.hand)
     unknownCards = deck.fullDeck.filterIt(it.title notIn knownCards.mapIt(it.title))
     chance = unknownCards.require(square).len.toFloat/unknownCards.len.toFloat
   chance*player.hand.len.toFloat

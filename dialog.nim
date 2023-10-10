@@ -5,6 +5,7 @@ import win except strip
 const
   thisDialog = "dialog"
   robotoRegular* = "fonts\\Roboto-Regular_1.ttf"
+  menuPos:tuple[x,y:int] = (875,275)
 
 var 
   selectorBorder*:Border = (0,10,color(1,0,0))
@@ -12,7 +13,7 @@ var
     kind:MenuBatch,
     name:"dialog",
     # centerOnWin:true,
-    pos:(500,275),
+    pos:(menuPos.x,scaledHeight),
     padding:(20,20,20,20),
     hAlign:CenterAlign,
     font:(robotoRegular,25.0,color(1,1,0)),
@@ -32,9 +33,6 @@ var
   menuBatch:Batch
   returnSelection:proc(s:string)
 
-proc recieveMessage(message:string) =
-  echo message
-
 proc startDialog*(entries:seq[string],selRange:HSlice[int,int],call:proc(s:string)) =
   menuEntries = entries
   menuBatchInit.entries = entries
@@ -43,11 +41,13 @@ proc startDialog*(entries:seq[string],selRange:HSlice[int,int],call:proc(s:strin
   returnSelection = call
   pushCalls()
   excludeInputCallsExcept thisDialog
+  menuBatch.setPos(menuPos.x,scaledHeight)
   menuBatch.isActive = true
   menuBatch.update = true
   echo "dialog started"
 
 proc endDialog(selected:string) =
+  menuBatch.setPos(menuPos.x,scaledHeight)
   menuBatch.isActive = false
   popCalls()
   returnSelection selected
@@ -70,6 +70,15 @@ proc mouseMoved =
   if menuBatch.isActive and mouseOn menuBatch: 
     menuBatch.mouseSelect
 
+proc cycle =  
+  if menuBatch != nil and (let (_,y) = menuBatch.pos; y != menuPos.y):
+    if y > menuPos.y:
+      menuBatch.setShallowPos(menuPos.x,y-60)
+    else: 
+      menuBatch.setShallowPos(menuPos.x,y+1)
+      if menuBatch.pos.y == menuPos.y:
+        menuBatch.setPos(menuPos.x,menuPos.y)
+
 var 
   dialogCall* = Call(
     reciever:thisDialog,
@@ -77,6 +86,7 @@ var
     keyboard:keyboard,
     mouse:mouse,
     mouseMoved:mouseMoved,
+    cycle:cycle,
     active:false
   )
 

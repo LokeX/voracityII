@@ -10,10 +10,8 @@ import ai
 import menu
 import batch
 
-proc startBgExpand* =
-  bgRect.w = 0
-
 proc draw(b:var Boxy) =
+  if oldBg != -1: b.drawImage backgrounds[oldBg].name,oldBgRect
   b.drawImage backgrounds[bgSelected].name,bgRect
   b.drawBoard
   b.drawDynamicImage piecesImg
@@ -31,7 +29,6 @@ proc draw(b:var Boxy) =
       b.drawDynamicImage nrOfUndrawnBluesPainter
 
 proc endGameConfirm(message:string) =
-  echo message
   if message == "Yes": setupNewGame()
 
 proc reallyNewGame =
@@ -41,6 +38,7 @@ proc reallyNewGame =
     "Yes\n",
     "No",
   ]
+  showMenu = false
   startDialog(entries,2..3,endGameConfirm)
 
 proc menuSelection =
@@ -55,7 +53,6 @@ proc menuSelection =
 
 proc mouse(m:KeyEvent) =
   if m.leftMousePressed:
-    echo "left mouse pressed"
     if showMenu and mouseOnMenuSelection():
       menuSelection()
     else:
@@ -73,17 +70,6 @@ proc mouseMoved =
     mainMenu.mouseSelect
 
 proc keyboard (key:KeyboardEvent) =
-  if key.keyPressed:
-    case key.button
-    of KeyLeft: 
-      if bgSelected > 0: dec bgSelected 
-      else: bgSelected = backgrounds.high
-      startBgExpand()
-    of KeyRight:
-      if bgSelected < backgrounds.high: inc bgSelected 
-      else: bgSelected = backgrounds.low
-      startBgExpand()
-    else:discard
   if key.button == ButtonUnknown and not isRollingDice():
     editDiceRoll key.rune.toUTF8
 
@@ -91,7 +77,9 @@ proc cycle =
   if bgRect.w < scaledWidth.toFloat:
     if bgRect.w+90 < scaledWidth.toFloat:
       bgRect.w += 90
-    else: bgRect.w = scaledWidth.toFloat
+    else: 
+      bgRect.w = scaledWidth.toFloat
+      oldBg = -1
   if turnPlayer.kind == Computer and aiTurn():
     aiTakeTurn()
 

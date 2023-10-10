@@ -25,6 +25,8 @@ var
   bgRect* = Rect(x:0,y:0,w:scaledWidth.toFloat,h:scaledHeight.toFloat)
   showMenu* = true
   bgSelected* = 0
+  oldBg* = -1
+  oldBgRect* = bgRect
   menuKind:MenuKind
   selectorBorder:Border = (0,10,color(1,0,0))
   menuBatchInit = BatchInit(
@@ -45,6 +47,7 @@ var
   mainMenu* = newBatch menuBatchInit
 
 proc setMenuTo*(kind:MenuKind) =
+  oldBg = bgSelected
   menuKind = kind
   bgSelected = menuKind.ord
   bgRect.w = 0

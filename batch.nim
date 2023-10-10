@@ -304,6 +304,7 @@ proc mouseOnSelectionArea*(batch:Batch):int =
   return -1
 
 proc mouseSelect*(batch:Batch) = 
+  echo batch.area
   if batch.isActive and batch.kind == MenuBatch:
     let selection = batch.mouseOnSelectionArea
     if selection > -1 and batch.selector.selection != selection:
@@ -398,12 +399,6 @@ proc newBatch*(batchInit:BatchInit):Batch =
 proc selection*(batch:Batch):int = 
   if batch.kind == MenuBatch: batch.selector.selection else: -1
 
-# proc setSelectionRange*(batch:Batch,selectionRange:HSlice[int,int]) =
-#   if batch.kind == MenuBatch:
-#     batch.selector.selectionRange = selectionRange
-#     batch.selector.selectionAreas = batch.computeSelectionAreas()
-  # batch.selector.selection = selectionRange.a
-
 proc input*(batch:Batch):string =
   if batch.kind == InputBatch: 
     batch.text.spans[^1].text
@@ -432,6 +427,22 @@ proc setSpanText*(batch:Batch,text:string,idx:int) =
   if idx < batch.text.spans.len and idx >= 0:
     batch.text.spans[idx].text = text
     batch.setDimensions()
+
+proc setShallowPos*(batch:Batch,x,y:int) =
+  batch.area.x1 = x
+  batch.area.y1 = y
+  batch.update = true
+
+proc setPos*(batch:Batch,x,y:int) =
+  batch.pos = (x,y)
+  batch.rect.x = x.toFloat
+  batch.rect.y = y.toFloat
+  batch.area = batch.rect.toArea
+  if batch.kind == MenuBatch:
+    batch.selector.selectionAreas = batch.computeSelectionAreas()
+  batch.update = true
+
+proc pos*(batch:Batch):tuple[x,y:int] = (batch.area.x1,batch.area.y1)
 
 template commands*(batch,body:untyped):untyped =
   body
