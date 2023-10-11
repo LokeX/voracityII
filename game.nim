@@ -118,8 +118,9 @@ func hasPieceOn*(player:Player,square:int):bool =
   for pieceSquare in player.pieces:
     if pieceSquare == square: return true
 
-proc discardCards*(player:var Player,deck:var Deck) =
+proc discardCards*(player:var Player,deck:var Deck):seq[BlueCard] =
   while player.hand.len > 3:
+    result.add player.hand[player.hand.high]
     player.hand.playTo deck,player.hand.high
 
 func requiredSquaresAndPieces*(plan:BlueCard):tuple[squares,nrOfPieces:seq[int]] =

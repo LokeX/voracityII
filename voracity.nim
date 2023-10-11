@@ -10,6 +10,7 @@ import ai
 import menu
 import batch
 import sugar
+import reports
 
 proc draw(b:var Boxy) =
   if oldBg != -1: b.drawImage backgrounds[oldBg].name,oldBgRect
@@ -28,6 +29,9 @@ proc draw(b:var Boxy) =
     if not isRollingDice(): b.drawSquares
     if turnPlayer.kind == Human and turn.undrawnBlues > 0: 
       b.drawDynamicImage nrOfUndrawnBluesPainter
+    if (let playerNr = mouseOnPlayerBatchNr(); playerNr != -1):
+      if players[playerNr].color.gotReport:
+        b.drawReport players[playerNr].color
 
 proc really(title:string,answer:string -> void) =
   let entries:seq[string] = @[

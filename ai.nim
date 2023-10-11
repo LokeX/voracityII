@@ -7,15 +7,17 @@ import eval
 import sequtils
 import megasound
 import times
+import reports
 
 type
   Phase = enum Await,Draw,Reroll,AiMove,PostMove,EndTurn
   DiceReroll = tuple[isPausing:bool,pauseStartTime:float]
+  # Report = tuple[player:PlayerColor,lines:seq[string]]
 
 var
   autoEndTurn* = true
   hypo:Hypothetic
-  phase:Phase = Await
+  phase:Phase
   diceReroll:DiceReroll
 
 func knownBluesIn(discardPile,hand:seq[BlueCard]):seq[BlueCard] =
@@ -40,6 +42,7 @@ proc enemyKill(hypothetical:Hypothetic,move:Move): bool =
       barKill = move.toSquare in bars and (
         hypothetical.countBars() > 1 or players.len < 3
       )
+    turnReport.add "removePiece, planChance: "&($planChance)
     echo "removePiece, planChance: ",planChance
     planChance > 0.05 or barKill
 
@@ -61,14 +64,18 @@ proc echoCards =
 proc drawCard = #a menu problem HERE
   turnPlayer.hand.drawFrom blueDeck
   dec turn.undrawnBlues
+  turnReport.add $turnPlayer.color&" player draws a card"
   echo $turnPlayer.color&" player draws: ",turnPlayer.hand[^1].title
   playSound("page-flip-2")    
 
 proc cashPlans =
   if (let cashedPlans = cashInPlansTo blueDeck; cashedPlans.len > 0): 
     playSound("coins-to-table-2")
+    turnReport.add $turnPlayer.color&" player cashes plans:"
     echo $turnPlayer.color&" player cashes plans:"
-    for plan in cashedPlans: echo plan.title
+    for plan in cashedPlans: 
+      turnReport.add plan.title
+      echo plan.title
 
 proc drawCards =
   while turn.undrawnBlues > 0:
@@ -88,7 +95,9 @@ proc reroll(hypothetical:Hypothetic): bool =
   let 
     bestDiceMoves = hypothetical.bestDiceMoves()
     bestDice = bestDiceMoves.mapIt(it.die)
-  echo "dice: ",diceRoll
+  turnReport.add "rolled dice: "&($diceRoll)
+  turnReport.add "bestDice: "&($bestDice)
+  echo "rolled dice: ",diceRoll
   echo "bestDice:"
   echo bestDice
   isDouble() and diceRoll[1].ord notIn bestDice[^2..^1]
@@ -100,10 +109,13 @@ proc moveAi =
   moveSelection.fromSquare = move.fromSquare
   moveSelection.toSquare = move.toSquare
   if move.eval.toFloat >= currentPosEval.toFloat*0.75:
+    turnReport.add "ai move:"
+    turnReport.add $move
     echo "ai move:"
     echo move
     if hypo.aiRemovePiece(move):
       singlePiece = players.singlePieceOn(move.toSquare)
+      turnReport.add "ai kills piece: "&($singlePiece)
       echo "ai kills piece:"
       echo singlePiece
       removePieceAndMove("Yes")
@@ -112,12 +124,18 @@ proc moveAi =
     singlePiece.playerNr = -1
     hypo.pieces = turnPlayer.pieces
   else:
+    turnReport.add "ai skips move:"
+    turnReport.add "currentPosEval: "&($currentPosEval)
+    turnReport.add "moveEval: "&($move.eval)
     echo "ai skips move:"
     echo "currentPosEval: ",currentPosEval
     echo "moveEval: ",move.eval
   phase = PostMove
 
 proc startTurn = 
+  turnReport.setLen 0
+  turnReport.add "turn report:"
+  turnReport.add $turnPlayer.color&" player takes turn nr: "&($(turnPlayer.turnNr+1))
   echo $turnPlayer.color&" player takes turn:"
   hypo = hypotheticalInit(turnPlayer)
   phase = Draw
@@ -131,6 +149,7 @@ proc rerollPhase =
     diceReroll.isPausing = false
     startDiceRoll()
   elif not diceReroll.isPausing and hypo.reroll: 
+    turnReport.add "reroll"
     echo "reroll"
     diceReroll.isPausing = true
     diceReroll.pauseStartTime = cpuTime()
@@ -142,14 +161,24 @@ proc postMovePhase =
   phase = EndTurn
 
 proc endTurn =
+  let discardedCards = turnPlayer.discardCards blueDeck
+  if discardedCards.len > 0:
+    turnReport.add $turnPlayer.color&" player discards cards:"
+    for card in discardedCards:
+      turnReport.add card.title
+  turnReport.add "ai end of turn"
   echo "ai end of turn"
-  if autoEndTurn and turnPlayer.cash < cashToWin: 
+  recordPlayerReport()
+  nextPlayerTurn()
+  playSound "carhorn-1"
+  startDiceRoll()
+  phase = Await
+
+proc endTurnPhase =
+  if autoEndTurn:
+    turnReport.add "auto end turn"
     echo "auto end turn"
-    turnPlayer.discardCards blueDeck
-    nextPlayerTurn()
-    playSound "carhorn-1"
-    startDiceRoll()
-    phase = Await
+    endTurn()
 
 proc aiTakeTurn*() =
   case phase
@@ -158,13 +187,12 @@ proc aiTakeTurn*() =
   of Reroll: rerollPhase()
   of AiMove: moveAi()
   of PostMove: postMovePhase()
-  of EndTurn: endTurn()
+  of EndTurn: endTurnPhase()
   turn.player.updateBatch
 
 proc aiKeyb*(k:KeyEvent) =
   if k.button == KeyE: autoEndTurn = not autoEndTurn
 
 proc aiRightMouse*(m:KeyEvent) =
-  if phase == EndTurn:
-    phase = Await
+  if phase == EndTurn: endTurn()
  

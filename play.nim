@@ -64,7 +64,7 @@ proc paintPieces*:Image =
         ctx.fillText($nrOfPiecesOnSquare,piece.x+2,piece.y+10)
   ctx.image
 
-proc mouseOnPlayerBatchNr:int =
+proc mouseOnPlayerBatchNr*:int =
   result = -1
   for i,_ in players:
     if mouseOn playerBatches[i]: return i
@@ -236,7 +236,7 @@ proc nextTurn* =
       # playSound "carstart-1"
     else: 
       playSound "page-flip-2"
-      turnPlayer.discardCards blueDeck
+      discard turnPlayer.discardCards blueDeck
       nextPlayerTurn()
       showMenu = false
     startDiceRoll()
