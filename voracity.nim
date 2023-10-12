@@ -19,10 +19,11 @@ proc draw(b:var Boxy) =
   b.drawDynamicImage piecesImg
   b.drawPlayerBatches
   if showMenu: b.drawDynamicImage mainMenu
-  if turn.nr > 0: 
-    if turnPlayer.kind == Computer:
-      blueDeck.reveal = Back
-    else: blueDeck.reveal = Front
+  if turn.nr > 0:  
+    if blueDeck.reveal != UserSetFront: 
+      if turnPlayer.kind == Computer:
+        blueDeck.reveal = Back
+      else: blueDeck.reveal = Front
     b.paintCards blueDeck,turnPlayer.hand
     b.drawCursor
     b.drawDice
@@ -81,7 +82,14 @@ proc mouseMoved =
     mainMenu.mouseSelect
 
 proc keyboard (key:KeyboardEvent) =
-  if key.keyPressed: key.aiKeyb
+  if key.keyPressed: 
+    if key.button.iskey KeyR:
+      echo blueDeck.reveal
+      case blueDeck.reveal
+      of UserSetFront: blueDeck.reveal = Back
+      of Back,Front: blueDeck.reveal = UserSetFront
+      echo blueDeck.reveal
+    key.aiKeyb
   if key.button == ButtonUnknown and not isRollingDice():
     editDiceRoll key.rune.toUTF8
 

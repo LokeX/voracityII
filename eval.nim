@@ -113,7 +113,7 @@ func blueBonus(hypothetical:Hypothetic,card:BlueCard,square:int):int =
         requiredPiecesOn = requiredSquares.mapIt(card.squares.required.count(it))
         freePieces = piecesOn[squareIndex] - requiredPiecesOn[squareIndex]
         hasCover = hypothetical.isCovered(card)
-      if freePieces < 1 and hasCover:
+      if freePieces < 0 and hasCover:
         var nrOfPieces = 1
         for square in 0..requiredSquares.high:
           nrOfPieces += min(piecesOn[square],requiredPiecesOn[square])
