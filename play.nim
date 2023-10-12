@@ -87,6 +87,7 @@ proc setupNewGame* =
   playSound "carhorn-1"
 
 proc togglePlayerKind(batchNr:int) =
+  echo "toggle"
   playerKinds[batchNr] = 
     case playerKinds[batchNr]
     of Human:Computer
@@ -156,7 +157,8 @@ proc drawCardFrom(deck:var Deck) =
   turn.player.updateBatch
   playSound "page-flip-2"
 
-proc togglePlayerKind =
+proc togglePlayerKind* =
+  echo "toggle"
   if (let batchNr = mouseOnPlayerBatchNr(); batchNr != -1) and turn.nr == 0:
     togglePlayerKind batchNr
 
@@ -206,8 +208,8 @@ proc move*(square:int) =
   else: handleMoveTo square
 
 proc leftMouse*(m:KeyEvent) =
-  if turn.nr == 0: togglePlayerKind()
-  elif turn.undrawnBlues > 0 and mouseOn blueDeck.drawSlot.area: 
+  echo "hello"
+  if turn.undrawnBlues > 0 and mouseOn blueDeck.drawSlot.area: 
     drawCardFrom blueDeck
     playCashPlansTo blueDeck
     turnPlayer.hand = turnPlayer.sortBlues

@@ -63,6 +63,7 @@ proc menuSelection =
 
 proc mouse(m:KeyEvent) =
   if m.leftMousePressed:
+    if turn.nr == 0: togglePlayerKind()
     if showMenu and mouseOnMenuSelection():
       menuSelection()
     elif turnPlayer.kind == Human:
@@ -80,6 +81,7 @@ proc mouseMoved =
     mainMenu.mouseSelect
 
 proc keyboard (key:KeyboardEvent) =
+  if key.keyPressed: key.aiKeyb
   if key.button == ButtonUnknown and not isRollingDice():
     editDiceRoll key.rune.toUTF8
 
