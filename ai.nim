@@ -47,6 +47,7 @@ proc enemyKill(hypothetical:Hypothetic,move:Move): bool =
     planChance > 0.05 or barKill
 
 proc aiRemovePiece(hypothetical:Hypothetic,move:Move): bool =
+  canRemoveAPieceFrom(move.toSquare) and 
   players.nrOfPiecesOn(move.toSquare) == 1 and 
   (hypothetical.friendlyFireAdviced(move) or 
   hypothetical.enemyKill(move))
@@ -158,11 +159,11 @@ proc rerollPhase =
 
 proc postMovePhase =
   aiDraw()
+  recordPlayerReport()
   phase = EndTurn
 
-proc endTurn =
-  let discardedCards = turnPlayer.discardCards blueDeck
-  if discardedCards.len > 0:
+proc endTurn =  
+  if (let discardedCards = turnPlayer.discardCards blueDeck; discardedCards.len > 0):
     turnReport.add $turnPlayer.color&" player discards cards:"
     for card in discardedCards:
       turnReport.add card.title

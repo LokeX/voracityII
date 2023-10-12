@@ -37,3 +37,12 @@ echo Circle.area
 echo Circle.perimeter
 echo Rectangle.area
 echo Rectangle.perimeter
+
+type
+  Test = enum T1,T2,T3
+
+var test:Test
+echo Test.high
+for _ in 0..10:
+  echo test
+  inc test

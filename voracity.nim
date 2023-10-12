@@ -11,8 +11,12 @@ import menu
 import batch
 import sugar
 import reports
+import colors
+ 
+var frames:float
 
 proc draw(b:var Boxy) =
+  # frames += 1
   if oldBg != -1: b.drawImage backgrounds[oldBg].name,oldBgRect
   b.drawImage backgrounds[bgSelected].name,bgRect
   b.drawBoard
@@ -20,19 +24,23 @@ proc draw(b:var Boxy) =
   b.drawPlayerBatches
   if showMenu: b.drawDynamicImage mainMenu
   if turn.nr > 0:  
+    b.doMoveAnimation
+    b.paintCards blueDeck,turnPlayer.hand
+    b.drawCursor
+    b.drawDice
     if blueDeck.reveal != UserSetFront: 
       if turnPlayer.kind == Computer:
         blueDeck.reveal = Back
       else: blueDeck.reveal = Front
-    b.paintCards blueDeck,turnPlayer.hand
-    b.drawCursor
-    b.drawDice
     if not isRollingDice(): b.drawSquares
     if turnPlayer.kind == Human and turn.undrawnBlues > 0: 
       b.drawDynamicImage nrOfUndrawnBluesPainter
     if (let playerNr = mouseOnPlayerBatchNr(); playerNr != -1):
       if players[playerNr].color.gotReport:
         b.drawReport players[playerNr].color
+      elif currentPlayerReport == PlayerColor.high:
+        currentPlayerReport = PlayerColor.low
+      else: inc currentPlayerReport
 
 proc really(title:string,answer:string -> void) =
   let entries:seq[string] = @[
@@ -100,10 +108,13 @@ proc cycle =
     else: 
       bgRect.w = scaledWidth.toFloat
       oldBg = -1
-  if turnPlayer.kind == Computer and aiTurn():
+  if turnPlayer.kind == Computer and not moveAnimationActive() and aiTurn():
     aiTakeTurn()
 
-proc timer = showCursor = not showCursor
+proc timer = 
+  # echo frames*2.5
+  # frames = 0
+  showCursor = not showCursor
 
 proc timerCall:TimerCall =
   TimerCall(call:timer,lastTime:cpuTime(),secs:0.4)

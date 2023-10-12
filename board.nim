@@ -4,6 +4,7 @@ import strutils
 import random
 import megasound
 import sequtils
+import sugar
 
 type
   DieFaces* = enum 
@@ -14,6 +15,12 @@ type
   Square* = tuple[nr:int,name:string,dims:Dims,icon:Image]
   Dims* = tuple[area:Area,rect:Rect]
   MoveSelection* = tuple[hoverSquare,fromSquare,toSquare:int,toSquares:seq[int]]
+  MoveAnimation* = tuple
+    active:bool
+    frame,moveOnFrame,currentSquare,fromsquare,toSquare:int
+    color:PlayerColor
+    squares:seq[int]
+    callBack:int -> void
 
 const
   diceRollRects = (Rect(x:1450,y:60,w:50,h:50),Rect(x:1450,y:120,w:50,h:50))
@@ -37,6 +44,7 @@ var
   diceRoll*:Dice = [DieFace3,DieFace4]
   dieRollFrame* = maxRollFrames
   moveSelection*:MoveSelection = (-1,-1,-1,@[])
+  moveAnimation:MoveAnimation
   dieEdit:int
 
 proc editDiceRoll*(input:string) =  
@@ -199,6 +207,51 @@ proc pieceOn*(color:PlayerColor,squareNr:int): Rect =
   if squareNr == 0: Rect(x:r.x,y:r.y+6+colorOffset,w:r.w-10,h:12)
   elif r.w == 35: Rect(x:r.x+5,y:r.y+6+colorOffset,w:r.w-10,h:12)
   else: Rect(x:r.x+6+colorOffset,y:r.y+5,w:12,h:r.h-10)
+
+func squareDistance(fromSquare,toSquare:int):int =
+  if fromSquare < toSquare:
+    toSquare-fromSquare
+  else: (toSquare+60)-fromSquare
+
+func animationSquares(fromSquare,toSquare:int):seq[int] =
+  var count = fromSquare
+  for _ in 1..squareDistance(fromSquare,toSquare):
+    result.add count
+    inc count
+    if count > 60: 
+      count = 1
+
+proc startMoveAnimation*(color:PlayerColor,fromSquare,toSquare:int) =
+  moveAnimation.fromsquare = fromSquare
+  moveAnimation.toSquare = toSquare
+  moveAnimation.squares = animationSquares(fromSquare,toSquare)
+  moveAnimation.color = color
+  moveAnimation.frame = 0
+  moveAnimation.moveOnFrame = 60 div moveAnimation.squares.len
+  moveAnimation.currentSquare = 0
+  moveAnimation.active = true
+
+proc moveAnimationActive*:bool = moveAnimation.active
+
+proc doMoveAnimation*(b:var Boxy) =
+  if moveAnimation.active:
+    inc moveAnimation.frame
+    if moveAnimation.frame >= moveAnimation.moveOnFrame-1:
+      moveAnimation.frame = 0
+      inc moveAnimation.currentSquare
+    var pieceRect = pieceOn(
+      moveAnimation.color,moveAnimation.squares[moveAnimation.currentSquare]
+    )
+    pieceRect.x = bx+pieceRect.x
+    pieceRect.y = by+pieceRect.y
+    b.drawRect(pieceRect,playerColors[moveAnimation.color])
+    if moveAnimation.currentSquare == moveAnimation.squares.high:
+      moveAnimation.active = false
+      if moveAnimation.callBack != nil:
+        moveAnimation.callBack moveSelection.toSquare
+
+proc atEndOfAnimationCall*(f:int -> void) =
+  moveAnimation.callBack = f
 
 proc drawMoveToSquares*(b:var Boxy) =
   b.drawDynamicImage moveToSquaresPainter

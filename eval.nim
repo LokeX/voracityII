@@ -113,14 +113,14 @@ func blueBonus(hypothetical:Hypothetic,card:BlueCard,square:int):int =
         requiredPiecesOn = requiredSquares.mapIt(card.squares.required.count(it))
         freePieces = piecesOn[squareIndex] - requiredPiecesOn[squareIndex]
         hasCover = hypothetical.isCovered(card)
-      if freePieces < 0 and hasCover:
+      if freePieces < 1 and hasCover:
         var nrOfPieces = 1
-        for square in 0..requiredSquares.high:
-          nrOfPieces += min(piecesOn[square],requiredPiecesOn[square])
-          # if piecesOn[square] > requiredPiecesOn[square]:
-          #   nrOfPieces += requiredPiecesOn[square]
-          # else:
-          #   nrOfPieces += piecesOn[square]
+        for square in 0..requiredSquares.len-1:
+          # nrOfPieces += min(piecesOn[square],requiredPiecesOn[square])
+          if piecesOn[square] > requiredPiecesOn[square]:
+            nrOfPieces += requiredPiecesOn[square]
+          else:
+            nrOfPieces += piecesOn[square]
         result = (card.cash div nrOfPiecesRequired)*nrOfPieces
 
 func blueVals*(hypothetical:Hypothetic,squares:seq[int]):seq[int] =
@@ -200,7 +200,9 @@ func friendlyFireBest(hypothetical:Hypothetic,move:Move): bool =
   
 func friendlyFireAdviced*(hypothetical:Hypothetic,move:Move): bool =
   move.fromSquare != 0 and
-  hypothetical.piecesOn(move.toSquare) > 0 and 
+  move.toSquare notIn highways and
+  move.toSquare notIn gasStations and
+  hypothetical.piecesOn(move.toSquare) == 1 and 
   hypothetical.requiredPiecesOn(move.toSquare) < 2 and
   hypothetical.friendlyFireBest(move)
 
@@ -235,7 +237,10 @@ proc move*(hypothetical:Hypothetic,dice:openArray[int]):Move =
   for pieceNr,fromSquare in hypothetical.pieces:
     for die in dice:
       flowMoves.add spawn hypothetical.bestMove(pieceNr,fromSquare,die)
-  flowMoves.mapIt(^it).sortedByIt(it.eval)[^1]
+  let moves = flowMoves.mapIt(^it)
+  for move in moves:
+    echo $move
+  result = moves.sortedByIt(it.eval)[^1]
 
 proc diceMoves(hypothetical:Hypothetic):seq[FlowVar[Move]] =
   for pieceNr,fromSquare in hypothetical.pieces:

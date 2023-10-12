@@ -138,7 +138,9 @@ proc drawSquares*(b:var Boxy) =
 
 proc moveTo(toSquare:int) =
   turn.diceMoved = not noDiceUsedToMove(moveSelection.fromSquare,toSquare)
+  echo "move from: ",moveSelection.fromSquare
   turnPlayer.pieces[turnPlayer.pieceOnSquare moveSelection.fromSquare] = toSquare
+  echo "turn player pieces: "&($turnPlayer.pieces)
   if moveSelection.fromSquare == 0: 
     turnPlayer.cash -= 5000
     updateBatch turn.player
@@ -149,6 +151,14 @@ proc moveTo(toSquare:int) =
     inc turn.undrawnBlues
     nrOfUndrawnBluesPainter.update = true
     playSound "can-open-1"
+
+proc animateMove =
+  atEndOfAnimationCall moveTo
+  startMoveAnimation(
+    turnPlayer.color,
+    moveSelection.fromSquare,
+    moveSelection.toSquare
+  )
 
 proc drawCardFrom(deck:var Deck) =
   turnPlayer.hand.drawFrom deck
@@ -177,7 +187,8 @@ func singlePieceOn*(players:seq[Player],square:int):SinglePiece =
       for pieceNr,piece in player.pieces:
         if piece == square: return (playerNr,pieceNr)
 
-proc handleMoveTo(square:int) =
+proc handleMoveTo*(square:int) =
+  # animateMove()
   moveTo square
   playCashPlansTo blueDeck
   turnPlayer.hand = turnPlayer.sortBlues
@@ -190,7 +201,7 @@ proc removePieceAndMove*(confirmedKill:string) =
     playSound "Deanscream-2"
   handleMoveTo moveSelection.toSquare
 
-proc canRemoveAPieceFrom(square:int):bool =
+proc canRemoveAPieceFrom*(square:int):bool =
   square notIn highways and square notIn gasStations
 
 proc move*(square:int) =
@@ -204,6 +215,7 @@ proc move*(square:int) =
       "Yes\n",
       "No",
     ]
+    showMenu = false
     startDialog(entries,3..4,removePieceAndMove)
   else: handleMoveTo square
 
