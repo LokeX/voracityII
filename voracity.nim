@@ -83,7 +83,8 @@ proc mouse(m:KeyEvent) =
   elif m.rightMousePressed: 
     if turnPlayer.kind == Computer: 
       m.aiRightMouse
-    m.rightMouse
+    else:
+      m.rightMouse
 
 proc mouseMoved = 
   if showMenu and mouseOn mainMenu.area:
@@ -98,6 +99,10 @@ proc keyboard (key:KeyboardEvent) =
       of Back,Front: blueDeck.reveal = UserSetFront
       echo blueDeck.reveal
     key.aiKeyb
+    if key.button.iskey KeyS:
+      if volume() == 0:
+        setVolume 0.20
+      else: setVolume 0
   if key.button == ButtonUnknown and not isRollingDice():
     editDiceRoll key.rune.toUTF8
 
@@ -108,6 +113,9 @@ proc cycle =
     else: 
       bgRect.w = scaledWidth.toFloat
       oldBg = -1
+  # echo "moveAnimationActive: ",moveAnimationActive()
+  # echo "aiTurn: ",aiTurn()
+  # echo "aiPhase: ",phaseIs()
   if turnPlayer.kind == Computer and not moveAnimationActive() and aiTurn():
     aiTakeTurn()
 

@@ -307,11 +307,11 @@ proc paintCards*(b:var Boxy,deck:Deck,playerHand:seq[BlueCard]) =
       b.drawImage(deck.discardPile[^1].title,deck.popUpSlot.rect)
       b.drawCardSquares deck.discardPile[^1]
   for (card,slot) in (if deck.show == Hand: playerHand else: deck.discardPile).cardSlots:
-    if deck.show == Hand:
-      if deck.reveal == Back:
-        b.drawImage("blueback",slot.rect)
-      else: 
-        b.drawImage(card.title,slot.rect)
+    # if deck.show == Hand:
+    if deck.reveal == Back:
+      b.drawImage("blueback",slot.rect)
+    else: 
+      b.drawImage(card.title,slot.rect)
     if mouseOn slot.area:
       b.drawImage(card.title,deck.popUpSlot.rect)
       b.drawCardSquares card

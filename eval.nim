@@ -24,8 +24,7 @@ type
 func countBars*(hypothetical:Hypothetic): int = hypothetical.pieces.countIt(it in bars)
 
 func cardVal(hypothetical:Hypothetic): int =
-  let val = 3 - hypothetical.cards.len
-  if val > 0: return val*5000
+  if (let val = 3 - hypothetical.cards.len; val > 0): val*5000 else: 0
 
 func barVal*(hypothetical:Hypothetic): int = 
   let 
@@ -115,12 +114,8 @@ func blueBonus(hypothetical:Hypothetic,card:BlueCard,square:int):int =
         hasCover = hypothetical.isCovered(card)
       if freePieces < 1 and hasCover:
         var nrOfPieces = 1
-        for square in 0..requiredSquares.len-1:
-          # nrOfPieces += min(piecesOn[square],requiredPiecesOn[square])
-          if piecesOn[square] > requiredPiecesOn[square]:
-            nrOfPieces += requiredPiecesOn[square]
-          else:
-            nrOfPieces += piecesOn[square]
+        for square in 0..requiredSquares.high:
+          nrOfPieces += min(piecesOn[square],requiredPiecesOn[square])
         result = (card.cash div nrOfPiecesRequired)*nrOfPieces
 
 func blueVals*(hypothetical:Hypothetic,squares:seq[int]):seq[int] =
@@ -207,11 +202,7 @@ func friendlyFireAdviced*(hypothetical:Hypothetic,move:Move): bool =
   hypothetical.friendlyFireBest(move)
 
 func threeBest(cards:seq[BlueCard]): seq[BlueCard] =
-  if cards.len > 3: 
-    var bestCards = cards
-    bestCards.setLen(3) 
-    return bestCards
-  return cards
+  if cards.len > 3: cards[0..2] else: cards
 
 func evalMove(hypothetical:Hypothetic,pieceNr,toSquare:int): int =
   var pieces = hypothetical.pieces

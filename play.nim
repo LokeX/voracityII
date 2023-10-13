@@ -136,30 +136,6 @@ proc drawSquares*(b:var Boxy) =
   elif (let square = mouseOnSquare(); square != -1) and turnPlayer.hasPieceOn square:
     b.drawMoveToSquares square
 
-proc moveTo(toSquare:int) =
-  turn.diceMoved = not noDiceUsedToMove(moveSelection.fromSquare,toSquare)
-  echo "move from: ",moveSelection.fromSquare
-  turnPlayer.pieces[turnPlayer.pieceOnSquare moveSelection.fromSquare] = toSquare
-  echo "turn player pieces: "&($turnPlayer.pieces)
-  if moveSelection.fromSquare == 0: 
-    turnPlayer.cash -= 5000
-    updateBatch turn.player
-  moveSelection.fromSquare = -1
-  piecesImg.update = true
-  playSound "driveBy"
-  if toSquare in bars:
-    inc turn.undrawnBlues
-    nrOfUndrawnBluesPainter.update = true
-    playSound "can-open-1"
-
-proc animateMove =
-  atEndOfAnimationCall moveTo
-  startMoveAnimation(
-    turnPlayer.color,
-    moveSelection.fromSquare,
-    moveSelection.toSquare
-  )
-
 proc drawCardFrom(deck:var Deck) =
   turnPlayer.hand.drawFrom deck
   dec turn.undrawnBlues
@@ -187,19 +163,39 @@ func singlePieceOn*(players:seq[Player],square:int):SinglePiece =
       for pieceNr,piece in player.pieces:
         if piece == square: return (playerNr,pieceNr)
 
-proc handleMoveTo*(square:int) =
-  # animateMove()
-  moveTo square
+proc moveTo(toSquare:int) =
+  turn.diceMoved = not noDiceUsedToMove(moveSelection.fromSquare,toSquare)
+  echo "move from: ",moveSelection.fromSquare
+  turnPlayer.pieces[turnPlayer.pieceOnSquare moveSelection.fromSquare] = toSquare
+  echo "turn player pieces: "&($turnPlayer.pieces)
+  if moveSelection.fromSquare == 0: 
+    turnPlayer.cash -= 5000
+    updateBatch turn.player
   playCashPlansTo blueDeck
   turnPlayer.hand = turnPlayer.sortBlues
   playerBatches[turn.player].update = true
+  moveSelection.fromSquare = -1
+  piecesImg.update = true
+  playSound "driveBy"
+  if toSquare in bars:
+    inc turn.undrawnBlues
+    nrOfUndrawnBluesPainter.update = true
+    playSound "can-open-1"
+
+proc animateMove* =
+  atEndOfAnimationCall moveTo
+  startMoveAnimation(
+    turnPlayer.color,
+    moveSelection.fromSquare,
+    moveSelection.toSquare
+  )
 
 proc removePieceAndMove*(confirmedKill:string) =
   if confirmedKill == "Yes":
     players[singlePiece.playerNr].pieces[singlePiece.pieceNr] = 0
     playSound "Gunshot"
     playSound "Deanscream-2"
-  handleMoveTo moveSelection.toSquare
+  animateMove()
 
 proc canRemoveAPieceFrom*(square:int):bool =
   square notIn highways and square notIn gasStations
@@ -217,7 +213,7 @@ proc move*(square:int) =
     ]
     showMenu = false
     startDialog(entries,3..4,removePieceAndMove)
-  else: handleMoveTo square
+  else: animateMove()
 
 proc leftMouse*(m:KeyEvent) =
   echo "hello"

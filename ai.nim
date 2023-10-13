@@ -8,17 +8,19 @@ import sequtils
 import megasound
 import times
 import reports
+import menu
 
 type
-  Phase = enum Await,Draw,Reroll,AiMove,PostMove,EndTurn
+  Phase* = enum Await,Draw,Reroll,AiMove,PostMove,EndTurn
   DiceReroll = tuple[isPausing:bool,pauseStartTime:float]
-  # Report = tuple[player:PlayerColor,lines:seq[string]]
 
 var
   autoEndTurn* = true
   hypo:Hypothetic
   phase:Phase
   diceReroll:DiceReroll
+
+template phaseIs*:untyped = phase
 
 func knownBluesIn(discardPile,hand:seq[BlueCard]):seq[BlueCard] =
   result.add discardPile
@@ -53,6 +55,7 @@ proc aiRemovePiece(hypothetical:Hypothetic,move:Move): bool =
   hypothetical.enemyKill(move))
 
 proc aiTurn*(): bool =
+  turnPlayer.cash < cashToWin and
   turn.nr != 0 and 
   turnPlayer.kind == Computer and 
   not isRollingDice()
@@ -62,7 +65,7 @@ proc echoCards =
     echo "card: ",card.title
     echo "eval: ",card.eval
 
-proc drawCard = #a menu problem HERE
+proc drawCard = #a menu problem HERE?
   turnPlayer.hand.drawFrom blueDeck
   dec turn.undrawnBlues
   turnReport.add $turnPlayer.color&" player draws a card"
@@ -121,9 +124,6 @@ proc moveAi =
       echo singlePiece
       removePieceAndMove("Yes")
     else: move move.toSquare
-    moveSelection.fromSquare = -1
-    singlePiece.playerNr = -1
-    hypo.pieces = turnPlayer.pieces
   else:
     turnReport.add "ai skips move:"
     turnReport.add "currentPosEval: "&($currentPosEval)
@@ -158,6 +158,9 @@ proc rerollPhase =
     phase = AiMove
 
 proc postMovePhase =
+  moveSelection.fromSquare = -1
+  # singlePiece.playerNr = -1
+  # hypo.pieces = turnPlayer.pieces
   aiDraw()
   recordPlayerReport()
   phase = EndTurn
@@ -173,6 +176,7 @@ proc endTurn =
   nextPlayerTurn()
   playSound "carhorn-1"
   startDiceRoll()
+  showMenu = false
   phase = Await
 
 proc endTurnPhase =
@@ -194,6 +198,9 @@ proc aiTakeTurn*() =
 proc aiKeyb*(k:KeyEvent) =
   if k.button == KeyE: autoEndTurn = not autoEndTurn
 
+# please, for the love of God: don't even breethe on it!
 proc aiRightMouse*(m:KeyEvent) =
-  if phase == EndTurn: endTurn()
+  if phase == EndTurn: 
+    if showMenu: endTurn()
+    else: showMenu = true
  
