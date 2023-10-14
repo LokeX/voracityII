@@ -12,8 +12,11 @@ import batch
 import sugar
 import reports
 import colors
+import sequtils
  
 # var frames:float
+
+var mouseOnBatchPlayerNr = -1
 
 proc draw(b:var Boxy) =
   # frames += 1
@@ -35,9 +38,9 @@ proc draw(b:var Boxy) =
     if not isRollingDice() and turnPlayer.kind == Human: b.drawSquares
     if turnPlayer.kind == Human and turn.undrawnBlues > 0: 
       b.drawDynamicImage nrOfUndrawnBluesPainter
-    if (let playerNr = mouseOnPlayerBatchNr(); playerNr != -1):
-      if players[playerNr].color.gotReport:
-        b.drawReport players[playerNr].color
+    if (mouseOnBatchPlayerNr = mouseOnPlayerBatchNr(); mouseOnBatchPlayerNr != -1):
+      if players[mouseOnBatchPlayerNr].color.gotReport:
+        b.drawReport players[mouseOnBatchPlayerNr].color
       elif currentPlayerReport == PlayerColor.high:
         currentPlayerReport = PlayerColor.low
       else: inc currentPlayerReport
@@ -111,13 +114,23 @@ proc cycle =
     else: 
       bgRect.w = scaledWidth.toFloat
       oldBg = -1
-  # echo "moveAnimationActive: ",moveAnimationActive()
-  # echo "aiTurn: ",aiTurn()
-  # echo "aiPhase: ",phaseIs()
   if turnPlayer.kind == Computer and not moveAnimationActive() and aiTurn():
     aiTakeTurn()
 
 proc timer = 
+  if not moveAnimation.active and mouseOnBatchPlayerNr != -1:
+    echo "mouse on: "&($players[mouseOnBatchPlayerNr].color)&" players batch"
+    echo turnReports.len
+    let reports =
+      turnReports.filterIt(it.player.color == players[mouseOnBatchPlayerNr].color)
+    echo reports.len
+    if reports.len > 0:
+      echo "start animation"
+      startMoveAnimation(
+        players[mouseOnBatchPlayerNr].color,
+        reports[^1].moves[^1].fromSquare,
+        reports[^1].moves[^1].toSquare,
+      )
   # echo frames*2.5
   # frames = 0
   showCursor = not showCursor

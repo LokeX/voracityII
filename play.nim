@@ -193,12 +193,13 @@ proc move =
     playSound "can-open-1"
 
 proc animateMove* =
-  atEndOfAnimationCall move
+  # atEndOfAnimationCall move
   startMoveAnimation(
     turnPlayer.color,
     moveSelection.fromSquare,
     moveSelection.toSquare
   )
+  move()
 
 proc removePieceAndMove*(confirmedKill:string) =
   if confirmedKill == "Yes":
@@ -250,7 +251,7 @@ proc nextTurn* =
       inc turn.nr
       players = newPlayers()
       playerBatches = newPlayerBatches()
-      initTurnReport()
+      resetTurnReports()
       setMenuTo GameMenu
       showMenu = false
     else: 

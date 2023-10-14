@@ -44,7 +44,7 @@ var
   diceRoll*:Dice = [DieFace3,DieFace4]
   dieRollFrame* = maxRollFrames
   moveSelection*:MoveSelection = (-1,-1,-1,@[])
-  moveAnimation:MoveAnimation
+  moveAnimation*:MoveAnimation
   dieEdit:int
 
 proc editDiceRoll*(input:string) =  

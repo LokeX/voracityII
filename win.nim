@@ -5,7 +5,6 @@ import times
 
 export boxy 
 export windy
-export os
 
 type
   Area* = tuple[x1,y1,x2,y2:int]

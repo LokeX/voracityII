@@ -66,11 +66,14 @@ proc playerReport:seq[Span] =
   result.add newSpan("Discarded: "&turnReport.cards.discarded.mapIt(it.title).join(",")&"\n",font)
 
 proc initTurnReport* =
-  turnReports.setLen 0
   turnReport = TurnReport()
   turnReport.turnNr = turnPlayer.turnNr+1
   turnReport.player.color = turnPlayer.color
   turnReport.player.kind = turnPlayer.kind
+
+proc resetTurnReports* =
+  initTurnReport()
+  turnReports.setLen 0
 
 proc gotReport*(player:PlayerColor):bool = playerReports[player].len > 0
 
@@ -88,6 +91,7 @@ proc setCurrentReportTo(player:PlayerColor) =
 
 proc recordPlayerReport* =
   turnReports.add turnReport
+  # echo "saved "&($turnReports[^1].player.color)&" player report"
   playerReports[turnPlayer.color] = playerReport()
   setCurrentReportTo turnPlayer.color
 
