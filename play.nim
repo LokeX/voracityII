@@ -258,7 +258,8 @@ proc nextTurn* =
       playSound "page-flip-2"
       turnReport.cards.discarded.add turnPlayer.discardCards blueDeck
       echoTurnReport()
-      recordPlayerReport()
+      if turnPlayer.kind == Human:
+        recordPlayerReport()
       nextPlayerTurn()
       initTurnReport()
       showMenu = false

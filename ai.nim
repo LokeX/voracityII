@@ -114,7 +114,7 @@ proc postMovePhase =
   # singlePiece.playerNr = -1
   # hypo.pieces = turnPlayer.pieces
   drawCards()
-  recordPlayerReport()
+  # recordPlayerReport()
   phase = EndTurn
 
 proc endTurn =  

@@ -13,10 +13,21 @@ import sugar
 import reports
 import colors
 import sequtils
+import misc
  
 # var frames:float
 
-var mouseOnBatchPlayerNr = -1
+type ShowCashedCards = enum LastCashed,AllCashed
+
+var 
+  mouseOnBatchPlayerNr = -1
+  showCashedCards:ShowCashedCards
+
+proc cashedCards:seq[BlueCard] =
+  if showCashedCards == LastCashed: 
+    players[mouseOnBatchPlayerNr].color.reports[^1].cards.cashed
+  else: 
+    players[mouseOnBatchPlayerNr].color.reports.mapIt(it.cards.cashed).flatMap
 
 proc draw(b:var Boxy) =
   # frames += 1
@@ -27,8 +38,17 @@ proc draw(b:var Boxy) =
   b.drawPlayerBatches
   if showMenu: b.drawDynamicImage mainMenu
   if turn.nr > 0:  
+    mouseOnBatchPlayerNr = mouseOnPlayerBatchNr()
     b.doMoveAnimation
-    b.paintCards blueDeck,turnPlayer.hand
+    if mouseOnBatchPlayerNr != -1:
+      let cashedCards = cashedCards()
+      if cashedCards.len > 0:
+        let reveal = blueDeck.reveal
+        blueDeck.reveal = Front
+        b.paintCards blueDeck,cashedCards
+        blueDeck.reveal = reveal
+    else:
+      b.paintCards blueDeck,turnPlayer.hand
     b.drawCursor
     b.drawDice
     if blueDeck.reveal != UserSetFront: 
@@ -38,7 +58,7 @@ proc draw(b:var Boxy) =
     if not isRollingDice() and turnPlayer.kind == Human: b.drawSquares
     if turnPlayer.kind == Human and turn.undrawnBlues > 0: 
       b.drawDynamicImage nrOfUndrawnBluesPainter
-    if (mouseOnBatchPlayerNr = mouseOnPlayerBatchNr(); mouseOnBatchPlayerNr != -1):
+    if (mouseOnBatchPlayerNr != -1):
       if players[mouseOnBatchPlayerNr].color.gotReport:
         b.drawReport players[mouseOnBatchPlayerNr].color
       elif currentPlayerReport == PlayerColor.high:
@@ -75,11 +95,15 @@ proc menuSelection =
 
 proc mouse(m:KeyEvent) =
   if m.leftMousePressed:
+    blueDeck.leftMousePressed
+    if mouseOnBatchPlayerNr != -1:
+      case showCashedCards
+      of LastCashed: showCashedCards = AllCashed
+      of AllCashed: showCashedCards = LastCashed
     if turn.nr == 0: togglePlayerKind()
     if showMenu and mouseOnMenuSelection():
       menuSelection()
     elif turnPlayer.kind == Human:
-      blueDeck.leftMousePressed
       m.leftMouse()
       if turn.nr > 0 and mouseOnDice() and mayReroll(): 
         startDiceRoll()
@@ -119,13 +143,8 @@ proc cycle =
 
 proc timer = 
   if not moveAnimation.active and mouseOnBatchPlayerNr != -1:
-    echo "mouse on: "&($players[mouseOnBatchPlayerNr].color)&" players batch"
-    echo turnReports.len
-    let reports =
-      turnReports.filterIt(it.player.color == players[mouseOnBatchPlayerNr].color)
-    echo reports.len
+    let reports = players[mouseOnBatchPlayerNr].color.reports
     if reports.len > 0:
-      echo "start animation"
       startMoveAnimation(
         players[mouseOnBatchPlayerNr].color,
         reports[^1].moves[^1].fromSquare,
@@ -149,7 +168,7 @@ var
     timer:timerCall()
   )
 
-setVolume 0.20
+setVolume 0.05
 addCall call
 addCall dialogCall # we add dialog second - or it will be drawn beneath the board
 runWinWith: 

@@ -41,6 +41,9 @@ var
   turnReports*:seq[TurnReport]
   turnReport*:TurnReport
 
+proc reports*(playerColor:PlayerColor):seq[TurnReport] =
+  turnReports.filterIt(it.player.color == playerColor)
+
 proc echoTurnReport* =
   echo "\nTurn nr: ",turnReport.turnNr
   echo "Player: "&($turnReport.player)

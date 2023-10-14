@@ -308,7 +308,7 @@ proc paintCards*(b:var Boxy,deck:Deck,playerHand:seq[BlueCard]) =
       b.drawCardSquares deck.discardPile[^1]
   for (card,slot) in (if deck.show == Hand: playerHand else: deck.discardPile).cardSlots:
     # if deck.show == Hand:
-    if deck.reveal == Back:
+    if deck.reveal == Back and deck.show != Discard:
       b.drawImage("blueback",slot.rect)
     else: 
       b.drawImage(card.title,slot.rect)

@@ -245,9 +245,9 @@ proc doMoveAnimation*(b:var Boxy) =
       )
       pieceRect.x = bx+pieceRect.x
       pieceRect.y = by+pieceRect.y
-      var color = playerColors[moveAnimation.color]
-      color.a -= 70+((180 div moveAnimation.squares.len)*square).toFloat
-      b.drawRect(pieceRect,color)
+      # var color = playerColors[moveAnimation.color]
+      # color.a -= 70+((180 div moveAnimation.squares.len)*square).toFloat
+      b.drawRect(pieceRect,playerColors[moveAnimation.color])
     if moveAnimation.currentSquare == moveAnimation.squares.high:
       moveAnimation.active = false
       if moveAnimation.callBack != nil:
