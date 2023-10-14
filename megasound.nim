@@ -12,7 +12,6 @@ proc playSound*(sound:string) =
     let 
       soundFile = "sounds\\"&sound&".wav"
       source = newSound(soundFile).play()
-    echo "Loading sound source: ",soundFile
     sources.add (sound,source)
   else:
     sources[soundSource].source.stop()

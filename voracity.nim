@@ -13,7 +13,7 @@ import sugar
 import reports
 import colors
  
-var frames:float
+# var frames:float
 
 proc draw(b:var Boxy) =
   # frames += 1
@@ -32,7 +32,7 @@ proc draw(b:var Boxy) =
       if turnPlayer.kind == Computer:
         blueDeck.reveal = Back
       else: blueDeck.reveal = Front
-    if not isRollingDice(): b.drawSquares
+    if not isRollingDice() and turnPlayer.kind == Human: b.drawSquares
     if turnPlayer.kind == Human and turn.undrawnBlues > 0: 
       b.drawDynamicImage nrOfUndrawnBluesPainter
     if (let playerNr = mouseOnPlayerBatchNr(); playerNr != -1):
@@ -93,11 +93,9 @@ proc mouseMoved =
 proc keyboard (key:KeyboardEvent) =
   if key.keyPressed: 
     if key.button.iskey KeyR:
-      echo blueDeck.reveal
       case blueDeck.reveal
       of UserSetFront: blueDeck.reveal = Back
       of Back,Front: blueDeck.reveal = UserSetFront
-      echo blueDeck.reveal
     key.aiKeyb
     if key.button.iskey KeyS:
       if volume() == 0:

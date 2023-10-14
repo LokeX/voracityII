@@ -20,7 +20,7 @@ type
     frame,moveOnFrame,currentSquare,fromsquare,toSquare:int
     color:PlayerColor
     squares:seq[int]
-    callBack:int -> void
+    callBack:() -> void
 
 const
   diceRollRects = (Rect(x:1450,y:60,w:50,h:50),Rect(x:1450,y:120,w:50,h:50))
@@ -251,9 +251,9 @@ proc doMoveAnimation*(b:var Boxy) =
     if moveAnimation.currentSquare == moveAnimation.squares.high:
       moveAnimation.active = false
       if moveAnimation.callBack != nil:
-        moveAnimation.callBack moveSelection.toSquare
+        moveAnimation.callBack()
 
-proc atEndOfAnimationCall*(f:int -> void) =
+proc atEndOfAnimationCall*(f:() -> void) =
   moveAnimation.callBack = f
 
 proc drawMoveToSquares*(b:var Boxy) =

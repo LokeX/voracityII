@@ -43,7 +43,6 @@ proc startDialog*(entries:seq[string],selRange:HSlice[int,int],call:proc(s:strin
   menuBatch.setPos(menuPos.x,scaledHeight)
   menuBatch.isActive = true
   menuBatch.update = true
-  echo "dialog started"
 
 proc endDialog(selected:string) =
   menuBatch.setPos(menuPos.x,scaledHeight)
@@ -62,7 +61,6 @@ proc keyboard(k:KeyboardEvent) =
 
 proc mouse(m:KeyEvent) =
   if menuBatch.isActive and m.leftMousePressed and menuBatch.mouseOnSelectionArea != -1:
-    echo "end dialog"
     endDialog menuEntries[menuBatch.selection].strip
 
 proc mouseMoved =

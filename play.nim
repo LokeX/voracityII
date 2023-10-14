@@ -9,6 +9,7 @@ import deck
 import batch
 import eval
 import menu
+import reports
 
 type
   SinglePiece = tuple[playerNr,pieceNr:int]
@@ -87,7 +88,6 @@ proc setupNewGame* =
   playSound "carhorn-1"
 
 proc togglePlayerKind(batchNr:int) =
-  echo "toggle"
   playerKinds[batchNr] = 
     case playerKinds[batchNr]
     of Human:Computer
@@ -136,20 +136,21 @@ proc drawSquares*(b:var Boxy) =
   elif (let square = mouseOnSquare(); square != -1) and turnPlayer.hasPieceOn square:
     b.drawMoveToSquares square
 
-proc drawCardFrom(deck:var Deck) =
+proc drawCardFrom*(deck:var Deck) =
   turnPlayer.hand.drawFrom deck
   dec turn.undrawnBlues
+  turnReport.cards.drawn.add turnPlayer.hand[^1]
   nrOfUndrawnBluesPainter.update = true
   turn.player.updateBatch
   playSound "page-flip-2"
 
 proc togglePlayerKind* =
-  echo "toggle"
   if (let batchNr = mouseOnPlayerBatchNr(); batchNr != -1) and turn.nr == 0:
     togglePlayerKind batchNr
 
-proc playCashPlansTo(deck:var Deck) =
-  if cashInPlansTo(deck).len > 0:
+proc playCashPlansTo*(deck:var Deck) =
+  if (let cashedPlans = cashInPlansTo(deck); cashedPlans.len > 0):
+    turnReport.cards.cashed.add cashedPlans
     turn.player.updateBatch
     playSound "coins-to-table-2"
     if turnPlayer.cash >= cashToWin:
@@ -163,11 +164,20 @@ func singlePieceOn*(players:seq[Player],square:int):SinglePiece =
       for pieceNr,piece in player.pieces:
         if piece == square: return (playerNr,pieceNr)
 
-proc moveTo(toSquare:int) =
-  turn.diceMoved = not noDiceUsedToMove(moveSelection.fromSquare,toSquare)
-  echo "move from: ",moveSelection.fromSquare
-  turnPlayer.pieces[turnPlayer.pieceOnSquare moveSelection.fromSquare] = toSquare
-  echo "turn player pieces: "&($turnPlayer.pieces)
+proc initMove:Move =
+  result.die = -1
+  result.eval = -1
+  result.fromSquare = moveSelection.fromSquare
+  result.toSquare = moveSelection.toSquare
+  result.pieceNr = turnPlayer.pieceOnSquare moveSelection.fromSquare
+
+proc move =
+  turn.diceMoved = not noDiceUsedToMove(
+    moveSelection.fromSquare,moveSelection.toSquare)
+  let move = initMove()
+  if turnPlayer.kind == Human:
+    turnReport.moves.add move
+  turnPlayer.pieces[move.pieceNr] = moveSelection.toSquare
   if moveSelection.fromSquare == 0: 
     turnPlayer.cash -= 5000
     updateBatch turn.player
@@ -177,13 +187,13 @@ proc moveTo(toSquare:int) =
   moveSelection.fromSquare = -1
   piecesImg.update = true
   playSound "driveBy"
-  if toSquare in bars:
+  if moveSelection.toSquare in bars:
     inc turn.undrawnBlues
     nrOfUndrawnBluesPainter.update = true
     playSound "can-open-1"
 
 proc animateMove* =
-  atEndOfAnimationCall moveTo
+  atEndOfAnimationCall move
   startMoveAnimation(
     turnPlayer.color,
     moveSelection.fromSquare,
@@ -216,7 +226,6 @@ proc move*(square:int) =
   else: animateMove()
 
 proc leftMouse*(m:KeyEvent) =
-  echo "hello"
   if turn.undrawnBlues > 0 and mouseOn blueDeck.drawSlot.area: 
     drawCardFrom blueDeck
     playCashPlansTo blueDeck
@@ -241,13 +250,16 @@ proc nextTurn* =
       inc turn.nr
       players = newPlayers()
       playerBatches = newPlayerBatches()
+      initTurnReport()
       setMenuTo GameMenu
       showMenu = false
-      # playSound "carstart-1"
     else: 
       playSound "page-flip-2"
-      discard turnPlayer.discardCards blueDeck
+      turnReport.cards.discarded.add turnPlayer.discardCards blueDeck
+      echoTurnReport()
+      recordPlayerReport()
       nextPlayerTurn()
+      initTurnReport()
       showMenu = false
     startDiceRoll()
   playSound "carhorn-1"
