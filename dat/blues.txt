@@ -281,3 +281,28 @@ Spy
 mission:
 Health Enthusiast
 {4,25,26,45}
+250000
+event:
+Busted
+{36}
+pics\\events\\jail.jpg
+event:
+Swimming with fishes
+{49}
+pics\\events\\hop.jpg
+event:
+Detention
+{60}
+pics\\events\\afh.jpg
+event:
+Funeral
+{7}
+pics\\events\\udv.jpg
+event:
+Prospect
+{30}
+pics\\events\\tomrer.jpg
+event:
+Resocialization
+{6}
+pics\\events\\sladder.jpg

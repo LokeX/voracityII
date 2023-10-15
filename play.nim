@@ -10,6 +10,8 @@ import batch
 import eval
 import menu
 import reports
+import misc
+import random
 
 type
   SinglePiece = tuple[playerNr,pieceNr:int]
@@ -136,10 +138,21 @@ proc drawSquares*(b:var Boxy) =
   elif (let square = mouseOnSquare(); square != -1) and turnPlayer.hasPieceOn square:
     b.drawMoveToSquares square
 
+proc move*(square:int)
+proc playEvent =
+  let barsWithPieces = bars.filterIt it in turnPlayer.pieces
+  if barsWithPieces.len > 0:
+    let chosenBar = barsWithPieces[rand 0..barsWithPieces.high]
+    moveSelection.fromSquare = chosenBar
+    moveSelection.toSquare = turnPlayer.hand[^1].moveSquare
+  turnPlayer.hand.playTo blueDeck,turnPlayer.hand.high
+  if barsWithPieces.len > 0: move moveSelection.toSquare
+
 proc drawCardFrom*(deck:var Deck) =
   turnPlayer.hand.drawFrom deck
-  dec turn.undrawnBlues
   turnReport.cards.drawn.add turnPlayer.hand[^1]
+  if turnPlayer.hand[^1].cardKind == Event: playEvent()
+  dec turn.undrawnBlues
   nrOfUndrawnBluesPainter.update = true
   turn.player.updateBatch
   playSound "page-flip-2"
@@ -181,7 +194,9 @@ proc move =
   if moveSelection.fromSquare == 0: 
     turnPlayer.cash -= 5000
     updateBatch turn.player
+  echo "cashing plans"
   playCashPlansTo blueDeck
+  echo "survived: cashing plans"
   turnPlayer.hand = turnPlayer.sortBlues
   playerBatches[turn.player].update = true
   moveSelection.fromSquare = -1
@@ -243,6 +258,7 @@ proc leftMouse*(m:KeyEvent) =
         turnPlayer.hand = turnPlayer.sortBlues
 
 proc nextTurn* =
+  # echo "new game"
   if turnPlayer.cash >= cashToWin:
     setupNewGame()
     setMenuTo SetupMenu

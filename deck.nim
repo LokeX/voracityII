@@ -17,8 +17,11 @@ type
     of Plan,Mission:
       squares*:PlanSquares
       cash*:int
+      eval*:int
+    of Event:
+      moveSquare*:int
+      bgPath:string
     else:discard
-    eval*:int
   Deck* = object 
     fullDeck*,drawPile*,discardPile*:seq[BlueCard]
     popUpSlot*,drawSlot*,discardSlot*:CardSlot
@@ -91,9 +94,7 @@ func parseCardSquares(str:string,brackets:array[2,char]):seq[int] =
     result = str[f+1..l-1].split(',').mapIt it.parseInt
 
 func parseCardKindFrom(kind:string):CardKind =
-  try: 
-    CardKind(CardKind.mapIt(($it).toLower)
-      .find kind[0..kind.high-1].toLower) 
+  try: CardKind(CardKind.mapIt(($it).toLower).find kind[0..kind.high-1].toLower) 
   except: raise(newException(CatchableError,"Error, parsing CardKind: "&kind))
 
 func buildPlanFrom(protoCard:sink ProtoCard,kind:CardKind):BlueCard =
@@ -103,11 +104,17 @@ func buildPlanFrom(protoCard:sink ProtoCard,kind:CardKind):BlueCard =
     parseCardSquares(protoCard[2],['[',']']),)
   result.cash = protoCard[3].parseInt
 
+func buildEventFrom(protoCard:sink ProtoCard):BlueCard =
+  result = BlueCard(title:protoCard[1],cardKind:Event)
+  result.moveSquare = parseCardSquares(protoCard[2],['{','}'])[^1]
+  result.bgPath = protoCard[3]
+
 func newBlueCards(protoCards:seq[ProtoCard]): seq[BlueCard] =
   for protoCard in protoCards:
     let kind = parseCardKindFrom protoCard[0]
     case kind
     of Plan,Mission: result.add buildPlanFrom(protoCard,kind)
+    of Event: result.add buildEventFrom(protoCard)
     else:discard
 
 func required(plan:BlueCard,squares:BoardSquares):seq[string] =
@@ -134,10 +141,18 @@ func buildInnerRect(rect:Rect,borderSize:float):Rect =
   result.w -= (borderSize*2)
   result.h -= (borderSize*2)
 
-proc typesetBoxedText(plan:BlueCard,squares:BoardSquares):(Arrangement,float32) =
-  var txt = plan.required squares
-  txt.insert "Requires: ",0
-  txt.add "Rewards:\n" & ($plan.cash).insertSep('.')&" in cash"
+proc typesetBoxedText(blue:BlueCard,squares:BoardSquares):(Arrangement,float32) =
+  var txt:seq[string]
+  case blue.cardKind
+  of Plan,Mission:
+    txt = blue.required squares
+    txt.insert "Requires: ",0
+    txt.add "Rewards:\n" & ($blue.cash).insertSep('.')&" in cash"
+  of Event:
+    txt.add "A piece of yours,"
+    txt.add "on any random Bar,"
+    txt.add "moves to: "&squares[blue.moveSquare].name&" Nr."&($squares[blue.moveSquare].nr)
+  else:discard
   let 
     font = setNewFont(roboto,13.0,color(0,0,0))
     boxText = font.typeset txt.join "\n"
@@ -190,6 +205,7 @@ proc paintBackgroundImage(card:BlueCard,ctx:Context,borderSize:float):Image =
   case card.cardKind
   of Plan: result.draw(planbg,translate vec2(borderSize,borderSize))
   of Mission: result.draw(missionbg,translate vec2(borderSize,borderSize))
+  of Event:result.draw(readImage(card.bgPath),translate vec2(borderSize,borderSize))
   else:discard
 
 proc paintBackground(card:BlueCard,borderSize:float):Image =
@@ -213,16 +229,21 @@ proc paintCardKindOn(card:BlueCard,img:var Image,borderSize:float) =
   img.fillText(cardKind,translate vec2(10+borderSize,60))
 
 proc paintIconsOn(card:BlueCard,img:var Image,squares:BoardSquares) =
-  var requires = card.squares.required
-  if card.squares.oneInMany.len > 0:
-    requires.add card.squares.oneInMany[0]
-  let x_offset = if requires.len == 1: 100.0 else: 55.0
+  var cardSquares:seq[int] 
+  case card.cardKind
+  of Mission,Plan:
+    cardSquares = card.squares.required
+    if card.squares.oneInMany.len > 0:
+      cardSquares.add card.squares.oneInMany[0]
+  of Event: cardSquares.add card.moveSquare
+  else:discard
+  let x_offset = if cardSquares.len == 1: 100.0 else: 55.0
   var (x,y) = (x_offset,120.0)
-  for idx,squareNr in requires:
+  for idx,squareNr in cardSquares:
     img.draw(squares[squareNr].icon,translate vec2(x,y))
     x += squares[squareNr].icon.width.toFloat*1.5
     if idx == 1: 
-      x = x_offset+(if requires.len == 3: 45 else: 0)
+      x = x_offset+(if cardSquares.len == 3: 45 else: 0)
       y += squares[squareNr].icon.height.toFloat*1.5
 
 proc paintBlue(card:BlueCard,squares:BoardSquares):Image =
@@ -232,7 +253,8 @@ proc paintBlue(card:BlueCard,squares:BoardSquares):Image =
   card.paintCardKindOn(result,borderSize)
   card.paintIconsOn(result,squares)
   case card.cardKind
-  of Plan,Mission: card.paintTextBoxOn(result,squares)
+  of Plan,Mission,Event: 
+    card.paintTextBoxOn(result,squares)
   else:discard
 
 proc buildBlues(path:string):tuple[blues:seq[BlueCard],imgs:seq[Image]] =
@@ -295,10 +317,11 @@ var
   )
 
 proc drawCardSquares(b:var Boxy,blue:BlueCard) =
-  if cardSquaresPainter.context.title != blue.title:
-    cardSquaresPainter.update = true
-    cardSquaresPainter.context = blue
-  b.drawDynamicImage cardSquaresPainter
+  if blue.cardKind != Event:
+    if cardSquaresPainter.context.title != blue.title:
+      cardSquaresPainter.update = true
+      cardSquaresPainter.context = blue
+    b.drawDynamicImage cardSquaresPainter
 
 proc paintCards*(b:var Boxy,deck:Deck,playerHand:seq[BlueCard]) =
   if deck.lastDrawn.len > 0 and mouseOn deck.drawSlot.area:

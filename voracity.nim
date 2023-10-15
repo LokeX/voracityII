@@ -117,7 +117,7 @@ proc mouse(m:KeyEvent) =
       if turn.nr > 0 and mouseOnDice() and mayReroll(): 
         startDiceRoll()
   elif m.rightMousePressed: 
-    if turnPlayer.kind == Computer: 
+    if turn.nr > 0 and turnPlayer.kind == Computer: 
       m.aiRightMouse
     else:
       m.rightMouse

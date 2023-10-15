@@ -54,7 +54,7 @@ proc aiRemovePiece(hypothetical:Hypothetic,move:Move): bool =
   hypothetical.enemyKill(move))
 
 proc aiTurn*(): bool =
-  turnPlayer.cash < cashToWin and
+  # turnPlayer.cash < cashToWin and
   turn.nr != 0 and 
   turnPlayer.kind == Computer and 
   not isRollingDice()
@@ -110,21 +110,20 @@ proc rerollPhase =
     phase = AiMove
 
 proc postMovePhase =
+  echo "postMove"
   moveSelection.fromSquare = -1
-  # singlePiece.playerNr = -1
-  # hypo.pieces = turnPlayer.pieces
   drawCards()
-  # recordPlayerReport()
   phase = EndTurn
 
-proc endTurn =  
+proc endTurn = 
+  echo "endTurn" 
   recordPlayerReport()
   showMenu = false
   phase = Await
   nextTurn()
 
 proc endTurnPhase =
-  if autoEndTurn:
+  if autoEndTurn and turnPlayer.cash < cashToWin:
     echo "auto end turn"
     endTurn()
 
@@ -143,7 +142,10 @@ proc aiKeyb*(k:KeyEvent) =
 
 # please, for the love of God: don't even breethe on it!
 proc aiRightMouse*(m:KeyEvent) =
+  echo "aiRightMouse"
+  echo "phase == ",phase
   if phase == EndTurn: 
+    echo "phase == EndTurn"
     if showMenu: endTurn()
     else: showMenu = true
  
