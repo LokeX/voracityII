@@ -23,11 +23,36 @@ var
   mouseOnBatchPlayerNr = -1
   showCashedCards:ShowCashedCards
 
+template mouseOnPlayerBatch:untyped = players[mouseOnBatchPlayerNr].color
+
 proc cashedCards:seq[BlueCard] =
   if showCashedCards == LastCashed: 
-    players[mouseOnBatchPlayerNr].color.reports[^1].cards.cashed
+    mouseOnPlayerBatch.reports[^1].cards.cashed
   else: 
-    players[mouseOnBatchPlayerNr].color.reports.mapIt(it.cards.cashed).flatMap
+    mouseOnPlayerBatch.reports.mapIt(it.cards.cashed).flatMap
+
+proc drawCards(b:var Boxy) =
+  if mouseOnBatchPlayerNr != -1:
+    if (let cashedCards = cashedCards(); cashedCards.len > 0):
+      let storedRevealSetting = blueDeck.reveal
+      blueDeck.reveal = Front
+      b.paintCards blueDeck,cashedCards
+      blueDeck.reveal = storedRevealSetting
+  else: b.paintCards blueDeck,turnPlayer.hand
+
+proc setRevealCards(deck:var Deck,playerKind:PlayerKind) =
+  if deck.reveal != UserSetFront: 
+    if playerKind == Computer:
+      deck.reveal = Back
+    else: deck.reveal = Front
+
+proc drawPlayerReport(b:var Boxy) =
+  if mouseOnBatchPlayerNr != -1:
+    if mouseOnPlayerBatch.gotReport:
+      b.drawReport mouseOnPlayerBatch
+    elif currentPlayerReport == PlayerColor.high:
+      currentPlayerReport = PlayerColor.low
+    else: inc currentPlayerReport
 
 proc draw(b:var Boxy) =
   # frames += 1
@@ -38,32 +63,16 @@ proc draw(b:var Boxy) =
   b.drawPlayerBatches
   if showMenu: b.drawDynamicImage mainMenu
   if turn.nr > 0:  
+    blueDeck.setRevealCards turnPlayer.kind
     mouseOnBatchPlayerNr = mouseOnPlayerBatchNr()
     b.doMoveAnimation
-    if mouseOnBatchPlayerNr != -1:
-      let cashedCards = cashedCards()
-      if cashedCards.len > 0:
-        let reveal = blueDeck.reveal
-        blueDeck.reveal = Front
-        b.paintCards blueDeck,cashedCards
-        blueDeck.reveal = reveal
-    else:
-      b.paintCards blueDeck,turnPlayer.hand
+    b.drawCards
     b.drawCursor
     b.drawDice
-    if blueDeck.reveal != UserSetFront: 
-      if turnPlayer.kind == Computer:
-        blueDeck.reveal = Back
-      else: blueDeck.reveal = Front
+    b.drawPlayerReport
     if not isRollingDice() and turnPlayer.kind == Human: b.drawSquares
     if turnPlayer.kind == Human and turn.undrawnBlues > 0: 
       b.drawDynamicImage nrOfUndrawnBluesPainter
-    if (mouseOnBatchPlayerNr != -1):
-      if players[mouseOnBatchPlayerNr].color.gotReport:
-        b.drawReport players[mouseOnBatchPlayerNr].color
-      elif currentPlayerReport == PlayerColor.high:
-        currentPlayerReport = PlayerColor.low
-      else: inc currentPlayerReport
 
 proc really(title:string,answer:string -> void) =
   let entries:seq[string] = @[
@@ -142,11 +151,10 @@ proc cycle =
     aiTakeTurn()
 
 proc timer = 
-  if not moveAnimation.active and mouseOnBatchPlayerNr != -1:
-    let reports = players[mouseOnBatchPlayerNr].color.reports
-    if reports.len > 0:
+  if not moveAnimation.active and mouseOnBatchPlayerNr != -1:    
+    if (let reports = mouseOnPlayerBatch.reports; reports.len > 0):
       startMoveAnimation(
-        players[mouseOnBatchPlayerNr].color,
+        mouseOnPlayerBatch,
         reports[^1].moves[^1].fromSquare,
         reports[^1].moves[^1].toSquare,
       )

@@ -14,7 +14,7 @@ type
   BlueCard* = object
     title*:string
     case cardKind*:CardKind
-    of Plan:
+    of Plan,Mission:
       squares*:PlanSquares
       cash*:int
     else:discard
@@ -55,6 +55,7 @@ const
 
 let
   planbg = readImage "pics\\planbg.jpg"
+  missionbg = readImage "pics\\mission.jpg"
   blueBack = readImage "pics\\blueback.jpg"
   roboto = readTypeface "fonts\\Roboto-Regular_1.ttf"
   point = readTypeface "fonts\\StintUltraCondensed-Regular.ttf"
@@ -95,8 +96,8 @@ func parseCardKindFrom(kind:string):CardKind =
       .find kind[0..kind.high-1].toLower) 
   except: raise(newException(CatchableError,"Error, parsing CardKind: "&kind))
 
-func buildPlanFrom(protoCard:sink ProtoCard):BlueCard =
-  result = BlueCard(title:protoCard[1],cardKind:Plan)
+func buildPlanFrom(protoCard:sink ProtoCard,kind:CardKind):BlueCard =
+  result = BlueCard(title:protoCard[1],cardKind:kind)
   result.squares = (
     parseCardSquares(protoCard[2],['{','}']),
     parseCardSquares(protoCard[2],['[',']']),)
@@ -104,8 +105,9 @@ func buildPlanFrom(protoCard:sink ProtoCard):BlueCard =
 
 func newBlueCards(protoCards:seq[ProtoCard]): seq[BlueCard] =
   for protoCard in protoCards:
-    case parseCardKindFrom protoCard[0]
-    of Plan: result.add buildPlanFrom protoCard
+    let kind = parseCardKindFrom protoCard[0]
+    case kind
+    of Plan,Mission: result.add buildPlanFrom(protoCard,kind)
     else:discard
 
 func required(plan:BlueCard,squares:BoardSquares):seq[string] =
@@ -186,8 +188,8 @@ proc paintTitleOn(card:BlueCard,img:var Image,borderSize:float) =
 proc paintBackgroundImage(card:BlueCard,ctx:Context,borderSize:float):Image =
   result = ctx.image
   case card.cardKind
-  of Plan:
-    result.draw(planbg,translate vec2(borderSize,borderSize))
+  of Plan: result.draw(planbg,translate vec2(borderSize,borderSize))
+  of Mission: result.draw(missionbg,translate vec2(borderSize,borderSize))
   else:discard
 
 proc paintBackground(card:BlueCard,borderSize:float):Image =
@@ -230,7 +232,7 @@ proc paintBlue(card:BlueCard,squares:BoardSquares):Image =
   card.paintCardKindOn(result,borderSize)
   card.paintIconsOn(result,squares)
   case card.cardKind
-  of Plan: card.paintTextBoxOn(result,squares)
+  of Plan,Mission: card.paintTextBoxOn(result,squares)
   else:discard
 
 proc buildBlues(path:string):tuple[blues:seq[BlueCard],imgs:seq[Image]] =

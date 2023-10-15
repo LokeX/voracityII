@@ -4,11 +4,11 @@ type
   ShapeProps = tuple[shape:string,area,perimeter:float]
   CircleShape = concept circle
     circle.r
-    # proc buildCircleProps(circle:CircleShape):ShapeProps
+    proc buildShapeProps(circle:CircleShape):ShapeProps
   RectangleShape = concept rectangle
     rectangle.w
     rectangle.h
-    # proc buildRectangleProps(rectangle:RectangleShape):ShapeProps    
+    proc buildRectangleProps(rectangle:RectangleShape):ShapeProps    
   Shape = object
     case kind:ShapeKind
     of Circle:r:float
@@ -25,13 +25,13 @@ const shapes = [
   Rectangle:Shape(kind:Rectangle,w:10,h:10).buildRectangleProps,
 ]
 
-template area(shape:untyped):untyped = shapes[shape].area
-template perimeter(shape:untyped):untyped = shapes[shape].perimeter
-
 for shape in shapes:
   for prop,value in shape.fieldPairs: 
     echo prop,": ",value 
   echo ""
+
+template area(shape:untyped):untyped = shapes[shape].area
+template perimeter(shape:untyped):untyped = shapes[shape].perimeter
 
 echo Circle.area
 echo Circle.perimeter

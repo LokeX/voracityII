@@ -137,7 +137,7 @@ func isCashable*(player:Player,plan:BlueCard):bool =
   requiredOk and oneInMoreOk
 
 func cashablePlans*(player:Player):tuple[cashable,notCashable:seq[BlueCard]] =
-  for plan in player.hand.filterIt it.cardKind == Plan:
+  for plan in player.hand:
     if player.isCashable plan: result.cashable.add plan
     else: result.notCashable.add plan
 

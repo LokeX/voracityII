@@ -1,7 +1,7 @@
-plan:
-Coup
+mission:
+King Maker
 {60,60,6,6}
-150000
+250000
 plan:
 Blood diamants
 {11,13}
@@ -250,3 +250,34 @@ plan:
 Stiffs
 {21,26}
 40000
+mission:
+Drug Dealer
+{19,30,45,57}
+250000
+mission:
+Lord of War
+{6,49,55,57}
+250000
+mission:
+Pimp
+{11,21,30,57}
+250000
+mission:
+Master of Money
+{12,13,22,33}
+250000
+mission:
+Terrorist
+{6,7,9,11}
+250000
+mission:
+Mayor
+{4,25,43,60}
+250000
+mission:
+Spy
+{4,6,9,60}
+250000
+mission:
+Health Enthusiast
+{4,25,26,45}
