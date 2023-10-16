@@ -32,12 +32,17 @@ func require(cards:seq[BlueCard],square:int): seq[BlueCard] =
 func hasPlanChanceOn(player:Player,square:int,deck:Deck): float =
   let 
     knownCards = knownBluesIn(deck.discardPile,player.hand)
-    unknownCards = deck.fullDeck.filterIt(it.title notIn knownCards.mapIt(it.title))
+    unknownCards = deck.fullDeck
+      .filterIt(
+        it.cardKind in [Plan,Mission] and
+        it.title notIn knownCards.mapIt(it.title)
+      )
     chance = unknownCards.require(square).len.toFloat/unknownCards.len.toFloat
   chance*player.hand.len.toFloat
 
 proc enemyKill(hypothetical:Hypothetic,move:Move): bool =
   if turnPlayer.hasPieceOn(move.toSquare): return false else:
+    echo "checking enemy kill"
     let 
       playerNr = players.singlePieceOn(move.toSquare).playerNr
       planChance = players[playerNr].hasPlanChanceOn(move.toSquare,blueDeck)
@@ -54,12 +59,12 @@ proc aiRemovePiece(hypothetical:Hypothetic,move:Move): bool =
   hypothetical.enemyKill(move))
 
 proc aiTurn*(): bool =
-  # turnPlayer.cash < cashToWin and
   turn.nr != 0 and 
   turnPlayer.kind == Computer and 
   not isRollingDice()
 
 proc drawCards =
+  echo "draw cards"
   while turn.undrawnBlues > 0:
     drawCardFrom blueDeck
     playCashPlansTo blueDeck
@@ -73,20 +78,26 @@ proc reroll(hypothetical:Hypothetic): bool =
   let 
     bestDiceMoves = hypothetical.bestDiceMoves()
     bestDice = bestDiceMoves.mapIt(it.die)
-  turnReport.diceRolls.add diceRoll
+  updateTurnReport diceRoll
+  # turnReport.diceRolls.add diceRoll
   isDouble() and diceRoll[1].ord notIn bestDice[^2..^1]
 
 proc moveAi =
+  echo "move ai"
+  for blue in turnPlayer.hand: echo blue.title
+  for blue in hypo.cards: echo blue.title
   let 
     move = hypo.move([diceRoll[1].ord,diceRoll[2].ord])
     currentPosEval = hypo.evalPos()
   moveSelection.fromSquare = move.fromSquare
   moveSelection.toSquare = move.toSquare
   if move.eval.toFloat >= currentPosEval.toFloat*0.75:
-    turnReport.moves.add move
+    updateTurnReport move
+    # turnReport.moves.add move
     if hypo.aiRemovePiece(move):
       singlePiece = players.singlePieceOn(move.toSquare)
-      turnReport.kills.add PlayerColor(singlePiece.playerNr)
+      # updateTurnReport PlayerColor(singlePiece.playerNr)
+      # turnReport.kills.add PlayerColor(singlePiece.playerNr)
       removePieceAndMove("Yes")
     else: move move.toSquare
   else:

@@ -39,7 +39,7 @@ const
   settingsFile* = "settings.cfg"
   defaultPlayerKinds = @[Human,Computer,None,None,None,None]
   (pbx,pby) = (20,20)
-  cashToWin* = 30_000
+  cashToWin* = 250_000
   popUpCard = Rect(x:500,y:275,w:cardWidth,h:cardHeight)
   drawPile = Rect(x:855,y:495,w:110,h:180)
   discardPile = Rect(x:1025,y:495,w:cardWidth*0.441,h:cardHeight*0.441)
@@ -138,6 +138,7 @@ func isCashable*(player:Player,plan:BlueCard):bool =
 
 func cashablePlans*(player:Player):tuple[cashable,notCashable:seq[BlueCard]] =
   for plan in player.hand:
+    # debugecho "checking isCashable: ",plan.title
     if player.isCashable plan: result.cashable.add plan
     else: result.notCashable.add plan
 

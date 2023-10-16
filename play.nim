@@ -10,7 +10,7 @@ import batch
 import eval
 import menu
 import reports
-import misc
+# import misc
 import random
 
 type
@@ -140,6 +140,7 @@ proc drawSquares*(b:var Boxy) =
 
 proc move*(square:int)
 proc playEvent =
+  echo "play event"
   let barsWithPieces = bars.filterIt it in turnPlayer.pieces
   if barsWithPieces.len > 0:
     let chosenBar = barsWithPieces[rand 0..barsWithPieces.high]
@@ -147,11 +148,13 @@ proc playEvent =
     moveSelection.toSquare = turnPlayer.hand[^1].moveSquare
   turnPlayer.hand.playTo blueDeck,turnPlayer.hand.high
   if barsWithPieces.len > 0: move moveSelection.toSquare
+  echo "end: play event"
 
 proc drawCardFrom*(deck:var Deck) =
   turnPlayer.hand.drawFrom deck
-  turnReport.cards.drawn.add turnPlayer.hand[^1]
+  # turnReport.cards.drawn.add turnPlayer.hand[^1]
   if turnPlayer.hand[^1].cardKind == Event: playEvent()
+  updateTurnReportCards(@[turnPlayer.hand[^1]],Drawn)
   dec turn.undrawnBlues
   nrOfUndrawnBluesPainter.update = true
   turn.player.updateBatch
@@ -163,7 +166,8 @@ proc togglePlayerKind* =
 
 proc playCashPlansTo*(deck:var Deck) =
   if (let cashedPlans = cashInPlansTo(deck); cashedPlans.len > 0):
-    turnReport.cards.cashed.add cashedPlans
+    updateTurnReportCards(cashedPlans,Cashed)
+    # turnReport.cards.cashed.add cashedPlans
     turn.player.updateBatch
     playSound "coins-to-table-2"
     if turnPlayer.cash >= cashToWin:
@@ -185,11 +189,12 @@ proc initMove:Move =
   result.pieceNr = turnPlayer.pieceOnSquare moveSelection.fromSquare
 
 proc move =
+  echo "executing move"
   turn.diceMoved = not noDiceUsedToMove(
     moveSelection.fromSquare,moveSelection.toSquare)
   let move = initMove()
-  if turnPlayer.kind == Human:
-    turnReport.moves.add move
+  if turnPlayer.kind == Human: updateTurnReport move
+  #   turnReport.moves.add move
   turnPlayer.pieces[move.pieceNr] = moveSelection.toSquare
   if moveSelection.fromSquare == 0: 
     turnPlayer.cash -= 5000
@@ -219,6 +224,7 @@ proc animateMove* =
 proc removePieceAndMove*(confirmedKill:string) =
   if confirmedKill == "Yes":
     players[singlePiece.playerNr].pieces[singlePiece.pieceNr] = 0
+    updateTurnReport players[singlePiece.playerNr].color
     playSound "Gunshot"
     playSound "Deanscream-2"
   animateMove()

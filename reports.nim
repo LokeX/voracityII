@@ -9,6 +9,7 @@ import board
 import eval
 
 type 
+  PlayedCard* = enum Drawn,Cashed,Discarded
   TurnReport* = object
     turnNr*:int
     player*:tuple[color:PlayerColor,kind:PlayerKind]
@@ -91,6 +92,20 @@ proc setCurrentReportTo(player:PlayerColor) =
   )
   currentPlayerReport = player
   reportBatch.update = true
+
+proc updateTurnReport*[T](item:T) =
+  when typeOf(T) is Move: 
+    turnReport.moves.add item
+  when typeof(T) is Dice: 
+    turnReport.diceRolls.add item
+  when typeof(T) is PlayerColor: 
+    turnReport.kills.add item
+
+proc updateTurnReportCards*(blues:seq[BlueCard],playedCard:PlayedCard) =
+  case playedCard
+  of Discarded: turnReport.cards.discarded.add blues
+  of Drawn: turnReport.cards.drawn.add blues
+  of Cashed: turnReport.cards.cashed.add blues
 
 proc recordPlayerReport* =
   turnReports.add turnReport
