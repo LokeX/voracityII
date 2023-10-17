@@ -306,3 +306,19 @@ event:
 Resocialization
 {6}
 pics\\events\\sladder.jpg
+event:
+Sour piss
+{6}
+pics\\events\\gammel.jpg
+event:
+Happy hour
+{6}
+pics\\events\\happy.jpg
+event:
+Massacre
+{6}
+pics\\events\\blod.jpg
+event:
+Deja vue
+{6}
+pics\\events\\deja.jpg

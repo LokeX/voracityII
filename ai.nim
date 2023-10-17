@@ -93,11 +93,8 @@ proc moveAi =
   moveSelection.toSquare = move.toSquare
   if move.eval.toFloat >= currentPosEval.toFloat*0.75:
     updateTurnReport move
-    # turnReport.moves.add move
     if hypo.aiRemovePiece(move):
       singlePiece = players.singlePieceOn(move.toSquare)
-      # updateTurnReport PlayerColor(singlePiece.playerNr)
-      # turnReport.kills.add PlayerColor(singlePiece.playerNr)
       removePieceAndMove("Yes")
     else: move move.toSquare
   else:
@@ -128,7 +125,7 @@ proc postMovePhase =
 
 proc endTurn = 
   echo "endTurn" 
-  recordPlayerReport()
+  recordTurnReport()
   showMenu = false
   phase = Await
   nextTurn()

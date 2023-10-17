@@ -1,0 +1,81 @@
+{
+    "workbench.startupEditor": "none",
+    "editor.cursorStyle": "block",
+    "editor.fontWeight": "525",
+    "editor.cursorSmoothCaretAnimation": "on",
+    "editor.cursorBlinking": "phase",
+    "editor.tabSize": 2,
+    "files.autoSave": "afterDelay",
+    "git.enableSmartCommit": true,
+    "workbench.productIconTheme": "material-product-icons",
+    "explorer.confirmDelete": false,
+    "nim.runOutputDirectory": "exe",
+    "window.commandCenter": false,
+    "editor.suggest.insertMode": "replace",
+    "editor.fontFamily": "Consolas, 'courier New',monospace",
+    "editor.fontLigatures": false,
+    "terminal.integrated.defaultProfile.windows": "Command Prompt",
+    "editor.accessibilitySupport": "off",
+    "workbench.editor.enablePreview": false,
+    "git.openRepositoryInParentFolders": "never",
+    "editor.multiCursorModifier": "ctrlCmd",
+    "lldb.suppressUpdateNotifications": true,
+    "terminal.integrated.cursorBlinking": true,
+    "window.zoomLevel": -1,
+    "workbench.iconTheme": "gruvbox-material-icon-theme",
+    "workbench.colorCustomizations": {
+        
+    "[Sunset Theme]": {},
+        "terminalCursor.foreground": "#68f50a",
+        "terminal.foreground": "#0df715",
+        "terminal.background": "#000000",
+        "editor.background": "#000000",
+        "sideBar.background": "#070707",
+        "activityBar.inactiveForeground": "#ba9905",
+        "activityBar.foreground": "#da3c3c",
+        "menu.background": "#151212",
+        "menu.foreground": "#ffffff",
+        "menu.selectionBackground": "#ff0000",
+        "menu.selectionForeground": "#ffff05",
+        "menubar.foreground": "#ffffff",
+        "menubar.selectionForeground": "#ffffff",
+        "menubar.selectionBackground": "#ff0000",
+        "tab.inactiveForeground": "#ffffff",
+        "tab.activeForeground": "#fffb00",
+        "activityBarBadge.background": "#f44b4b",
+        "activityBarBadge.foreground": "#fafafa"
+        // "activityBar.background": "#874a04",
+        // "activityBar.foreground": "#ff0000"
+    },
+    "workbench.colorTheme": "Ayu Dark",
+    "editor.tokenColorCustomizations": {
+        
+        "[Sunset Theme]": {
+            // "functions": "#c17d6a",
+            "functions": "#1c8a48",
+            "keywords": "#984e64",
+            "types": "#cb806b",
+            // "types": "#2ada70",
+            "strings": "#cd78bc"
+
+        }
+        // "[Sunset Theme]": {
+        //     // "functions": "#c17d6a",
+        //     "functions": "#1c8a48",
+        //     "keywords": "#984e64",
+        //     "types": "#cb806b",
+        //     // "types": "#2ada70",
+        //     "strings": "#cd78bc"
+
+        // }
+    },
+    "editor.semanticTokenColorCustomizations": {
+        "enabled": true,
+        "[paddy-black-upright]": {
+            "enabled": true,
+        }
+    },
+    // "terminal.integrated.automationProfile.windows": {
+
+    // },
+}

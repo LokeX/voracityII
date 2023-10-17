@@ -298,6 +298,11 @@ proc drawFrom*(hand:var seq[BlueCard],deck:var Deck) =
   hand.add deck.drawPile.pop
   deck.lastDrawn = hand[^1].title
 
+proc drawFromDiscardPile*(hand:var seq[BlueCard],deck:var Deck) =
+  if deck.discardPile.len > 0:
+    hand.add deck.discardPile.pop
+    deck.lastDrawn = hand[^1].title
+
 proc playTo*(hand:var seq[BlueCard],deck:var Deck,card:int) =
   deck.discardPile.add hand[card]
   hand.del card

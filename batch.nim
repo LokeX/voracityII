@@ -443,5 +443,7 @@ proc setPos*(batch:Batch,x,y:int) =
 
 proc pos*(batch:Batch):tuple[x,y:int] = (batch.area.x1,batch.area.y1)
 
+proc spansLength*(batch:Batch):int = batch.text.spans.len
+
 template commands*(batch,body:untyped):untyped =
   body

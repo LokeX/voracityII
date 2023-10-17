@@ -7,15 +7,17 @@ import game
 import deck
 import board
 import eval
+import misc
 
 type 
-  PlayedCard* = enum Drawn,Cashed,Discarded
+  PlayedCard* = enum Drawn,Played,Cashed,Discarded
+  ReportBatches = array[PlayerColor,Batch]
   TurnReport* = object
     turnNr*:int
-    player*:tuple[color:PlayerColor,kind:PlayerKind]
+    playerBatch*:tuple[color:PlayerColor,kind:PlayerKind]
     diceRolls*:seq[Dice]
     moves*:seq[Move]
-    cards*:tuple[drawn,cashed,discarded:seq[BlueCard]]
+    cards*:tuple[drawn,played,cashed,discarded:seq[BlueCard]]
     kills*:seq[PlayerColor]
 
 const
@@ -35,63 +37,55 @@ proc initReportBatch:Batch =
     shadow:(10,1.75,color(255,255,255,100))
   )
 
+let
+  plainFont = setNewFont(reportFont,18,contrastColors[turnPlayer.color])
+
 var
-  reportBatch = initReportBatch()
-  playerReports:array[PlayerColor,seq[Span]]
-  currentPlayerReport*:PlayerColor
+  reportBatches:ReportBatches
+  selectedBatch*:int
   turnReports*:seq[TurnReport]
   turnReport*:TurnReport
 
+proc initReportBatches:ReportBatches =
+  for i,batch in reportBatches.enum_mitems:
+    batch = initReportBatch()
+    batch.commands: 
+      batch.text.bgColor = playerColors[PlayerColor(i)]
+      batch.border.color = contrastColors[PlayerColor(i)]
+    result[PlayerColor(i)] = batch
+
 proc reports*(playerColor:PlayerColor):seq[TurnReport] =
-  turnReports.filterIt(it.player.color == playerColor)
+  turnReports.filterIt(it.playerBatch.color == playerColor)
 
 proc echoTurnReport* =
   echo "\nTurn nr: ",turnReport.turnNr
-  echo "Player: "&($turnReport.player)
+  echo "Player: "&($turnReport.playerBatch)
   echo "Dice Rolls: "&($turnReport.diceRolls)
   echo "Moves: "&($turnReport.moves)
   echo "Kills: "&($turnReport.kills)
   echo "Cards:"
-  echo "  Drawn: "&turnReport.cards.drawn.mapIt(it.title).join ","
-  echo "  Cashed: "&turnReport.cards.cashed.mapIt(it.title).join ","
-  echo "  Discarded: "&turnReport.cards.discarded.mapIt(it.title).join ","
+  echo "Drawn: "&turnReport.cards.drawn.mapIt(it.title).join ","
+  echo "Cashed: "&turnReport.cards.cashed.mapIt(it.title).join ","
+  echo "Discarded: "&turnReport.cards.discarded.mapIt(it.title).join ","
 
-proc playerReport:seq[Span] =
-  let font = setNewFont(reportFont,18,contrastColors[turnPlayer.color])
-  result.add newSpan("Turn report:\n",font)
-  result.add newSpan("Turn nr: "&($turnReport.turnNr)&"\n",font)
-  result.add newSpan("Player: "&($turnReport.player)&"\n",font)
-  result.add newSpan("Dice Rolls:\n"&turnReport.diceRolls.mapIt($it).join("\n")&"\n",font)
-  result.add newSpan("Moves:\n"&turnReport.moves.mapIt($it).join("\n")&"\n",font)
-  result.add newSpan("Kills: "&($turnReport.kills)&"\n",font)
-  result.add newSpan("Cards:\n",font)
-  result.add newSpan("Drawn: "&turnReport.cards.drawn.mapIt(it.title).join(",")&"\n",font)
-  result.add newSpan("Cashed: "&turnReport.cards.cashed.mapIt(it.title).join(",")&"\n",font)
-  result.add newSpan("Discarded: "&turnReport.cards.discarded.mapIt(it.title).join(",")&"\n",font)
+proc batchUpdate:seq[Span] =
+  result.add newSpan("Turn nr: "&($turnReport.turnNr)&"\n",plainFont)
+  result.add newSpan("Player: "&($turnReport.playerBatch)&"\n",plainFont)
+  result.add newSpan("Dice Rolls:\n"&turnReport.diceRolls.mapIt($it).join("\n")&"\n",plainFont)
+  result.add newSpan("Moves:\n"&turnReport.moves.mapIt($it).join("\n")&"\n",plainFont)
+  result.add newSpan("Kills: "&($turnReport.kills)&"\n",plainFont)
+  result.add newSpan("Cards:\n",plainFont)
+  result.add newSpan("Drawn: "&turnReport.cards.drawn.mapIt(it.title).join(",")&"\n",plainFont)
+  result.add newSpan("Cashed: "&turnReport.cards.cashed.mapIt(it.title).join(",")&"\n",plainFont)
+  result.add newSpan("Discarded: "&turnReport.cards.discarded.mapIt(it.title).join(",")&"\n",plainFont)
 
 proc initTurnReport* =
   turnReport = TurnReport()
   turnReport.turnNr = turnPlayer.turnNr+1
-  turnReport.player.color = turnPlayer.color
-  turnReport.player.kind = turnPlayer.kind
-
-proc resetTurnReports* =
-  initTurnReport()
-  turnReports.setLen 0
-
-proc gotReport*(player:PlayerColor):bool = playerReports[player].len > 0
-
-proc setCurrentReportTo(player:PlayerColor) =
-  reportBatch.commands: 
-    reportBatch.text.bgColor = playerColors[player]
-    reportBatch.border.color = contrastColors[player]
-  reportBatch.setSpans playerReports[player]
-  reportBatch.setShallowPos(
-    reportBatch.rect.x.toInt,
-    (reportBatch.rect.y-reportBatch.rect.h).toInt
-  )
-  currentPlayerReport = player
-  reportBatch.update = true
+  turnReport.playerBatch.color = turnPlayer.color
+  turnReport.playerBatch.kind = turnPlayer.kind
+  reportBatches[turnPlayer.color].setSpans batchUpdate()
+  reportBatches[turnPlayer.color].update = true
 
 proc updateTurnReport*[T](item:T) =
   when typeOf(T) is Move: 
@@ -100,24 +94,54 @@ proc updateTurnReport*[T](item:T) =
     turnReport.diceRolls.add item
   when typeof(T) is PlayerColor: 
     turnReport.kills.add item
+  reportBatches[turnPlayer.color].setSpans batchUpdate()
+  reportBatches[turnPlayer.color].update = true
 
 proc updateTurnReportCards*(blues:seq[BlueCard],playedCard:PlayedCard) =
   case playedCard
-  of Discarded: turnReport.cards.discarded.add blues
   of Drawn: turnReport.cards.drawn.add blues
+  of Played: turnReport.cards.played.add blues
   of Cashed: turnReport.cards.cashed.add blues
+  of Discarded: turnReport.cards.discarded.add blues
+  reportBatches[turnPlayer.color].setSpans batchUpdate()
+  reportBatches[turnPlayer.color].update = true
 
-proc recordPlayerReport* =
+proc resetReports* =
+  for batch in reportBatches.mitems:
+    batch.setSpans @[]
+  initTurnReport()
+  turnReports.setLen 0
+  selectedBatch = -1
+
+proc recordTurnReport* =
   turnReports.add turnReport
-  # echo "saved "&($turnReports[^1].player.color)&" player report"
-  playerReports[turnPlayer.color] = playerReport()
-  setCurrentReportTo turnPlayer.color
 
-proc drawReport*(b:var Boxy,player:PlayerColor) =
-  if player != currentPlayerReport:
-    setCurrentReportTo player
-  if reportBatch.rect.y.toInt < rby:
-    reportBatch.setShallowPos(rbx,(reportBatch.rect.y+30).toInt)
-  elif reportBatch.rect.y.toInt > rby:
-    reportBatch.setPos(rbx,rby)
-  b.drawDynamicImage reportBatch
+proc startAnimation(batch:var Batch) =
+  batch.setShallowPos(
+    batch.rect.x.toInt,
+    (batch.rect.y-batch.rect.h).toInt
+  )
+
+template gotReport*(player:PlayerColor):bool =
+  reportBatches[player].spansLength > 0
+
+proc animate(batch:var Batch) =
+  # echo "anim"
+  if batch.rect.y.toInt < rby:
+    batch.setShallowPos(rbx,(batch.rect.y+30).toInt)
+    batch.update = true
+  elif batch.rect.y.toInt > rby:
+    batch.setPos(rbx,rby)
+    batch.update = true
+
+proc drawReport*(b:var Boxy,playerBatch:PlayerColor) =
+  echo "drawReport"
+  if selectedBatch == -1 or playerBatch != PlayerColor(selectedBatch):
+    selectedBatch = playerBatch.ord
+    # echo "selectedBatch: ",selectedBatch
+    reportBatches[playerBatch].startAnimation
+  echo "got here"
+  animate reportBatches[playerBatch]
+  b.drawDynamicImage reportBatches[playerBatch]
+
+reportBatches = initReportBatches()

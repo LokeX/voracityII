@@ -138,23 +138,48 @@ proc drawSquares*(b:var Boxy) =
   elif (let square = mouseOnSquare(); square != -1) and turnPlayer.hasPieceOn square:
     b.drawMoveToSquares square
 
+proc killAllPiecesOn(square:int) =
+  for player in players.mitems:
+    for i,piece in player.pieces:
+      if piece == square: player.pieces[i] = 0
+
+func barWithMostPieces(players:seq[Player]):int =
+  bars[bars.mapIt(players.nrOfPiecesOn it).maxIndex]
+
 proc move*(square:int)
-proc playEvent =
-  echo "play event"
+proc barMoveEvent =
   let barsWithPieces = bars.filterIt it in turnPlayer.pieces
   if barsWithPieces.len > 0:
     let chosenBar = barsWithPieces[rand 0..barsWithPieces.high]
     moveSelection.fromSquare = chosenBar
     moveSelection.toSquare = turnPlayer.hand[^1].moveSquare
-  turnPlayer.hand.playTo blueDeck,turnPlayer.hand.high
   if barsWithPieces.len > 0: move moveSelection.toSquare
-  echo "end: play event"
+
+proc playEvent()
+proc playDejaVue =
+  playSound "page-flip-2"
+  if turnPlayer.hand[^1].cardKind == Event: playEvent()
+  turnPlayer.hand.drawFromDiscardPile blueDeck
+  if (let cashedPlans = cashInPlansTo blueDeck; cashedPlans.len > 0):
+    updateTurnReportCards(cashedPlans,Cashed)
+
+proc playEvent =
+  case turnPlayer.hand[^1].title
+  of "Sour piss":
+    blueDeck.shufflePiles
+    turn.undrawnBlues += 1
+  of "Happy hour": turn.undrawnBlues += 3
+  of "Massacre": killAllPiecesOn players.barWithMostPieces
+  of "Deja vue": playDejaVue()
+  else: barMoveEvent()
+  turnPlayer.hand.playTo blueDeck,turnPlayer.hand.high
 
 proc drawCardFrom*(deck:var Deck) =
   turnPlayer.hand.drawFrom deck
-  # turnReport.cards.drawn.add turnPlayer.hand[^1]
-  if turnPlayer.hand[^1].cardKind == Event: playEvent()
-  updateTurnReportCards(@[turnPlayer.hand[^1]],Drawn)
+  if turnPlayer.hand[^1].cardKind == Event: 
+    updateTurnReportCards(@[turnPlayer.hand[^1]],Played)
+    playEvent()
+  else: updateTurnReportCards(@[turnPlayer.hand[^1]],Drawn)
   dec turn.undrawnBlues
   nrOfUndrawnBluesPainter.update = true
   turn.player.updateBatch
@@ -273,7 +298,7 @@ proc nextTurn* =
       inc turn.nr
       players = newPlayers()
       playerBatches = newPlayerBatches()
-      resetTurnReports()
+      resetReports()
       setMenuTo GameMenu
       showMenu = false
     else: 
@@ -281,7 +306,7 @@ proc nextTurn* =
       turnReport.cards.discarded.add turnPlayer.discardCards blueDeck
       echoTurnReport()
       if turnPlayer.kind == Human:
-        recordPlayerReport()
+        recordTurnReport()
       nextPlayerTurn()
       initTurnReport()
       showMenu = false
