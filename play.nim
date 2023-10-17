@@ -147,23 +147,25 @@ func barWithMostPieces(players:seq[Player]):int =
   bars[bars.mapIt(players.nrOfPiecesOn it).maxIndex]
 
 proc move*(square:int)
-proc barMoveEvent =
+proc barMove(moveEvent:BlueCard):bool =
   let barsWithPieces = bars.filterIt it in turnPlayer.pieces
   if barsWithPieces.len > 0:
     let chosenBar = barsWithPieces[rand 0..barsWithPieces.high]
     moveSelection.fromSquare = chosenBar
-    moveSelection.toSquare = turnPlayer.hand[^1].moveSquare
-  if barsWithPieces.len > 0: move moveSelection.toSquare
+    moveSelection.toSquare = moveEvent.moveSquare
+  barsWithPieces.len > 0
 
 proc playEvent()
 proc playDejaVue =
   playSound "page-flip-2"
-  if turnPlayer.hand[^1].cardKind == Event: playEvent()
   turnPlayer.hand.drawFromDiscardPile blueDeck
+  if turnPlayer.hand[^1].cardKind == Event: playEvent()
   if (let cashedPlans = cashInPlansTo blueDeck; cashedPlans.len > 0):
     updateTurnReportCards(cashedPlans,Cashed)
 
 proc playEvent =
+  let event = turnPlayer.hand[^1]
+  turnPlayer.hand.playTo blueDeck,turnPlayer.hand.high
   case turnPlayer.hand[^1].title
   of "Sour piss":
     blueDeck.shufflePiles
@@ -171,8 +173,7 @@ proc playEvent =
   of "Happy hour": turn.undrawnBlues += 3
   of "Massacre": killAllPiecesOn players.barWithMostPieces
   of "Deja vue": playDejaVue()
-  else: barMoveEvent()
-  turnPlayer.hand.playTo blueDeck,turnPlayer.hand.high
+  elif barMove event: move moveSelection.toSquare
 
 proc drawCardFrom*(deck:var Deck) =
   turnPlayer.hand.drawFrom deck
