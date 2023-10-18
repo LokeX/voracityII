@@ -53,7 +53,7 @@ proc enemyKill(hypothetical:Hypothetic,move:Move): bool =
     planChance > 0.05 or barKill
 
 proc aiRemovePiece(hypothetical:Hypothetic,move:Move): bool =
-  canRemoveAPieceFrom(move.toSquare) and 
+  canKillPieceOn(move.toSquare) and 
   players.nrOfPiecesOn(move.toSquare) == 1 and 
   (hypothetical.friendlyFireAdviced(move) or 
   hypothetical.enemyKill(move))

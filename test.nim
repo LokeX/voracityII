@@ -39,10 +39,18 @@ echo Rectangle.area
 echo Rectangle.perimeter
 
 type
-  Test = enum T1,T2,T3
+  O = object
+    x: float
+    i: int
+    b: bool
 
-var test:Test
-echo Test.high
-for _ in 0..10:
-  echo test
-  inc test
+var s: seq[O]
+s.add(O(x: 3.1415, i: 12, b: true))
+var f = open("NoImportantData", fmWrite)
+discard f.writeBuffer(addr(s[0]), sizeof(O) * s.len)
+f.close
+f = open("NoImportantData", fmRead)
+var s2 = newSeq[O](1)
+discard f.readBuffer(addr(s2[0]), sizeof(O) * s2.len)
+f.close
+echo s2[0]

@@ -107,6 +107,8 @@ func buildPlanFrom(protoCard:sink ProtoCard,kind:CardKind):BlueCard =
 func buildEventFrom(protoCard:sink ProtoCard):BlueCard =
   result = BlueCard(title:protoCard[1],cardKind:Event)
   result.moveSquare = parseCardSquares(protoCard[2],['{','}'])[^1]
+  # debugecho result.title
+  # debugecho result.moveSquare
   result.bgPath = protoCard[3]
 
 func newBlueCards(protoCards:seq[ProtoCard]): seq[BlueCard] =
@@ -141,6 +143,27 @@ func buildInnerRect(rect:Rect,borderSize:float):Rect =
   result.w -= (borderSize*2)
   result.h -= (borderSize*2)
 
+proc eventText(blue:BlueCard):seq[string] =
+  case blue.title
+  of "Sour piss":
+    result.add "Must: Shuffle piles"
+    result.add "May: Draw a card"
+  of "Happy hour": 
+    result.add "Draw up to 3 extra cards"
+  of "Massacre": 
+    result.add "All pieces on a bar,"
+    result.add "with the most pieces,"
+    result.add "where you have a piece,"
+    result.add "are removed from the board"
+  of "Deja vue": 
+    result.add "Must: Draw a card"
+    result.add "from the discard pile"
+  else:
+    result.add "A piece of yours,"
+    result.add "on any random Bar,"
+    result.add "moves to: "&
+      squares[blue.moveSquare].name&" Nr."&($squares[blue.moveSquare].nr)
+
 proc typesetBoxedText(blue:BlueCard,squares:BoardSquares):(Arrangement,float32) =
   var txt:seq[string]
   case blue.cardKind
@@ -148,10 +171,7 @@ proc typesetBoxedText(blue:BlueCard,squares:BoardSquares):(Arrangement,float32) 
     txt = blue.required squares
     txt.insert "Requires: ",0
     txt.add "Rewards:\n" & ($blue.cash).insertSep('.')&" in cash"
-  of Event:
-    txt.add "A piece of yours,"
-    txt.add "on any random Bar,"
-    txt.add "moves to: "&squares[blue.moveSquare].name&" Nr."&($squares[blue.moveSquare].nr)
+  of Event: txt.add blue.eventText
   else:discard
   let 
     font = setNewFont(roboto,13.0,color(0,0,0))
@@ -251,7 +271,8 @@ proc paintBlue(card:BlueCard,squares:BoardSquares):Image =
   result = card.paintBackground borderSize
   card.paintTitleOn(result,borderSize)
   card.paintCardKindOn(result,borderSize)
-  card.paintIconsOn(result,squares)
+  if card.cardKind != Event or card.moveSquare != -1:
+    card.paintIconsOn(result,squares)
   case card.cardKind
   of Plan,Mission,Event: 
     card.paintTextBoxOn(result,squares)

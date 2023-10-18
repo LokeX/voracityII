@@ -24,6 +24,15 @@ const
   reportFont = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
   (rbx,rby) = (450,280)
 
+let
+  plainFont = setNewFont(reportFont,18,contrastColors[turnPlayer.color])
+
+var
+  reportBatches:ReportBatches
+  selectedBatch*:int
+  turnReports*:seq[TurnReport]
+  turnReport*:TurnReport
+
 proc initReportBatch:Batch = 
   newBatch BatchInit(
     kind:TextBatch,
@@ -36,15 +45,6 @@ proc initReportBatch:Batch =
     opacity:25,
     shadow:(10,1.75,color(255,255,255,100))
   )
-
-let
-  plainFont = setNewFont(reportFont,18,contrastColors[turnPlayer.color])
-
-var
-  reportBatches:ReportBatches
-  selectedBatch*:int
-  turnReports*:seq[TurnReport]
-  turnReport*:TurnReport
 
 proc initReportBatches:ReportBatches =
   for i,batch in reportBatches.enum_mitems:
@@ -107,6 +107,7 @@ proc updateTurnReportCards*(blues:seq[BlueCard],playedCard:PlayedCard) =
   reportBatches[turnPlayer.color].update = true
 
 proc resetReports* =
+  writeFile("test.txt",turnReports.mapIt($it).join "\n")
   for batch in reportBatches.mitems:
     batch.setSpans @[]
   initTurnReport()
@@ -126,7 +127,6 @@ template gotReport*(player:PlayerColor):bool =
   reportBatches[player].spansLength > 0
 
 proc animate(batch:var Batch) =
-  # echo "anim"
   if batch.rect.y.toInt < rby:
     batch.setShallowPos(rbx,(batch.rect.y+30).toInt)
     batch.update = true
@@ -135,12 +135,9 @@ proc animate(batch:var Batch) =
     batch.update = true
 
 proc drawReport*(b:var Boxy,playerBatch:PlayerColor) =
-  echo "drawReport"
   if selectedBatch == -1 or playerBatch != PlayerColor(selectedBatch):
     selectedBatch = playerBatch.ord
-    # echo "selectedBatch: ",selectedBatch
     reportBatches[playerBatch].startAnimation
-  echo "got here"
   animate reportBatches[playerBatch]
   b.drawDynamicImage reportBatches[playerBatch]
 

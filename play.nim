@@ -139,13 +139,30 @@ proc drawSquares*(b:var Boxy) =
     b.drawMoveToSquares square
 
 proc killAllPiecesOn(square:int) =
-  for player in players.mitems:
-    for i,piece in player.pieces:
-      if piece == square: player.pieces[i] = 0
+  for playerNr,player in players:
+    for pieceNr,piece in player.pieces:
+      if piece == square: 
+        players[playerNr].pieces[pieceNr] = 0
 
-func barWithMostPieces(players:seq[Player]):int =
-  bars[bars.mapIt(players.nrOfPiecesOn it).maxIndex]
+proc massacreBar:int =
+  if (let turnPlayerBars = bars.filterIt(turnPlayer.hasPieceOn it); 
+    turnPlayerBars.len > 0):
+      echo "turnPlayer bars: ",turnPlayerBars
+      bars[
+        turnPlayerBars
+        .mapIt(players.nrOfPiecesOn it)
+        .maxIndex
+      ]
+  else: -1
 
+proc playMassacre =
+  if (let bar = massacreBar(); bar != -1):
+    echo "massacre bar, square: ",bar
+    for _ in 1..players.nrOfPiecesOn bar:
+      playSound "Deanscream-2"
+      playSound "Gunshot"
+    killAllPiecesOn bar
+  
 proc move*(square:int)
 proc barMove(moveEvent:BlueCard):bool =
   let barsWithPieces = bars.filterIt it in turnPlayer.pieces
@@ -157,26 +174,35 @@ proc barMove(moveEvent:BlueCard):bool =
 
 proc playEvent()
 proc playDejaVue =
-  playSound "page-flip-2"
-  turnPlayer.hand.drawFromDiscardPile blueDeck
-  if turnPlayer.hand[^1].cardKind == Event: playEvent()
+  playSound "SCARYBEL-1"
+  turnPlayer.hand.add blueDeck.discardPile[^2]
+  delete(blueDeck.discardPile,blueDeck.discardPile.high - 1)
+  blueDeck.lastDrawn = turnPlayer.hand[^1].title
+  echo "Deja vue: survived discard pile draw"
+  if turnPlayer.hand.len > 0 and turnPlayer.hand[^1].cardKind == Event: 
+    playEvent()
   if (let cashedPlans = cashInPlansTo blueDeck; cashedPlans.len > 0):
     updateTurnReportCards(cashedPlans,Cashed)
 
 proc playEvent =
   let event = turnPlayer.hand[^1]
   turnPlayer.hand.playTo blueDeck,turnPlayer.hand.high
-  case turnPlayer.hand[^1].title
+  case event.title
   of "Sour piss":
+    playSound "can-open-1"
     blueDeck.shufflePiles
     turn.undrawnBlues += 1
-  of "Happy hour": turn.undrawnBlues += 3
-  of "Massacre": killAllPiecesOn players.barWithMostPieces
-  of "Deja vue": playDejaVue()
+  of "Happy hour": 
+    playSound "aplauze-1"
+    turn.undrawnBlues += 3
+  of "Massacre": playMassacre()
+  of "Deja vue": 
+    if blueDeck.discardPile.len > 1: playDejaVue()
   elif barMove event: move moveSelection.toSquare
 
 proc drawCardFrom*(deck:var Deck) =
   turnPlayer.hand.drawFrom deck
+  echo "drew card: ",turnPlayer.hand[^1].title
   if turnPlayer.hand[^1].cardKind == Event: 
     updateTurnReportCards(@[turnPlayer.hand[^1]],Played)
     playEvent()
@@ -229,6 +255,7 @@ proc move =
   playCashPlansTo blueDeck
   echo "survived: cashing plans"
   turnPlayer.hand = turnPlayer.sortBlues
+  echo "survived sorting blues"
   playerBatches[turn.player].update = true
   moveSelection.fromSquare = -1
   piecesImg.update = true
@@ -255,13 +282,13 @@ proc removePieceAndMove*(confirmedKill:string) =
     playSound "Deanscream-2"
   animateMove()
 
-proc canRemoveAPieceFrom*(square:int):bool =
+proc canKillPieceOn*(square:int):bool =
   square notIn highways and square notIn gasStations
 
 proc move*(square:int) =
   moveSelection.toSquare = square
   singlePiece = players.singlePieceOn square
-  if turnPlayer.kind == Human and singlePiece.playerNr != -1 and canRemoveAPieceFrom square:
+  if turnPlayer.kind == Human and singlePiece.playerNr != -1 and canKillPieceOn square:
     let entries:seq[string] = @[
       "Remove piece on:\n",
       squares[square].name&" Nr."&($squares[square].nr)&"?\n",
@@ -284,6 +311,7 @@ proc leftMouse*(m:KeyEvent) =
         select square
       elif moveSelection.fromSquare != -1:
         move square
+        echo "back from move"
     elif turnPlayer.hand.len > 3: 
       if (let slotNr = turnPlayer.mouseOnCardSlot blueDeck; slotNr != -1):
         turnPlayer.hand.playTo blueDeck,slotNr
