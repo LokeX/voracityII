@@ -111,12 +111,22 @@ proc newPlayerBatches*:array[6,Batch] =
     result[playerNr] = setup.playerBatch yOffset
     result[playerNr].update = true
 
+func piecesOn*(players:seq[Player],square:int):seq[tuple[playerNr,pieceNr:int]] =
+  for playerNr,player in players:
+    for pieceNr,piece in player.pieces:
+      if piece == square: result.add (playerNr,pieceNr)
+
+func nrOfPiecesOn*(players:seq[Player],square:int):int =
+  players.mapIt(it.pieces.countIt it == square).sum
+
 func nrOfPiecesOnBars*(player:Player): int =
   player.pieces.countIt it in bars
 
 func hasPieceOn*(player:Player,square:int):bool =
   for pieceSquare in player.pieces:
     if pieceSquare == square: return true
+
+func onBars*(player:Player):seq[int] = bars.filterIt player.hasPieceOn it
 
 proc discardCards*(player:var Player,deck:var Deck):seq[BlueCard] =
   while player.hand.len > 3:
@@ -149,9 +159,6 @@ proc cashInPlansTo*(deck:var Deck):seq[BlueCard] =
   turnPlayer.hand = notCashable
   turnPlayer.cash += cashable.mapIt(it.cash).sum
   cashable
-
-func nrOfPiecesOn*(players:seq[Player],square:int):int =
-  players.mapIt(it.pieces.countIt it == square).sum
 
 proc newDefaultPlayers*:seq[Player] =
   for i,kind in playerKinds:

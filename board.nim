@@ -245,16 +245,9 @@ proc doMoveAnimation*(b:var Boxy) =
       )
       pieceRect.x = bx+pieceRect.x
       pieceRect.y = by+pieceRect.y
-      # var color = playerColors[moveAnimation.color]
-      # color.a -= 70+((180 div moveAnimation.squares.len)*square).toFloat
       b.drawRect(pieceRect,playerColors[moveAnimation.color])
     if moveAnimation.currentSquare == moveAnimation.squares.high:
       moveAnimation.active = false
-      if moveAnimation.callBack != nil:
-        moveAnimation.callBack()
-
-proc atEndOfAnimationCall*(f:() -> void) =
-  moveAnimation.callBack = f
 
 proc drawMoveToSquares*(b:var Boxy) =
   b.drawDynamicImage moveToSquaresPainter
@@ -262,6 +255,6 @@ proc drawMoveToSquares*(b:var Boxy) =
 proc drawBoard*(b:var Boxy) =
   b.drawImage("board",boardPos)
 
-randomize()
 addImage("board",boardImg)
-for die in DieFaces: addImage $die,("pics\\diefaces\\"&($die.ord)&".png").readImage
+for die in DieFaces: 
+  addImage $die,("pics\\diefaces\\"&($die.ord)&".png").readImage

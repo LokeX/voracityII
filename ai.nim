@@ -95,7 +95,7 @@ proc moveAi =
     updateTurnReport move
     if hypo.aiRemovePiece(move):
       singlePiece = players.singlePieceOn(move.toSquare)
-      removePieceAndMove("Yes")
+      killPieceAndMove("Yes")
     else: move move.toSquare
   else:
     echo "ai skips move:"

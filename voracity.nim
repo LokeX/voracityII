@@ -14,6 +14,7 @@ import reports
 import colors
 import sequtils
 import misc
+import random
  
 # var frames:float
 
@@ -169,6 +170,7 @@ var
     timer:timerCall()
   )
 
+randomize()
 setVolume 0.05
 addCall call
 addCall dialogCall # we add dialog second - or it will be drawn beneath the board

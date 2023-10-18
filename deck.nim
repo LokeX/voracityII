@@ -10,11 +10,11 @@ type
   Reveal* = enum Front,Back,UserSetFront
   ProtoCard = array[4,string]
   PlanSquares = tuple[required,oneInMany:seq[int]]
-  CardKind* = enum Plan,Event,News,Talent,Mission
+  CardKind* = enum Plan,Job,Event,News,Talent,Mission
   BlueCard* = object
     title*:string
     case cardKind*:CardKind
-    of Plan,Mission:
+    of Plan,Mission,Job:
       squares*:PlanSquares
       cash*:int
       eval*:int
@@ -58,6 +58,7 @@ const
 
 let
   planbg = readImage "pics\\planbg.jpg"
+  jobbg = readImage "pics\\silverback.jpg"
   missionbg = readImage "pics\\mission.jpg"
   blueBack = readImage "pics\\blueback.jpg"
   roboto = readTypeface "fonts\\Roboto-Regular_1.ttf"
@@ -98,6 +99,7 @@ func parseCardKindFrom(kind:string):CardKind =
   except: raise(newException(CatchableError,"Error, parsing CardKind: "&kind))
 
 func buildPlanFrom(protoCard:sink ProtoCard,kind:CardKind):BlueCard =
+  debugecho "building: ",protoCard[1]
   result = BlueCard(title:protoCard[1],cardKind:kind)
   result.squares = (
     parseCardSquares(protoCard[2],['{','}']),
@@ -112,10 +114,11 @@ func buildEventFrom(protoCard:sink ProtoCard):BlueCard =
   result.bgPath = protoCard[3]
 
 func newBlueCards(protoCards:seq[ProtoCard]): seq[BlueCard] =
-  for protoCard in protoCards:
+  for count,protoCard in protoCards:
+    debugecho (count+1),": ",protoCard[1]
     let kind = parseCardKindFrom protoCard[0]
     case kind
-    of Plan,Mission: result.add buildPlanFrom(protoCard,kind)
+    of Plan,Mission,Job: result.add buildPlanFrom(protoCard,kind)
     of Event: result.add buildEventFrom(protoCard)
     else:discard
 
@@ -167,7 +170,7 @@ proc eventText(blue:BlueCard):seq[string] =
 proc typesetBoxedText(blue:BlueCard,squares:BoardSquares):(Arrangement,float32) =
   var txt:seq[string]
   case blue.cardKind
-  of Plan,Mission:
+  of Plan,Mission,Job:
     txt = blue.required squares
     txt.insert "Requires: ",0
     txt.add "Rewards:\n" & ($blue.cash).insertSep('.')&" in cash"
@@ -225,6 +228,7 @@ proc paintBackgroundImage(card:BlueCard,ctx:Context,borderSize:float):Image =
   case card.cardKind
   of Plan: result.draw(planbg,translate vec2(borderSize,borderSize))
   of Mission: result.draw(missionbg,translate vec2(borderSize,borderSize))
+  of Job: result.draw(jobbg,translate vec2(borderSize,borderSize))
   of Event:result.draw(readImage(card.bgPath),translate vec2(borderSize,borderSize))
   else:discard
 
@@ -251,7 +255,7 @@ proc paintCardKindOn(card:BlueCard,img:var Image,borderSize:float) =
 proc paintIconsOn(card:BlueCard,img:var Image,squares:BoardSquares) =
   var cardSquares:seq[int] 
   case card.cardKind
-  of Mission,Plan:
+  of Mission,Plan,Job:
     cardSquares = card.squares.required
     if card.squares.oneInMany.len > 0:
       cardSquares.add card.squares.oneInMany[0]
@@ -274,7 +278,7 @@ proc paintBlue(card:BlueCard,squares:BoardSquares):Image =
   if card.cardKind != Event or card.moveSquare != -1:
     card.paintIconsOn(result,squares)
   case card.cardKind
-  of Plan,Mission,Event: 
+  of Job,Plan,Mission,Event: 
     card.paintTextBoxOn(result,squares)
   else:discard
 

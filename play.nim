@@ -138,31 +138,26 @@ proc drawSquares*(b:var Boxy) =
   elif (let square = mouseOnSquare(); square != -1) and turnPlayer.hasPieceOn square:
     b.drawMoveToSquares square
 
-proc killAllPiecesOn(square:int) =
-  for playerNr,player in players:
-    for pieceNr,piece in player.pieces:
-      if piece == square: 
-        players[playerNr].pieces[pieceNr] = 0
-
-proc massacreBar:int =
-  if (let turnPlayerBars = bars.filterIt(turnPlayer.hasPieceOn it); 
-    turnPlayerBars.len > 0):
-      echo "turnPlayer bars: ",turnPlayerBars
-      bars[
-        turnPlayerBars
-        .mapIt(players.nrOfPiecesOn it)
-        .maxIndex
-      ]
+proc massacre(player:Player,players:seq[Player]):int =
+  if (let playerBars = turnPlayer.onBars; playerBars.len > 0):
+    echo "turnPlayer bars: ",playerBars
+    let 
+      maxPieces = playerBars.mapIt(players.nrOfPiecesOn it).max
+      barsWithMaxPieces = bars.filterIt(players.nrOfPiecesOn(it) == maxPieces)
+      chosenBar = barsWithMaxPieces[rand 0..barsWithMaxPieces.high]
+    chosenBar
   else: -1
 
 proc playMassacre =
-  if (let bar = massacreBar(); bar != -1):
-    echo "massacre bar, square: ",bar
-    for _ in 1..players.nrOfPiecesOn bar:
+  const noSuchBar = -1
+  if (let barMassacre = turnPlayer.massacre players; barMassacre != noSuchBar):
+    for (playerNr,pieceNr) in players.piecesOn barMassacre:
+      echo "killing ",$players[playerNr].color," piece on square: ",$players[playerNr].pieces[pieceNr]
+      players[playerNr].pieces[pieceNr] = 0
       playSound "Deanscream-2"
       playSound "Gunshot"
-    killAllPiecesOn bar
-  
+    echo "massacre bar, square: ",barMassacre
+   
 proc move*(square:int)
 proc barMove(moveEvent:BlueCard):bool =
   let barsWithPieces = bars.filterIt it in turnPlayer.pieces
@@ -274,7 +269,7 @@ proc animateMove* =
   )
   move()
 
-proc removePieceAndMove*(confirmedKill:string) =
+proc killPieceAndMove*(confirmedKill:string) =
   if confirmedKill == "Yes":
     players[singlePiece.playerNr].pieces[singlePiece.pieceNr] = 0
     updateTurnReport players[singlePiece.playerNr].color
@@ -297,7 +292,7 @@ proc move*(square:int) =
       "No",
     ]
     showMenu = false
-    startDialog(entries,3..4,removePieceAndMove)
+    startDialog(entries,3..4,killPieceAndMove)
   else: animateMove()
 
 proc leftMouse*(m:KeyEvent) =

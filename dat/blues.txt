@@ -1,7 +1,7 @@
 mission:
 King Maker
 {60,60,6,6}
-250000
+150000
 plan:
 Blood diamants
 {11,13}
@@ -42,6 +42,10 @@ plan:
 ATM magic
 [3,14,24,38,52]
 10000
+job:
+Grapevine
+{4,30,48}
+80000
 plan:
 Exotic merchandice
 [23,34,42,44,50]
@@ -128,7 +132,7 @@ Hooters
 40000
 plan:
 Acquittal
-{33,10}
+{4,33,10}
 40000
 plan:
 Agent
@@ -186,7 +190,7 @@ plan:
 Judicial murder
 {10,10}
 60000
-plan:
+job:
 Majority investment
 {4,4,4}
 80000
@@ -194,6 +198,14 @@ plan:
 Strong medicine
 {45,57}
 40000
+plan:
+Diamonds are...
+{13,21}
+40000
+job:
+Knocked out
+{19,45,48}
+80000
 plan:
 Borderless
 {49,55}
@@ -242,46 +254,86 @@ plan:
 Bail
 {33,36}
 40000
-plan:
+job:
 Lawfare
-{33}
-20000
+{4,10,33}
+80000
+job:
+Advisory board
+{30,33,43}
+80000
 plan:
 Stiffs
 {21,26}
 40000
+job:
+Side effects
+{26,33,45}
+80000
+job:
+Distractions
+{4,21,57}
+80000
+job:
+Stove away
+{9,26,49}
+80000
+job:
+Nose job
+{8,25,30}
+80000
+job:
+Sweet hearts
+{12,13,21}
+80000
+job:
+Broman escorte
+{10,36,60}
+80000
+mission:
+Gang banger
+{30,36,57,60}
+150000
+mission:
+Jet setter
+{4,11,25,43}
+150000
 mission:
 Drug Dealer
 {19,30,45,57}
-250000
+150000
 mission:
 Lord of War
 {6,49,55,57}
-250000
+150000
 mission:
 Pimp
 {11,21,30,57}
-250000
+150000
 mission:
-Master of Money
+Money Master
 {12,13,22,33}
-250000
+150000
 mission:
 Terrorist
 {6,7,9,11}
-250000
+150000
 mission:
 Mayor
 {4,25,43,60}
-250000
+150000
 mission:
 Spy
 {4,6,9,60}
-250000
+150000
 mission:
-Health Enthusiast
+Health provider
 {4,25,26,45}
-250000
+150000
+mission:
+Rent seeker
+{10,22,33,39}
+150000
 event:
 Busted
 {36}
