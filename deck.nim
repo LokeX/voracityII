@@ -390,6 +390,8 @@ proc leftMousePressed*(deck:var Deck) =
   elif deck.show == Discard:
     deck.show = Hand
 
+randomize()
+
 # when isMainModule:
 #   let cards = buildBlues "dat\\blues.txt"
 #   if not dirExists "cards": createDir "cards"

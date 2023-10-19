@@ -62,11 +62,11 @@ proc draw(b:var Boxy) =
     b.drawCards
     b.drawCursor
     b.drawDice
-    if mouseOnBatchPlayerNr != -1 and gotReport mouseOnPlayerBatch:
-      b.drawReport mouseOnPlayerBatch
     if not isRollingDice() and turnPlayer.kind == Human: b.drawSquares
     if turnPlayer.kind == Human and turn.undrawnBlues > 0: 
       b.drawDynamicImage nrOfUndrawnBluesPainter
+    if mouseOnBatchPlayerNr != -1 and gotReport mouseOnPlayerBatch:
+      b.drawReport mouseOnPlayerBatch
 
 proc really(title:string,answer:string -> void) =
   let entries:seq[string] = @[

@@ -13,7 +13,10 @@ type
   BoardSquares* = array[61,Square]
   Square* = tuple[nr:int,name:string,dims:Dims,icon:Image]
   Dims* = tuple[area:Area,rect:Rect]
-  MoveSelection* = tuple[hoverSquare,fromSquare,toSquare:int,toSquares:seq[int]]
+  MoveSelection* = tuple
+    hoverSquare,fromSquare,toSquare:int
+    toSquares:seq[int]
+    event:bool
   MoveAnimation* = tuple
     active:bool
     frame,moveOnFrame,currentSquare,fromsquare,toSquare:int
@@ -41,7 +44,7 @@ const
 var
   diceRoll*:Dice = [DieFace3,DieFace4]
   dieRollFrame* = maxRollFrames
-  moveSelection*:MoveSelection = (-1,-1,-1,@[])
+  moveSelection*:MoveSelection = (-1,-1,-1,@[],false)
   moveAnimation*:MoveAnimation
   dieEdit:int
 

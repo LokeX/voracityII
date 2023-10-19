@@ -112,7 +112,7 @@ proc canMovePieceFrom*(player:Player,square:int):bool =
 
 proc select(square:int) =
   if turnPlayer.canMovePieceFrom square:
-    moveSelection = (-1,square,-1,moveToSquares(square,diceRoll))
+    moveSelection = (-1,square,-1,moveToSquares(square,diceRoll),false)
     moveToSquaresPainter.context = moveSelection.toSquares
     moveToSquaresPainter.update = true
     piecesImg.update = true
@@ -143,7 +143,7 @@ proc massacre(player:Player,players:seq[Player]):int =
     echo "turnPlayer bars: ",playerBars
     let 
       maxPieces = playerBars.mapIt(players.nrOfPiecesOn it).max
-      barsWithMaxPieces = bars.filterIt(players.nrOfPiecesOn(it) == maxPieces)
+      barsWithMaxPieces = playerBars.filterIt(players.nrOfPiecesOn(it) == maxPieces)
       chosenBar = barsWithMaxPieces[rand 0..barsWithMaxPieces.high]
     chosenBar
   else: -1
@@ -156,13 +156,25 @@ proc playMassacre =
       players[playerNr].pieces[pieceNr] = 0
       playSound "Deanscream-2"
       playSound "Gunshot"
+    piecesImg.update = true
     echo "massacre bar, square: ",moveFrom
    
+proc playCashPlansTo*(deck:var Deck) =
+  if (let cashedPlans = cashInPlansTo(deck); cashedPlans.len > 0):
+    updateTurnReportCards(cashedPlans,Cashed)
+    # turnReport.cards.cashed.add cashedPlans
+    turn.player.updateBatch
+    playSound "coins-to-table-2"
+    if turnPlayer.cash >= cashToWin:
+      playSound "applause-2"
+      setMenuTo NewGameMenu
+
 proc move*(square:int)
 proc barMove(moveEvent:BlueCard):bool =
   let barsWithPieces = bars.filterIt it in turnPlayer.pieces
   if barsWithPieces.len > 0:
     let chosenBar = barsWithPieces[rand 0..barsWithPieces.high]
+    moveSelection.event = true
     moveSelection.fromSquare = chosenBar
     moveSelection.toSquare = moveEvent.moveSquares[rand 0..moveEvent.moveSquares.high]
   barsWithPieces.len > 0
@@ -176,14 +188,15 @@ proc playDejaVue =
   echo "Deja vue: survived discard pile draw"
   if turnPlayer.hand.len > 0 and turnPlayer.hand[^1].cardKind == Event: 
     playEvent()
-  if (let cashedPlans = cashInPlansTo blueDeck; cashedPlans.len > 0):
-    updateTurnReportCards(cashedPlans,Cashed)
 
 proc playNews =
+  piecesImg.update = true
   let news = turnPlayer.hand[^1]
   turnPlayer.hand.playTo blueDeck,turnPlayer.hand.high
   for (playerNr,pieceNr) in players.piecesOn news.moveSquares[0]:
     players[playerNr].pieces[pieceNr] = news.moveSquares[1]
+    playSound "driveBy"
+  playCashPlansTo blueDeck
 
 proc playEvent =
   let event = turnPlayer.hand[^1]
@@ -200,6 +213,7 @@ proc playEvent =
   of "Deja vue": 
     if blueDeck.discardPile.len > 1: playDejaVue()
   elif barMove event: move moveSelection.toSquare
+  playCashPlansTo blueDeck
 
 proc drawCardFrom*(deck:var Deck) =
   turnPlayer.hand.drawFrom deck
@@ -221,16 +235,6 @@ proc togglePlayerKind* =
   if (let batchNr = mouseOnPlayerBatchNr(); batchNr != -1) and turn.nr == 0:
     togglePlayerKind batchNr
 
-proc playCashPlansTo*(deck:var Deck) =
-  if (let cashedPlans = cashInPlansTo(deck); cashedPlans.len > 0):
-    updateTurnReportCards(cashedPlans,Cashed)
-    # turnReport.cards.cashed.add cashedPlans
-    turn.player.updateBatch
-    playSound "coins-to-table-2"
-    if turnPlayer.cash >= cashToWin:
-      playSound "applause-2"
-      setMenuTo NewGameMenu
-
 func singlePieceOn*(players:seq[Player],square:int):SinglePiece =
   result = (-1,-1)
   if players.nrOfPiecesOn(square) == 1:
@@ -247,8 +251,10 @@ proc initMove:Move =
 
 proc move =
   echo "executing move"
-  turn.diceMoved = not noDiceUsedToMove(
-    moveSelection.fromSquare,moveSelection.toSquare)
+  if not turn.diceMoved and not moveSelection.event:
+    turn.diceMoved = not noDiceUsedToMove(
+      moveSelection.fromSquare,moveSelection.toSquare)
+  elif moveSelection.event: moveSelection.event = false
   let move = initMove()
   if turnPlayer.kind == Human: updateTurnReport move
   #   turnReport.moves.add move
