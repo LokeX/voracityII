@@ -12,6 +12,7 @@
         "-r",
         "-d:release",
         "--parallelBuild:6",
+        "--excessiveStackTrace:on",
         // "--experimental:parallel",
         // "--verbosity:0",
         "voracity.nim"

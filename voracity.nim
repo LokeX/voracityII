@@ -108,6 +108,7 @@ proc mouse(m:KeyEvent) =
       menuSelection()
     elif turnPlayer.kind == Human:
       m.leftMouse()
+      echo "left mouse done"
       if turn.nr > 0 and mouseOnDice() and mayReroll(): 
         startDiceRoll()
   elif m.rightMousePressed: 
