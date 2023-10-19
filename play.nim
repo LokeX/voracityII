@@ -205,12 +205,13 @@ proc drawCardFrom*(deck:var Deck) =
   turnPlayer.hand.drawFrom deck
   echo "drew card: ",turnPlayer.hand[^1].title
   echo "card kind: ",turnPlayer.hand[^1].cardKind
-  var cardKind:PlayedCard = Played
-  case turnPlayer.hand[^1].cardKind
+  var action:PlayedCard = Played
+  let blue = turnPlayer.hand[^1]
+  case blue.cardKind
   of Event: playEvent()
   of News: playNews()
-  else: cardKind = Drawn
-  updateTurnReportCards(@[turnPlayer.hand[^1]],cardKind)
+  else: action = Drawn
+  updateTurnReportCards(@[blue],action)
   dec turn.undrawnBlues
   nrOfUndrawnBluesPainter.update = true
   turn.player.updateBatch
