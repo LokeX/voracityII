@@ -41,6 +41,7 @@ proc initReportBatch:Batch =
     padding:(20,20,20,20),
     font:(reportFont,24,color(1,1,1)),
     border:(5,15,color(0,0,0)),
+    bgColor:color(245,0,0),
     blur:2,
     opacity:25,
     shadow:(10,1.75,color(255,255,255,100))
@@ -49,35 +50,30 @@ proc initReportBatch:Batch =
 proc initReportBatches:ReportBatches =
   for i,batch in reportBatches.enum_mitems:
     batch = initReportBatch()
-    batch.commands: 
-      batch.text.bgColor = playerColors[PlayerColor(i)]
-      batch.border.color = contrastColors[PlayerColor(i)]
+    batch.commands: batch.border.color = playerColors[PlayerColor(i)]
     result[PlayerColor(i)] = batch
 
 proc reports*(playerColor:PlayerColor):seq[TurnReport] =
   turnReports.filterIt(it.playerBatch.color == playerColor)
 
+proc reportLines:array[9,string] = [
+  "Turn nr: "&($turnReport.turnNr),
+  "Player: "&($turnReport.playerBatch),
+  "Dice Rolls:\n"&turnReport.diceRolls.mapIt($it).join("\n"),
+  "Moves:\n"&turnReport.moves.mapIt($it).join("\n"),
+  "Kills: "&($turnReport.kills),
+  "Cards:",
+  "Drawn: "&turnReport.cards.drawn.mapIt(it.title).join(","),
+  "Cashed: "&turnReport.cards.cashed.mapIt(it.title).join(","),
+  "Discarded: "&turnReport.cards.discarded.mapIt(it.title).join(","),
+]
+
 proc echoTurnReport* =
-  echo "\nTurn nr: ",turnReport.turnNr
-  echo "Player: "&($turnReport.playerBatch)
-  echo "Dice Rolls: "&($turnReport.diceRolls)
-  echo "Moves: "&($turnReport.moves)
-  echo "Kills: "&($turnReport.kills)
-  echo "Cards:"
-  echo "Drawn: "&turnReport.cards.drawn.mapIt(it.title).join ","
-  echo "Cashed: "&turnReport.cards.cashed.mapIt(it.title).join ","
-  echo "Discarded: "&turnReport.cards.discarded.mapIt(it.title).join ","
+  for line in reportLines(): echo line
 
 proc batchUpdate:seq[Span] =
-  result.add newSpan("Turn nr: "&($turnReport.turnNr)&"\n",plainFont)
-  result.add newSpan("Player: "&($turnReport.playerBatch)&"\n",plainFont)
-  result.add newSpan("Dice Rolls:\n"&turnReport.diceRolls.mapIt($it).join("\n")&"\n",plainFont)
-  result.add newSpan("Moves:\n"&turnReport.moves.mapIt($it).join("\n")&"\n",plainFont)
-  result.add newSpan("Kills: "&($turnReport.kills)&"\n",plainFont)
-  result.add newSpan("Cards:\n",plainFont)
-  result.add newSpan("Drawn: "&turnReport.cards.drawn.mapIt(it.title).join(",")&"\n",plainFont)
-  result.add newSpan("Cashed: "&turnReport.cards.cashed.mapIt(it.title).join(",")&"\n",plainFont)
-  result.add newSpan("Discarded: "&turnReport.cards.discarded.mapIt(it.title).join(",")&"\n",plainFont)
+  for line in reportLines():
+    result.add newSpan(line&"\n",plainFont)
 
 proc initTurnReport* =
   turnReport = TurnReport()

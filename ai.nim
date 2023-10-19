@@ -34,7 +34,7 @@ func hasPlanChanceOn(player:Player,square:int,deck:Deck): float =
     knownCards = knownBluesIn(deck.discardPile,player.hand)
     unknownCards = deck.fullDeck
       .filterIt(
-        it.cardKind in [Plan,Mission] and
+        it.cardKind in [Plan,Mission,Job] and
         it.title notIn knownCards.mapIt(it.title)
       )
     chance = unknownCards.require(square).len.toFloat/unknownCards.len.toFloat

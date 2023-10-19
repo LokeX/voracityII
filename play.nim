@@ -150,13 +150,13 @@ proc massacre(player:Player,players:seq[Player]):int =
 
 proc playMassacre =
   const noSuchBar = -1
-  if (let barMassacre = turnPlayer.massacre players; barMassacre != noSuchBar):
-    for (playerNr,pieceNr) in players.piecesOn barMassacre:
+  if (let moveFrom = turnPlayer.massacre players; moveFrom != noSuchBar):
+    for (playerNr,pieceNr) in players.piecesOn moveFrom:
       echo "killing ",$players[playerNr].color," piece on square: ",$players[playerNr].pieces[pieceNr]
       players[playerNr].pieces[pieceNr] = 0
       playSound "Deanscream-2"
       playSound "Gunshot"
-    echo "massacre bar, square: ",barMassacre
+    echo "massacre bar, square: ",moveFrom
    
 proc move*(square:int)
 proc barMove(moveEvent:BlueCard):bool =
@@ -164,7 +164,7 @@ proc barMove(moveEvent:BlueCard):bool =
   if barsWithPieces.len > 0:
     let chosenBar = barsWithPieces[rand 0..barsWithPieces.high]
     moveSelection.fromSquare = chosenBar
-    moveSelection.toSquare = moveEvent.moveSquare
+    moveSelection.toSquare = moveEvent.moveSquares[rand 0..moveEvent.moveSquares.high]
   barsWithPieces.len > 0
 
 proc playEvent()
@@ -178,6 +178,12 @@ proc playDejaVue =
     playEvent()
   if (let cashedPlans = cashInPlansTo blueDeck; cashedPlans.len > 0):
     updateTurnReportCards(cashedPlans,Cashed)
+
+proc playNews =
+  let news = turnPlayer.hand[^1]
+  turnPlayer.hand.playTo blueDeck,turnPlayer.hand.high
+  for (playerNr,pieceNr) in players.piecesOn news.moveSquares[0]:
+    players[playerNr].pieces[pieceNr] = news.moveSquares[1]
 
 proc playEvent =
   let event = turnPlayer.hand[^1]
@@ -198,10 +204,13 @@ proc playEvent =
 proc drawCardFrom*(deck:var Deck) =
   turnPlayer.hand.drawFrom deck
   echo "drew card: ",turnPlayer.hand[^1].title
-  if turnPlayer.hand[^1].cardKind == Event: 
-    updateTurnReportCards(@[turnPlayer.hand[^1]],Played)
-    playEvent()
-  else: updateTurnReportCards(@[turnPlayer.hand[^1]],Drawn)
+  echo "card kind: ",turnPlayer.hand[^1].cardKind
+  var cardKind:PlayedCard = Played
+  case turnPlayer.hand[^1].cardKind
+  of Event: playEvent()
+  of News: playNews()
+  else: cardKind = Drawn
+  updateTurnReportCards(@[turnPlayer.hand[^1]],cardKind)
   dec turn.undrawnBlues
   nrOfUndrawnBluesPainter.update = true
   turn.player.updateBatch

@@ -228,8 +228,8 @@ proc move*(hypothetical:Hypothetic,dice:openArray[int]):Move =
   for pieceNr,fromSquare in hypothetical.pieces:
     for die in dice:
       flowMoves.add spawn hypothetical.bestMove(pieceNr,fromSquare,die)
-  let moves = flowMoves.mapIt(^it)
-  result = moves.sortedByIt(it.eval)[^1]
+  # let moves = flowMoves.mapIt(^it)
+  flowMoves.mapIt(^it).sortedByIt(it.eval)[^1]
 
 proc diceMoves(hypothetical:Hypothetic):seq[FlowVar[Move]] =
   for pieceNr,fromSquare in hypothetical.pieces:

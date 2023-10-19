@@ -18,8 +18,8 @@ type
       squares*:PlanSquares
       cash*:int
       eval*:int
-    of Event:
-      moveSquare*:int
+    of Event,News:
+      moveSquares*:seq[int]
       bgPath:string
     else:discard
   Deck* = object 
@@ -108,9 +108,12 @@ func buildPlanFrom(protoCard:sink ProtoCard,kind:CardKind):BlueCard =
 
 func buildEventFrom(protoCard:sink ProtoCard):BlueCard =
   result = BlueCard(title:protoCard[1],cardKind:Event)
-  result.moveSquare = parseCardSquares(protoCard[2],['{','}'])[^1]
-  # debugecho result.title
-  # debugecho result.moveSquare
+  result.moveSquares = parseCardSquares(protoCard[2],['{','}'])
+  result.bgPath = protoCard[3]
+
+func buildNewsFrom(protoCard:sink ProtoCard):BlueCard =
+  result = BlueCard(title:protoCard[1],cardKind:News)
+  result.moveSquares = parseCardSquares(protoCard[2],['{','}'])
   result.bgPath = protoCard[3]
 
 func newBlueCards(protoCards:seq[ProtoCard]): seq[BlueCard] =
@@ -120,6 +123,7 @@ func newBlueCards(protoCards:seq[ProtoCard]): seq[BlueCard] =
     case kind
     of Plan,Mission,Job: result.add buildPlanFrom(protoCard,kind)
     of Event: result.add buildEventFrom(protoCard)
+    of News: result.add buildNewsFrom(protoCard)
     else:discard
 
 func required(plan:BlueCard,squares:BoardSquares):seq[string] =
@@ -165,7 +169,15 @@ proc eventText(blue:BlueCard):seq[string] =
     result.add "A piece of yours,"
     result.add "on any random Bar,"
     result.add "moves to: "&
-      squares[blue.moveSquare].name&" Nr."&($squares[blue.moveSquare].nr)
+      squares[blue.moveSquares[^1]].name&" Nr."&($squares[blue.moveSquares[^1]].nr)
+
+proc newsText(blue:BlueCard):seq[string] =
+  result.add "All pieces on: "&
+    squares[blue.moveSquares[0]].name&" Nr."&($squares[blue.moveSquares[0]].nr)
+  if blue.moveSquares[1] == 0:
+    result.add "Are removed from the board"
+  else: result.add "Moves to: "&
+    squares[blue.moveSquares[1]].name&" Nr."&($squares[blue.moveSquares[1]].nr)
 
 proc typesetBoxedText(blue:BlueCard,squares:BoardSquares):(Arrangement,float32) =
   var txt:seq[string]
@@ -175,6 +187,7 @@ proc typesetBoxedText(blue:BlueCard,squares:BoardSquares):(Arrangement,float32) 
     txt.insert "Requires: ",0
     txt.add "Rewards:\n" & ($blue.cash).insertSep('.')&" in cash"
   of Event: txt.add blue.eventText
+  of News: txt.add blue.newsText
   else:discard
   let 
     font = setNewFont(roboto,13.0,color(0,0,0))
@@ -229,7 +242,7 @@ proc paintBackgroundImage(card:BlueCard,ctx:Context,borderSize:float):Image =
   of Plan: result.draw(planbg,translate vec2(borderSize,borderSize))
   of Mission: result.draw(missionbg,translate vec2(borderSize,borderSize))
   of Job: result.draw(jobbg,translate vec2(borderSize,borderSize))
-  of Event:result.draw(readImage(card.bgPath),translate vec2(borderSize,borderSize))
+  of Event,News:result.draw(readImage(card.bgPath),translate vec2(borderSize,borderSize))
   else:discard
 
 proc paintBackground(card:BlueCard,borderSize:float):Image =
@@ -259,7 +272,8 @@ proc paintIconsOn(card:BlueCard,img:var Image,squares:BoardSquares) =
     cardSquares = card.squares.required
     if card.squares.oneInMany.len > 0:
       cardSquares.add card.squares.oneInMany[0]
-  of Event: cardSquares.add card.moveSquare
+  of Event: cardSquares.add card.moveSquares[^1]
+  of News: cardSquares.add card.moveSquares
   else:discard
   let x_offset = if cardSquares.len == 1: 100.0 else: 55.0
   var (x,y) = (x_offset,120.0)
@@ -275,12 +289,9 @@ proc paintBlue(card:BlueCard,squares:BoardSquares):Image =
   result = card.paintBackground borderSize
   card.paintTitleOn(result,borderSize)
   card.paintCardKindOn(result,borderSize)
-  if card.cardKind != Event or card.moveSquare != -1:
+  if (card.cardKind notIn [Event,News]) or card.moveSquares[^1] notIn [0,-1]:
     card.paintIconsOn(result,squares)
-  case card.cardKind
-  of Job,Plan,Mission,Event: 
-    card.paintTextBoxOn(result,squares)
-  else:discard
+  card.paintTextBoxOn(result,squares)
 
 proc buildBlues(path:string):tuple[blues:seq[BlueCard],imgs:seq[Image]] =
   result.blues = path.lines.toSeq.parseProtoCards.newBlueCards

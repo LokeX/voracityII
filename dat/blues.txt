@@ -336,27 +336,27 @@ Rent seeker
 150000
 event:
 Busted
-{36}
+{36,60}
 pics\\events\\jail.jpg
 event:
-Swim with fishes
-{49}
+Gone overseas
+{11,49}
 pics\\events\\hop.jpg
 event:
 Detention
-{60}
+{10,36,60}
 pics\\events\\afh.jpg
 event:
 Funeral
-{7}
+{7,26}
 pics\\events\\udv.jpg
 event:
-Prospect
+Prospects
 {30}
 pics\\events\\tomrer.jpg
 event:
-Resocialization
-{6}
+Hungover
+{25,45,48}
 pics\\events\\sladder.jpg
 event:
 Sour piss
@@ -374,3 +374,43 @@ event:
 Deja vue
 {-1}
 pics\\events\\deja.jpg
+news:
+Clubbed by anti-fascists
+{57,25}
+pics\\news\\fitti6.jpg
+news:
+Commissioned
+{4,10}
+pics\\news\\prettycool.jpg
+news:
+Swatted
+{30,36}
+pics\\news\\panser2.jpg
+news:
+Capital punishment
+{36,0}
+pics\\news\\fitti8.jpg
+news:
+VIP escorts
+{21,12}
+pics\\news\\prettycool.jpg
+news:
+Resocialization
+{36,6}
+pics\\news\\alienface.jpg
+news:
+Open house
+{22,8}
+pics\\news\\trumle.jpg
+news:
+Capital gains
+{33,12}
+pics\\news\\fitti2.jpg
+news:
+Demolision
+{30,43}
+pics\\news\\fitti3.jpg
+news:
+Call of duty
+{6,26}
+pics\\news\\gollum.jpg

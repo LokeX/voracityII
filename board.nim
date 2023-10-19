@@ -4,13 +4,12 @@ import strutils
 import random
 import megasound
 import sequtils
-import sugar
 
 type
-  DieFaces* = enum 
+  DieFace* = enum 
     DieFace1 = 1,DieFace2 = 2,DieFace3 = 3,
     DieFace4 = 4,DieFace5 = 5,DieFace6 = 6
-  Dice* = array[1..2,DieFaces]
+  Dice* = array[1..2,DieFace]
   BoardSquares* = array[61,Square]
   Square* = tuple[nr:int,name:string,dims:Dims,icon:Image]
   Dims* = tuple[area:Area,rect:Rect]
@@ -20,7 +19,6 @@ type
     frame,moveOnFrame,currentSquare,fromsquare,toSquare:int
     color:PlayerColor
     squares:seq[int]
-    callBack:() -> void
 
 const
   diceRollRects = (Rect(x:1450,y:60,w:50,h:50),Rect(x:1450,y:120,w:50,h:50))
@@ -50,7 +48,7 @@ var
 proc editDiceRoll*(input:string) =  
   if input.toUpper == "D": dieEdit = 1 
   elif dieEdit > 0 and (let dieFace = try: input.parseInt except: 0; dieFace in 1..6):
-    diceRoll[dieEdit] = DieFaces(dieFace)
+    diceRoll[dieEdit] = DieFace(dieFace)
     dieEdit = if dieEdit == 2: 0 else: dieEdit + 1
   else: dieEdit = 0
 
@@ -58,7 +56,7 @@ proc mouseOnDice*:bool = diceRollDims.anyIt mouseOn it.area
 
 proc rollDice*() = 
   for die in diceRoll.mitems: 
-    die = DieFaces(rand(1..6))
+    die = DieFace(rand(1..6))
 
 proc rotateDie(b:var Boxy,die:int) =
   b.drawImage(
@@ -92,6 +90,9 @@ proc startDiceRoll*() =
 proc endDiceRoll* = dieRollFrame = maxRollFrames
 
 proc mayReroll*:bool = isDouble() and not isRollingDice()
+
+# proc dieUsedToMove:DieFace =
+#   if isDouble() or 
 
 template adjustToSquareNr*(adjustSquare:untyped):untyped =
   if adjustSquare > 60: adjustSquare - 60 else: adjustSquare
@@ -160,12 +161,12 @@ proc paintIcon(path:string):Image =
   result = ctx.image
 
 proc buildBoardSquares*(path:string):BoardSquares =
-  const dieDims = squareDims()
+  const squareDims = squareDims()
   var count = 0
-  result[0] = (0,"Removed",dieDims[0],nil)
+  result[0] = (0,"Removed",squareDims[0],nil)
   for name in lines path:
     inc count
-    result[count] = (count,name,dieDims[count],nil)
+    result[count] = (count,name,squareDims[count],nil)
     result[count].icon = result[count].iconPath.paintIcon
 
 let 
@@ -256,5 +257,5 @@ proc drawBoard*(b:var Boxy) =
   b.drawImage("board",boardPos)
 
 addImage("board",boardImg)
-for die in DieFaces: 
+for die in DieFace: 
   addImage $die,("pics\\diefaces\\"&($die.ord)&".png").readImage
