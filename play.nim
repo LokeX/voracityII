@@ -162,7 +162,6 @@ proc playMassacre =
 proc playCashPlansTo*(deck:var Deck) =
   if (let cashedPlans = cashInPlansTo(deck); cashedPlans.len > 0):
     updateTurnReportCards(cashedPlans,Cashed)
-    # turnReport.cards.cashed.add cashedPlans
     turn.player.updateBatch
     playSound "coins-to-table-2"
     if turnPlayer.cash >= cashToWin:
@@ -195,7 +194,8 @@ proc playNews =
   turnPlayer.hand.playTo blueDeck,turnPlayer.hand.high
   for (playerNr,pieceNr) in players.piecesOn news.moveSquares[0]:
     players[playerNr].pieces[pieceNr] = news.moveSquares[1]
-    playSound "driveBy"
+    if news.moveSquares[1] == 0: playSound "electricity"
+    else: playSound "driveBy"
   playCashPlansTo blueDeck
 
 proc playEvent =
@@ -257,7 +257,6 @@ proc move =
   elif moveSelection.event: moveSelection.event = false
   let move = initMove()
   if turnPlayer.kind == Human: updateTurnReport move
-  #   turnReport.moves.add move
   turnPlayer.pieces[move.pieceNr] = moveSelection.toSquare
   if moveSelection.fromSquare == 0: 
     turnPlayer.cash -= 5000
@@ -277,7 +276,6 @@ proc move =
     playSound "can-open-1"
 
 proc animateMove* =
-  # atEndOfAnimationCall move
   startMoveAnimation(
     turnPlayer.color,
     moveSelection.fromSquare,

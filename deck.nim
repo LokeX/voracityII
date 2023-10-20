@@ -150,7 +150,12 @@ func buildInnerRect(rect:Rect,borderSize:float):Rect =
   result.w -= (borderSize*2)
   result.h -= (borderSize*2)
 
-proc eventText(blue:BlueCard):seq[string] =
+func eventSquaresTxt(blue:BlueCard,squares:BoardSquares):seq[string] =
+  for i,square in blue.moveSquares:
+    result.add "The "&squares[square].name&" Nr."&($squares[square].nr)
+    if i < blue.moveSquares.high: result[^1].add " or:"
+
+func eventText(blue:BlueCard,squares:BoardSquares):seq[string] =
   case blue.title
   of "Sour piss":
     result.add "Must: Shuffle piles"
@@ -158,7 +163,7 @@ proc eventText(blue:BlueCard):seq[string] =
   of "Happy hour": 
     result.add "Draw up to 3 extra cards"
   of "Massacre": 
-    result.add "All pieces on a bar,"
+    result.add "All pieces on a random bar,"
     result.add "with the most pieces,"
     result.add "where you have a piece,"
     result.add "are removed from the board"
@@ -167,11 +172,10 @@ proc eventText(blue:BlueCard):seq[string] =
     result.add "from the discard pile"
   else:
     result.add "A piece of yours,"
-    result.add "on any random Bar,"
-    result.add "moves to: "&
-      squares[blue.moveSquares[^1]].name&" Nr."&($squares[blue.moveSquares[^1]].nr)
+    result.add "on any random Bar, moves to:"
+    result.add blue.eventSquaresTxt squares
 
-proc newsText(blue:BlueCard):seq[string] =
+func newsText(blue:BlueCard,squares:BoardSquares):seq[string] =
   result.add "All pieces on: "&
     squares[blue.moveSquares[0]].name&" Nr."&($squares[blue.moveSquares[0]].nr)
   if blue.moveSquares[1] == 0:
@@ -186,8 +190,8 @@ proc typesetBoxedText(blue:BlueCard,squares:BoardSquares):(Arrangement,float32) 
     txt = blue.required squares
     txt.insert "Requires: ",0
     txt.add "Rewards:\n" & ($blue.cash).insertSep('.')&" in cash"
-  of Event: txt.add blue.eventText
-  of News: txt.add blue.newsText
+  of Event: txt.add blue.eventText squares
+  of News: txt.add blue.newsText squares
   else:discard
   let 
     font = setNewFont(roboto,13.0,color(0,0,0))
@@ -219,9 +223,9 @@ proc paintTextBoxOn(card:BlueCard,img:var Image,squares:BoardSquares) =
 
 proc titleArrangements(card:BlueCard):(Arrangement,Arrangement,Arrangement) =
   let 
-    titleFont = setNewFont(point,46.0,color(1,1,0))
-    titleStroke = setNewFont(point,46.0,color(0,0,0))
-    titleShadow = setNewFont(point,46.0,color(0,0,0,50))
+    titleFont = setNewFont(point,45.0,color(1,1,0))
+    titleStroke = setNewFont(point,45.0,color(0,0,0))
+    titleShadow = setNewFont(point,45.0,color(0,0,0,50))
   (titleFont.typeset(card.title),
   titleStroke.typeset(card.title),
   titleShadow.typeset(card.title))
@@ -365,7 +369,7 @@ proc drawCardSquares(b:var Boxy,blue:BlueCard) =
     b.drawDynamicImage cardSquaresPainter
 
 proc paintCards*(b:var Boxy,deck:Deck,playerHand:seq[BlueCard]) =
-  if deck.lastDrawn.len > 0 and mouseOn deck.drawSlot.area:
+  if deck.reveal == Front and deck.lastDrawn.len > 0 and mouseOn deck.drawSlot.area:
     b.drawImage(deck.lastDrawn,deck.popUpSlot.rect)
   if deck.discardPile.len > 0:
     b.drawImage(deck.discardPile[^1].title,deck.discardSlot.rect)
@@ -373,12 +377,11 @@ proc paintCards*(b:var Boxy,deck:Deck,playerHand:seq[BlueCard]) =
       b.drawImage(deck.discardPile[^1].title,deck.popUpSlot.rect)
       b.drawCardSquares deck.discardPile[^1]
   for (card,slot) in (if deck.show == Hand: playerHand else: deck.discardPile).cardSlots:
-    # if deck.show == Hand:
     if deck.reveal == Back and deck.show != Discard:
       b.drawImage("blueback",slot.rect)
     else: 
       b.drawImage(card.title,slot.rect)
-    if mouseOn slot.area:
+    if deck.reveal == Front and mouseOn slot.area:
       b.drawImage(card.title,deck.popUpSlot.rect)
       b.drawCardSquares card
 
