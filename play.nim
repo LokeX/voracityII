@@ -178,16 +178,6 @@ proc barMove(moveEvent:BlueCard):bool =
     moveSelection.toSquare = moveEvent.moveSquares[rand 0..moveEvent.moveSquares.high]
   barsWithPieces.len > 0
 
-proc playEvent()
-proc playDejaVue =
-  playSound "SCARYBEL-1"
-  turnPlayer.hand.add blueDeck.discardPile[^2]
-  delete(blueDeck.discardPile,blueDeck.discardPile.high - 1)
-  blueDeck.lastDrawn = turnPlayer.hand[^1].title
-  echo "Deja vue: survived discard pile draw"
-  if turnPlayer.hand.len > 0 and turnPlayer.hand[^1].cardKind == Event: 
-    playEvent()
-
 proc playNews =
   piecesImg.update = true
   let news = turnPlayer.hand[^1]
@@ -197,6 +187,19 @@ proc playNews =
     if news.moveSquares[1] == 0: playSound "electricity"
     else: playSound "driveBy"
   playCashPlansTo blueDeck
+
+proc playEvent()
+proc playDejaVue =
+  playSound "SCARYBEL-1"
+  turnPlayer.hand.add blueDeck.discardPile[^2]
+  delete(blueDeck.discardPile,blueDeck.discardPile.high - 1)
+  blueDeck.lastDrawn = turnPlayer.hand[^1].title
+  echo "Deja vue: survived discard pile draw"
+  if turnPlayer.hand.len > 0: 
+    case turnPlayer.hand[^1].cardKind 
+    of Event: playEvent()
+    of News: playNews()
+    else:discard
 
 proc playEvent =
   let event = turnPlayer.hand[^1]
