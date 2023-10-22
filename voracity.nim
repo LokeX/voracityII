@@ -90,7 +90,7 @@ proc menuSelection =
   if mouseOnMenuSelection("Quit Voracity"):
     confirmQuit()
   elif mouseOnMenuSelection("Start Game") or mouseOnMenuSelection("End Turn"):
-    nextTurn()
+    nextGameState()
   elif mouseOnMenuSelection("New Game"):
     if turnPlayer.cash >= cashToWin:
       setupNewGame()

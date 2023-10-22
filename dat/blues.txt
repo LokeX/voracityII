@@ -41,7 +41,7 @@ ATM magic
 job:
 Grapevine
 {4,30,48}
-80000
+125000
 plan:
 Exotic merchandice
 [23,34,42,44,50]
@@ -129,7 +129,7 @@ Hooters
 job:
 Acquittal
 {4,33,10}
-80000
+125000
 plan:
 Agent
 {4,9}
@@ -197,7 +197,7 @@ Diamonds are...
 job:
 Knocked out
 {19,45,48}
-80000
+125000
 plan:
 Borderless
 {49,55}
@@ -249,11 +249,11 @@ Bail
 job:
 Lawfare
 {4,10,33}
-80000
+125000
 job:
 Advisory board
 {30,33,43}
-80000
+125000
 plan:
 Stiffs
 {21,26}
@@ -261,63 +261,63 @@ Stiffs
 job:
 Side effects
 {26,33,45}
-80000
+125000
 job:
 Stove away
 {9,26,49}
-80000
+125000
 job:
 Nose job
 {8,25,30}
-80000
+125000
 job:
 Sweet hearts
 {12,13,21}
-80000
+125000
 job:
 Broman escorte
 {10,36,60}
-80000
+125000
 mission:
 Gang banger
 {30,36,57,60}
-150000
+250000
 mission:
 Jet setter
 {4,11,25,43}
-150000
+250000
 mission:
 Drug Dealer
 {19,30,45,57}
-150000
+250000
 mission:
 Lord of War
 {6,49,55,57}
-150000
+250000
 mission:
 Pimp
 {11,21,30,57}
-150000
+250000
 mission:
 Money Master
 {12,13,22,33}
-150000
+250000
 mission:
 Terrorist
 {6,7,9,11}
-150000
+250000
 mission:
 Mayor
 {4,25,43,60}
-150000
+250000
 mission:
 Spy
 {4,6,9,60}
-150000
+250000
 mission:
 Rent seeker
 {10,22,33,39}
-150000
+250000
 event:
 Busted
 {36,60}

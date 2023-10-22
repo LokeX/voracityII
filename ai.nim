@@ -128,7 +128,7 @@ proc endTurn =
   recordTurnReport()
   showMenu = false
   phase = Await
-  nextTurn()
+  nextGameState()
 
 proc endTurnPhase =
   if autoEndTurn and turnPlayer.cash < cashToWin:

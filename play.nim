@@ -10,7 +10,6 @@ import batch
 import eval
 import menu
 import reports
-# import misc
 import random
 
 type
@@ -158,7 +157,7 @@ proc playMassacre =
       playSound "Gunshot"
     piecesImg.update = true
     echo "massacre bar, square: ",moveFrom
-   
+
 proc playCashPlansTo*(deck:var Deck) =
   if (let cashedPlans = cashInPlansTo(deck); cashedPlans.len > 0):
     updateTurnReportCards(cashedPlans,Cashed)
@@ -329,28 +328,33 @@ proc leftMouse*(m:KeyEvent) =
         turnPlayer.hand.playTo blueDeck,slotNr
         turnPlayer.hand = turnPlayer.sortBlues
 
-proc nextTurn* =
-  # echo "new game"
-  if turnPlayer.cash >= cashToWin:
-    setupNewGame()
-    setMenuTo SetupMenu
+proc setupGame =
+  setupNewGame()
+  setMenuTo SetupMenu
+
+proc newGame =
+  inc turn.nr
+  players = newPlayers()
+  playerBatches = newPlayerBatches()
+  resetReports()
+  setMenuTo GameMenu
+  showMenu = false
+
+proc nextTurn =
+  playSound "page-flip-2"
+  turnReport.cards.discarded.add turnPlayer.discardCards blueDeck
+  echoTurnReport()
+  if turnPlayer.kind == Human:
+    recordTurnReport()
+  nextPlayerTurn()
+  initTurnReport()
+  showMenu = false
+
+proc nextGameState* =
+  if turnPlayer.cash >= cashToWin: setupGame()
   else:
-    if turn.nr == 0:
-      inc turn.nr
-      players = newPlayers()
-      playerBatches = newPlayerBatches()
-      resetReports()
-      setMenuTo GameMenu
-      showMenu = false
-    else: 
-      playSound "page-flip-2"
-      turnReport.cards.discarded.add turnPlayer.discardCards blueDeck
-      echoTurnReport()
-      if turnPlayer.kind == Human:
-        recordTurnReport()
-      nextPlayerTurn()
-      initTurnReport()
-      showMenu = false
+    if turn.nr == 0: newGame()
+    else: nextTurn()
     startDiceRoll()
   playSound "carhorn-1"
 
@@ -360,4 +364,4 @@ proc rightMouse*(m:KeyEvent) =
     piecesImg.update = true
   elif not showMenu:
     showMenu = true
-  else: nextTurn()
+  else: nextGameState()
