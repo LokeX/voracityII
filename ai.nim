@@ -40,8 +40,8 @@ func hasPlanChanceOn(player:Player,square:int,deck:Deck): float =
     chance = unknownCards.require(square).len.toFloat/unknownCards.len.toFloat
   chance*player.hand.len.toFloat
 
-proc enemyKill(hypothetical:Hypothetic,move:Move): bool =
-  if turnPlayer.hasPieceOn(move.toSquare): return false else:
+proc killEnemy(hypothetical:Hypothetic,player:Player,move:Move): bool =
+  if player.hasPieceOn(move.toSquare): return false else:
     echo "checking enemy kill"
     let 
       playerNr = players.singlePieceOn(move.toSquare).playerNr
@@ -56,7 +56,7 @@ proc aiRemovePiece(hypothetical:Hypothetic,move:Move): bool =
   canKillPieceOn(move.toSquare) and 
   players.nrOfPiecesOn(move.toSquare) == 1 and 
   (hypothetical.friendlyFireAdviced(move) or 
-  hypothetical.enemyKill(move))
+  hypothetical.killEnemy(turnPlayer,move))
 
 proc aiTurn*(): bool =
   turn.nr != 0 and 
@@ -79,7 +79,6 @@ proc reroll(hypothetical:Hypothetic): bool =
     bestDiceMoves = hypothetical.bestDiceMoves()
     bestDice = bestDiceMoves.mapIt(it.die)
   updateTurnReport diceRoll
-  # turnReport.diceRolls.add diceRoll
   isDouble() and diceRoll[1].ord notIn bestDice[^2..^1]
 
 proc moveAi =
@@ -144,9 +143,6 @@ proc aiTakeTurn*() =
   of PostMove: postMovePhase()
   of EndTurn: endTurnPhase()
   turn.player.updateBatch
-
-proc aiKeyb*(k:KeyEvent) =
-  if k.button == KeyE: autoEndTurn = not autoEndTurn
 
 # please, for the love of God: don't even breethe on it!
 proc aiRightMouse*(m:KeyEvent) =

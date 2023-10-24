@@ -11,7 +11,6 @@ import menu
 import batch
 import sugar
 import reports
-import colors
 import sequtils
 import misc
 import random
@@ -41,7 +40,7 @@ proc drawCards(b:var Boxy) =
       blueDeck.reveal = storedRevealSetting
   else: b.paintCards blueDeck,turnPlayer.hand
 
-proc setRevealCards(deck:var Deck,playerKind:PlayerKind) =
+func setRevealCards(deck:var Deck,playerKind:PlayerKind) =
   if deck.reveal != UserSetFront: 
     if playerKind == Computer:
       deck.reveal = Back
@@ -123,15 +122,17 @@ proc mouseMoved =
 
 proc keyboard (key:KeyboardEvent) =
   if key.keyPressed: 
-    if key.button.iskey KeyR:
+    case key.button
+    of KeyE: autoEndTurn = not autoEndTurn
+    of KeyR: 
       case blueDeck.reveal
       of UserSetFront: blueDeck.reveal = Back
       of Back,Front: blueDeck.reveal = UserSetFront
-    key.aiKeyb
-    if key.button.iskey KeyS:
+    of KeyS:
       if volume() == 0:
-        setVolume 0.20
+        setVolume 0.05
       else: setVolume 0
+    else:discard
   if key.button == ButtonUnknown and not isRollingDice():
     editDiceRoll key.rune.toUTF8
 
@@ -171,6 +172,7 @@ var
     timer:timerCall()
   )
 
+window.icon = readImage "pics\\BarMan.png"
 randomize()
 setVolume 0.05
 addCall call

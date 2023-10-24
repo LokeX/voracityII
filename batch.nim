@@ -401,15 +401,15 @@ proc selection*(batch:Batch):int =
 proc input*(batch:Batch):string =
   if batch.kind == InputBatch: 
     batch.text.spans[^1].text
-  else: "No input - batch is not InputBatch"
+  else: "error, batch is not InputBatch"
 
 proc resetMenu*(batch:Batch,entries:seq[string],selectionRange:HSlice[int,int]) =
   if batch.kind == MenuBatch:
-    batch.selector.selection = 0
-    batch.text.spans.setLen 0
+    # batch.text.spans.setLen 0
     batch.text.spans = batchSpans(entries,batch.font)
     batch.setDimensions
     batch.selector.selectionRange = selectionRange
+    batch.selector.selection = selectionRange.a
     batch.selector.selectionAreas = batch.computeSelectionAreas()
   else: echo "error, cannot resetSpanTexts: batch is not MenuBatch"
 

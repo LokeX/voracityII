@@ -39,7 +39,7 @@ const
   settingsFile* = "settings.cfg"
   defaultPlayerKinds = @[Human,Computer,None,None,None,None]
   (pbx,pby) = (20,20)
-  cashToWin* = 500_000
+  cashToWin* = 250_000
   popUpCard = Rect(x:500,y:275,w:cardWidth,h:cardHeight)
   drawPile = Rect(x:855,y:495,w:110,h:180)
   discardPile = Rect(x:1025,y:495,w:cardWidth*0.441,h:cardHeight*0.441)
@@ -128,11 +128,6 @@ func hasPieceOn*(player:Player,square:int):bool =
 
 func onBars*(player:Player):seq[int] = bars.filterIt player.hasPieceOn it
 
-proc discardCards*(player:var Player,deck:var Deck):seq[BlueCard] =
-  while player.hand.len > 3:
-    result.add player.hand[player.hand.high]
-    player.hand.playTo deck,player.hand.high
-
 func requiredSquaresAndPieces*(plan:BlueCard):tuple[squares,nrOfPieces:seq[int]] =
   let squares = plan.squares.required.deduplicate
   (squares,squares.mapIt plan.squares.required.count it)
@@ -151,6 +146,11 @@ func cashablePlans*(player:Player):tuple[cashable,notCashable:seq[BlueCard]] =
     # debugecho "checking isCashable: ",plan.title
     if player.isCashable plan: result.cashable.add plan
     else: result.notCashable.add plan
+
+proc discardCards*(player:var Player,deck:var Deck):seq[BlueCard] =
+  while player.hand.len > 3:
+    result.add player.hand[player.hand.high]
+    player.hand.playTo deck,player.hand.high
 
 proc cashInPlansTo*(deck:var Deck):seq[BlueCard] =
   let (cashable,notCashable) = turnPlayer.cashablePlans

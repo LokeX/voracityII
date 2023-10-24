@@ -94,9 +94,6 @@ proc endDiceRoll* = dieRollFrame = maxRollFrames
 
 proc mayReroll*:bool = isDouble() and not isRollingDice()
 
-# proc dieUsedToMove:DieFace =
-#   if isDouble() or 
-
 template adjustToSquareNr*(adjustSquare:untyped):untyped =
   if adjustSquare > 60: adjustSquare - 60 else: adjustSquare
 
