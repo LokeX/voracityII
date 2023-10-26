@@ -37,7 +37,8 @@ proc drawCards(b:var Boxy) =
       let storedRevealSetting = blueDeck.reveal
       blueDeck.reveal = Front
       b.paintCards blueDeck,cashedCards
-      blueDeck.reveal = storedRevealSetting
+      blueDeck.reveal = storedRevealSetting   
+    else: b.paintCards blueDeck,turnPlayer.hand
   else: b.paintCards blueDeck,turnPlayer.hand
 
 func setRevealCards(deck:var Deck,playerKind:PlayerKind) =
@@ -109,7 +110,7 @@ proc mouse(m:KeyEvent) =
       m.leftMouse()
       echo "left mouse done"
       if turn.nr > 0 and mouseOnDice() and mayReroll(): 
-        startDiceRoll()
+        startDiceRoll(humanRoll)
   elif m.rightMousePressed: 
     if turn.nr > 0 and turnPlayer.kind == Computer: 
       m.aiRightMouse

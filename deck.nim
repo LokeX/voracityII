@@ -276,8 +276,8 @@ proc paintIconsOn(card:BlueCard,img:var Image,squares:BoardSquares) =
     cardSquares = card.squares.required
     if card.squares.oneInMany.len > 0:
       cardSquares.add card.squares.oneInMany[0]
-  of Event: cardSquares.add card.moveSquares[^1]
-  of News: cardSquares.add card.moveSquares
+  of Event,News: cardSquares.add card.moveSquares
+  # of News: cardSquares.add card.moveSquares
   else:discard
   let x_offset = if cardSquares.len == 1: 100.0 else: 55.0
   var (x,y) = (x_offset,120.0)

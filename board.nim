@@ -85,9 +85,9 @@ proc isRollingDice*: bool = dieRollFrame < maxRollFrames
 
 proc isDouble*: bool = diceRoll[1] == diceRoll[2]
 
-proc startDiceRoll*() =
+proc startDiceRoll*(rollFrames:int) =
   if not isRollingDice(): 
-    dieRollFrame = 0
+    dieRollFrame = rollFrames
     playSound("wuerfelbecher")
 
 proc endDiceRoll* = dieRollFrame = maxRollFrames
@@ -96,6 +96,9 @@ proc mayReroll*:bool = isDouble() and not isRollingDice()
 
 template adjustToSquareNr*(adjustSquare:untyped):untyped =
   if adjustSquare > 60: adjustSquare - 60 else: adjustSquare
+
+func canKillPieceOn*(square:int):bool =
+  square notIn highways and square notIn gasStations
 
 func moveToSquare(fromSquare:int,die:int):int = 
   adjustToSquareNr fromSquare+die

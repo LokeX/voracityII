@@ -15,6 +15,9 @@ import random
 type
   SinglePiece = tuple[playerNr,pieceNr:int]
 
+const
+  (humanRoll*,computerRoll*) = (0,80)
+
 var
   singlePiece*:SinglePiece
 
@@ -137,7 +140,7 @@ proc drawSquares*(b:var Boxy) =
   elif (let square = mouseOnSquare(); square != -1) and turnPlayer.hasPieceOn square:
     b.drawMoveToSquares square
 
-proc massacre(player:Player,players:seq[Player]):int =
+proc barToMassacre(player:Player,players:seq[Player]):int =
   if (let playerBars = turnPlayer.onBars; playerBars.len > 0):
     echo "turnPlayer bars: ",playerBars
     let 
@@ -149,14 +152,14 @@ proc massacre(player:Player,players:seq[Player]):int =
 
 proc playMassacre =
   const noSuchBar = -1
-  if (let moveFrom = turnPlayer.massacre players; moveFrom != noSuchBar):
-    for (playerNr,pieceNr) in players.piecesOn moveFrom:
+  if (let bar = turnPlayer.barToMassacre players; bar != noSuchBar):
+    for (playerNr,pieceNr) in players.piecesOn bar:
       echo "killing ",$players[playerNr].color," piece on square: ",$players[playerNr].pieces[pieceNr]
       players[playerNr].pieces[pieceNr] = 0
       playSound "Deanscream-2"
       playSound "Gunshot"
     piecesImg.update = true
-    echo "massacre bar, square: ",moveFrom
+    echo "massacre bar, square: ",bar
 
 proc playCashPlansTo*(deck:var Deck) =
   if (let cashedPlans = cashInPlansTo(deck); cashedPlans.len > 0):
@@ -170,7 +173,7 @@ proc playCashPlansTo*(deck:var Deck) =
 proc move*(square:int)
 proc barMove(moveEvent:BlueCard):bool =
   let barsWithPieces = bars.filterIt it in turnPlayer.pieces
-  if barsWithPieces.len > 0:
+  if (barsWithPieces.len > 0):
     let chosenBar = barsWithPieces[rand 0..barsWithPieces.high]
     moveSelection.event = true
     moveSelection.fromSquare = chosenBar
@@ -244,7 +247,7 @@ func singlePieceOn*(players:seq[Player],square:int):SinglePiece =
       for pieceNr,piece in player.pieces:
         if piece == square: return (playerNr,pieceNr)
 
-proc initMove:Move =
+proc getMove:Move =
   result.die = -1
   result.eval = -1
   result.fromSquare = moveSelection.fromSquare
@@ -257,7 +260,7 @@ proc move =
     turn.diceMoved = not noDiceUsedToMove(
       moveSelection.fromSquare,moveSelection.toSquare)
   elif moveSelection.event: moveSelection.event = false
-  let move = initMove()
+  let move = getMove()
   if turnPlayer.kind == Human: updateTurnReport move
   turnPlayer.pieces[move.pieceNr] = moveSelection.toSquare
   if moveSelection.fromSquare == 0: 
@@ -293,22 +296,56 @@ proc killPieceAndMove*(confirmedKill:string) =
     playSound "Deanscream-2"
   animateMove()
 
-proc canKillPieceOn*(square:int):bool =
-  square notIn highways and square notIn gasStations
+func mustKillEnemy(killer:Player,planChance:float,nrOfPlayers,toSquare:int): bool =
+  if killer.hasPieceOn(toSquare): 
+    return false 
+  else:
+    let barKill = toSquare in bars and (
+      killer.nrOfPiecesOnBars > 1 or nrOfPlayers < 3
+    )
+    planChance > 0.05*nrOfPlayers.toFloat or barKill
+
+template mustKillEnemyOn(toSquare:untyped):untyped =
+  turnPlayer.mustKillEnemy(
+    players[singlePiece.playerNr].planChanceOn(toSquare,blueDeck),
+    players.len,
+    toSquare
+  )
+
+proc aiRemovePiece(move:Move): bool =
+  turnPlayer.hypotheticalInit.friendlyFireAdviced(move) or 
+  mustKillEnemyOn move.toSquare
+
+proc aiKillDecision =
+  killPieceAndMove(
+    if aiRemovePiece getMove(): 
+      "Yes" 
+    else: 
+      "No"
+  )
+
+proc startKillDialog(square:int) =
+  let entries:seq[string] = @[
+    "Remove piece on:\n",
+    squares[square].name&" Nr."&($squares[square].nr)&"?\n",
+    "\n",
+    "Yes\n",
+    "No",
+  ]
+  showMenu = false
+  startDialog(entries,3..4,killPieceAndMove)
+
+proc hasKillablePiece(square:int):bool =
+  singlePiece = players.singlePieceOn square
+  singlePiece.playerNr != -1 and canKillPieceOn square
 
 proc move*(square:int) =
   moveSelection.toSquare = square
-  singlePiece = players.singlePieceOn square
-  if turnPlayer.kind == Human and singlePiece.playerNr != -1 and canKillPieceOn square:
-    let entries:seq[string] = @[
-      "Remove piece on:\n",
-      squares[square].name&" Nr."&($squares[square].nr)&"?\n",
-      "\n",
-      "Yes\n",
-      "No",
-    ]
-    showMenu = false
-    startDialog(entries,3..4,killPieceAndMove)
+  if square.hasKillablePiece:
+    if turnPlayer.kind == Human:
+      startKillDialog square
+    else: 
+      aiKillDecision()
   else: animateMove()
 
 proc leftMouse*(m:KeyEvent) =
@@ -351,11 +388,14 @@ proc nextTurn =
   showMenu = false
 
 proc nextGameState* =
-  if turnPlayer.cash >= cashToWin: setupGame()
+  if turnPlayer.cash >= cashToWin: 
+    setupGame()
   else:
-    if turn.nr == 0: newGame()
-    else: nextTurn()
-    startDiceRoll()
+    if turn.nr == 0: 
+      newGame()
+    else: 
+      nextTurn()
+    startDiceRoll(if turnPlayer.kind == Human: humanRoll else: computerRoll)
   playSound "carhorn-1"
 
 proc rightMouse*(m:KeyEvent) =

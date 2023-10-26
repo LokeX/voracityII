@@ -22,42 +22,6 @@ var
 
 template phaseIs*:untyped = phase
 
-func knownBluesIn(discardPile,hand:seq[BlueCard]):seq[BlueCard] =
-  result.add discardPile
-  result.add hand
-
-func require(cards:seq[BlueCard],square:int): seq[BlueCard] =
-  cards.filterIt(square in it.squares.required or square in it.squares.oneInMany)
-
-func hasPlanChanceOn(player:Player,square:int,deck:Deck): float =
-  let 
-    knownCards = knownBluesIn(deck.discardPile,player.hand)
-    unknownCards = deck.fullDeck
-      .filterIt(
-        it.cardKind in [Plan,Mission,Job] and
-        it.title notIn knownCards.mapIt(it.title)
-      )
-    chance = unknownCards.require(square).len.toFloat/unknownCards.len.toFloat
-  chance*player.hand.len.toFloat
-
-proc killEnemy(hypothetical:Hypothetic,player:Player,move:Move): bool =
-  if player.hasPieceOn(move.toSquare): return false else:
-    echo "checking enemy kill"
-    let 
-      playerNr = players.singlePieceOn(move.toSquare).playerNr
-      planChance = players[playerNr].hasPlanChanceOn(move.toSquare,blueDeck)
-      barKill = move.toSquare in bars and (
-        hypothetical.countBars() > 1 or players.len < 3
-      )
-    echo "removePiece, planChance: ",planChance
-    planChance > 0.05 or barKill
-
-proc aiRemovePiece(hypothetical:Hypothetic,move:Move): bool =
-  canKillPieceOn(move.toSquare) and 
-  players.nrOfPiecesOn(move.toSquare) == 1 and 
-  (hypothetical.friendlyFireAdviced(move) or 
-  hypothetical.killEnemy(turnPlayer,move))
-
 proc aiTurn*(): bool =
   turn.nr != 0 and 
   turnPlayer.kind == Computer and 
@@ -88,14 +52,10 @@ proc moveAi =
   let 
     move = hypo.move([diceRoll[1].ord,diceRoll[2].ord])
     currentPosEval = hypo.evalPos()
-  moveSelection.fromSquare = move.fromSquare
-  moveSelection.toSquare = move.toSquare
   if move.eval.toFloat >= currentPosEval.toFloat*0.75:
     updateTurnReport move
-    if hypo.aiRemovePiece(move):
-      singlePiece = players.singlePieceOn(move.toSquare)
-      killPieceAndMove("Yes")
-    else: move move.toSquare
+    moveSelection.fromSquare = move.fromSquare
+    move move.toSquare
   else:
     echo "ai skips move:"
     echo "currentPosEval: ",currentPosEval
@@ -107,9 +67,9 @@ proc startTurn =
   phase = Draw
 
 proc rerollPhase =
-  if diceReroll.isPausing and cpuTime() - diceReroll.pauseStartTime >= 0.75:
+  if diceReroll.isPausing and cpuTime() - diceReroll.pauseStartTime >= 0.25:
     diceReroll.isPausing = false
-    startDiceRoll()
+    startDiceRoll(computerRoll)
   elif not diceReroll.isPausing and hypo.reroll: 
     diceReroll.isPausing = true
     diceReroll.pauseStartTime = cpuTime()

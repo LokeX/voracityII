@@ -39,7 +39,7 @@ const
   settingsFile* = "settings.cfg"
   defaultPlayerKinds = @[Human,Computer,None,None,None,None]
   (pbx,pby) = (20,20)
-  cashToWin* = 250_000
+  cashToWin* = 500_000
   popUpCard = Rect(x:500,y:275,w:cardWidth,h:cardHeight)
   drawPile = Rect(x:855,y:495,w:110,h:180)
   discardPile = Rect(x:1025,y:495,w:cardWidth*0.441,h:cardHeight*0.441)
@@ -110,6 +110,24 @@ proc newPlayerBatches*:array[6,Batch] =
     setup = batchSetup playerNr
     result[playerNr] = setup.playerBatch yOffset
     result[playerNr].update = true
+
+func knownBluesIn(discardPile,hand:seq[BlueCard]):seq[BlueCard] =
+  result.add discardPile
+  result.add hand
+
+func require(cards:seq[BlueCard],square:int): seq[BlueCard] =
+  cards.filterIt(square in it.squares.required or square in it.squares.oneInMany)
+
+func planChanceOn*(player:Player,square:int,deck:Deck): float =
+  let 
+    knownCards = knownBluesIn(deck.discardPile,player.hand)
+    unknownCards = deck.fullDeck
+      .filterIt(
+        it.cardKind in [Plan,Mission,Job] and
+        it.title notIn knownCards.mapIt(it.title)
+      )
+    chance = unknownCards.require(square).len.toFloat/unknownCards.len.toFloat
+  chance*player.hand.len.toFloat
 
 func piecesOn*(players:seq[Player],square:int):seq[tuple[playerNr,pieceNr:int]] =
   for playerNr,player in players:

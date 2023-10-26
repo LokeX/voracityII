@@ -23,41 +23,41 @@ Moonshine
 {48}[1,16,18,20,28,35,40,46,51,54]
 25000
 plan:
-Birthday party
+Polterabend
 {21}[1,16,18,20,28,35,40,46,51,54]
 25000
 plan:
-Squating
-[56,58,59]
-15000
+Aiding and abetting
+{60}[56,58,59]
+35000
 plan:
 Local dealership
-[31,32]
-20000
+{30}[31,32]
+35000
 plan:
-ATM magic
-[3,14,24,38,52]
-10000
+Protection
+{30}[23,34,42,44,50]
+30000
 job:
 Grapevine
 {4,30,48}
 125000
 plan:
-Exotic merchandice
-[23,34,42,44,50]
-10000
+Body count
+{26}[56,58,59]
+35000
 plan:
-Hold up
-[2,15,27,37,47]
-20000
-plan:
-Road runner
-{55}[5,17,29,41,53]
+Blood suckers
+{25}[3,14,24,38,52]
 30000
 plan:
-Inspection
-{60}[5,17,29,41,53]
-30000
+Dead weight
+{26,45}
+40000
+plan:
+Broken bones
+{25,30}
+40000
 plan:
 Slum lord
 {22}[56,58,59]
@@ -71,15 +71,15 @@ Financing
 {22}[3,14,24,38,52]
 30000
 plan:
-125 gram
-{57}
-20000
+Choire boys
+{7,57}
+40000
 plan:
 Outsider
 {36}
 20000
 plan:
-400 kilo
+Load
 {30,49}
 40000
 plan:
@@ -163,8 +163,8 @@ Cold meds
 {45}
 20000
 plan:
-Fishy cargo
-{49}
+Brotherhood
+{7,9}
 20000
 plan:
 Outstanding
@@ -231,7 +231,7 @@ Small box
 {11,30}
 40000
 plan:
-Exotics
+Human resources
 {21,11}
 40000
 plan:
@@ -279,7 +279,7 @@ Broman escorte
 {10,36,60}
 125000
 mission:
-Gang banger
+Gangbanger
 {30,36,57,60}
 250000
 mission:
