@@ -296,25 +296,22 @@ proc killPieceAndMove*(confirmedKill:string) =
     playSound "Deanscream-2"
   animateMove()
 
-func mustKillEnemy(killer:Player,planChance:float,nrOfPlayers,toSquare:int): bool =
+proc shouldKillEnemyOn(killer:Player,toSquare:int): bool =
   if killer.hasPieceOn(toSquare): 
     return false 
   else:
-    let barKill = toSquare in bars and (
-      killer.nrOfPiecesOnBars > 1 or nrOfPlayers < 3
-    )
-    planChance > 0.05*nrOfPlayers.toFloat or barKill
-
-template mustKillEnemyOn(toSquare:untyped):untyped =
-  turnPlayer.mustKillEnemy(
-    players[singlePiece.playerNr].planChanceOn(toSquare,blueDeck),
-    players.len,
-    toSquare
-  )
+    let 
+      planChance = players[singlePiece.playerNr].planChanceOn(toSquare,blueDeck)
+      barKill = toSquare in bars and (
+        killer.nrOfPiecesOnBars > 1 or players.len < 3
+      )
+    (planChance > 0.05*players.len.toFloat) or 
+    (rand(1..100) <= killer.agro) or 
+    barKill
 
 proc aiRemovePiece(move:Move): bool =
   turnPlayer.hypotheticalInit.friendlyFireAdviced(move) or 
-  mustKillEnemyOn move.toSquare
+  turnPlayer.shouldKillEnemyOn move.toSquare
 
 proc aiKillDecision =
   killPieceAndMove(

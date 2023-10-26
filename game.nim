@@ -18,6 +18,7 @@ type
     pieces*:Pieces
     hand*:seq[BlueCard]
     cash*:int
+    agro*:int
   Turn* = tuple
     nr:int # turnNr == 0 is player setup flag?
     player:int
@@ -197,7 +198,8 @@ proc newPlayers*:seq[Player] =
       color:player.color,
       kind:player.kind,
       pieces:highways,
-      cash:25000
+      cash:25000,
+      agro:rand 1..33
     )
   playerSlots.filterIt it.kind != None
 
