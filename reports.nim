@@ -114,14 +114,14 @@ proc resetReports* =
 proc recordTurnReport* =
   turnReports.add turnReport
 
+template gotReport*(player:PlayerColor):bool =
+  reportBatches[player].spansLength > 0
+
 proc startAnimation(batch:var Batch) =
   batch.setShallowPos(
     batch.rect.x.toInt,
     (batch.rect.y-batch.rect.h).toInt
   )
-
-template gotReport*(player:PlayerColor):bool =
-  reportBatches[player].spansLength > 0
 
 proc animate(batch:var Batch) =
   if batch.rect.y.toInt < rby:
@@ -132,6 +132,11 @@ proc animate(batch:var Batch) =
     batch.update = true
 
 proc drawReport*(b:var Boxy,playerBatch:PlayerColor) =
+  # var report = 
+  #   if playerBatch == turnPlayer.color:
+  #     turnReport
+  #   else:
+  #     reportBatches[playerBatch]
   if selectedBatch == -1 or playerBatch != PlayerColor(selectedBatch):
     selectedBatch = playerBatch.ord
     reportBatches[playerBatch].startAnimation

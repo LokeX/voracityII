@@ -80,6 +80,7 @@ proc postMovePhase =
   echo "postMove"
   moveSelection.fromSquare = -1
   drawCards()
+  recordTurnReport()
   phase = EndTurn
 
 proc endTurn = 
@@ -89,7 +90,6 @@ proc endTurn =
   nextGameState()
 
 proc endTurnPhase =
-  recordTurnReport()
   if autoEndTurn and turnPlayer.cash < cashToWin:
     echo "auto end turn"
     endTurn()
@@ -107,6 +107,7 @@ proc aiTakeTurn*() =
 # please, for the love of God: don't even breethe on it!
 proc aiRightMouse*(m:KeyEvent) =
   if phase == EndTurn: 
-    if showMenu: endTurn()
+    if showMenu: 
+      endTurn()
     else: showMenu = true
  

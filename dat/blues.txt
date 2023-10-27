@@ -1,7 +1,7 @@
-plan:
+job:
 Blood diamants
-{11,13}
-40000
+{8,11,13}
+125000
 plan:
 Chicks in cages
 {19,21}
@@ -19,6 +19,10 @@ Light load
 {49}[23,34,42,44,50]
 30000
 plan:
+Razia
+{60}[23,34,42,44,50]
+30000
+plan:
 Moonshine
 {48}[1,16,18,20,28,35,40,46,51,54]
 25000
@@ -29,6 +33,14 @@ Polterabend
 plan:
 Aiding and abetting
 {60}[56,58,59]
+35000
+plan:
+Concuctions
+{45}[56,58,59]
+35000
+plan:
+Home brew
+{48}[31,32]
 35000
 plan:
 Local dealership
@@ -129,6 +141,10 @@ Hooters
 job:
 Acquittal
 {4,33,10}
+125000
+job:
+Debt to society
+{33,36,39}
 125000
 plan:
 Agent
@@ -261,6 +277,38 @@ Stiffs
 job:
 Side effects
 {26,33,45}
+125000
+job:
+Color revolution
+{4,9,19}
+125000
+job:
+Higher power
+{4,7,10}
+125000
+job:
+Insurrection
+{6,9,11}
+125000
+job:
+Knock knock
+{30,39,8}
+125000
+job:
+Redemption
+{7,21,57}
+125000
+job:
+High society
+{8,21,48}
+125000
+job:
+Occupational hazard
+{25,30,43}
+125000
+job:
+Burial at sea
+{26,30,49}
 125000
 job:
 Stove away

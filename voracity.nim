@@ -23,16 +23,21 @@ var
   mouseOnBatchPlayerNr = -1
   showCashedCards:ShowCashedCards
 
-template mouseOnPlayerBatch:untyped = players[mouseOnBatchPlayerNr].color
+template mouseOnBatchColor:untyped = players[mouseOnBatchPlayerNr].color
 
 proc cashedCards:seq[BlueCard] =
   if showCashedCards == LastCashed:
-    mouseOnPlayerBatch.reports[^1].cards.cashed
+    if mouseOnBatchColor == turnPlayer.color:
+      result.add turnReport.cards.cashed
+    else:
+      result.add mouseOnBatchColor.reports[^1].cards.cashed
   else: 
-    mouseOnPlayerBatch.reports.mapIt(it.cards.cashed).flatMap
+    result.add mouseOnBatchColor.reports.mapIt(it.cards.cashed).flatMap
+    if turnPlayer.kind == Human and mouseOnBatchColor == turnPlayer.color:
+      result.add turnReport.cards.cashed
 
 proc drawCards(b:var Boxy) =
-  if mouseOnBatchPlayerNr != -1 and mouseOnPlayerBatch.reports.len > 0:
+  if mouseOnBatchPlayerNr != -1 and mouseOnBatchColor.reports.len > 0:
     if (let cashedCards = cashedCards(); cashedCards.len > 0):
       let storedRevealSetting = blueDeck.reveal
       blueDeck.reveal = Front
@@ -41,7 +46,7 @@ proc drawCards(b:var Boxy) =
     else: b.paintCards blueDeck,turnPlayer.hand
   else: b.paintCards blueDeck,turnPlayer.hand
 
-func setRevealCards(deck:var Deck,playerKind:PlayerKind) =
+proc setRevealCards(deck:var Deck,playerKind:PlayerKind) =
   if deck.reveal != UserSetFront: 
     if playerKind == Computer:
       deck.reveal = Back
@@ -56,8 +61,6 @@ proc draw(b:var Boxy) =
   b.drawPlayerBatches
   if showMenu: b.drawDynamicImage mainMenu
   if turn.nr > 0:  
-    blueDeck.setRevealCards turnPlayer.kind
-    mouseOnBatchPlayerNr = mouseOnPlayerBatchNr()
     b.doMoveAnimation
     b.drawCards
     b.drawCursor
@@ -65,8 +68,8 @@ proc draw(b:var Boxy) =
     if not isRollingDice() and turnPlayer.kind == Human: b.drawSquares
     if turnPlayer.kind == Human and turn.undrawnBlues > 0: 
       b.drawDynamicImage nrOfUndrawnBluesPainter
-    if mouseOnBatchPlayerNr != -1 and gotReport mouseOnPlayerBatch:
-      b.drawReport mouseOnPlayerBatch
+    if mouseOnBatchPlayerNr != -1 and gotReport mouseOnBatchColor:
+      b.drawReport mouseOnBatchColor
 
 proc really(title:string,answer:string -> void) =
   let entries:seq[string] = @[
@@ -118,6 +121,7 @@ proc mouse(m:KeyEvent) =
       m.rightMouse
 
 proc mouseMoved = 
+  mouseOnBatchPlayerNr = mouseOnPlayerBatchNr()
   if showMenu and mouseOn mainMenu.area:
     mainMenu.mouseSelect
 
@@ -138,6 +142,7 @@ proc keyboard (key:KeyboardEvent) =
     editDiceRoll key.rune.toUTF8
 
 proc cycle = 
+  blueDeck.setRevealCards turnPlayer.kind
   if bgRect.w < scaledWidth.toFloat:
     if bgRect.w+90 < scaledWidth.toFloat:
       bgRect.w += 90
@@ -148,10 +153,10 @@ proc cycle =
     aiTakeTurn()
 
 proc timer = 
-  if not moveAnimation.active and mouseOnBatchPlayerNr != -1:    
-    if (let reports = mouseOnPlayerBatch.reports; reports.len > 0):
+  if not moveAnimation.active and mouseOnBatchPlayerNr != -1:
+    if (let reports = mouseOnBatchColor.reports; reports.len > 0):
       startMoveAnimation(
-        mouseOnPlayerBatch,
+        mouseOnBatchColor,
         reports[^1].moves[^1].fromSquare,
         reports[^1].moves[^1].toSquare,
       )
