@@ -82,19 +82,22 @@ func oneInMoreBonus(hypothetical:Hypothetic,card:BlueCard,square:int):int =
     piecesOnRequiredSquare = hypothetical.piecesOn(requiredSquare) > 0
   if square == requiredSquare:
     if piecesOnRequiredSquare:
-      result = 40_000
-    elif card.squares.oneInMany.anyIt(hypothetical.isCovered(it)):
-      result = 20_000
+      result = card.cash
+    elif hypothetical.isCovered(square) and card.squares.oneInMany.anyIt hypothetical.isCovered it:
+      result = card.cash div 2
   elif piecesOnRequiredSquare and square in card.squares.oneInMany:
-    if hypothetical.piecesOn(square) > 0: 
-      result = 40_000
-    else: 
-      result = 20_000
+    result = card.cash
+    # if hypothetical.piecesOn(square) > 0: 
+    #   result = 40_000
+    # else: 
+    #   result = 20_000
 
 func oneRequiredBonus(hypothetical:Hypothetic,card:BlueCard,square:int): int =
   if card.squares.oneInMany.len > 0:
     hypothetical.oneInMoreBonus(card,square)
-  else: 20_000 
+  elif hypothetical.isCovered square: 
+    card.cash
+  else: 0
 
 func blueBonus(hypothetical:Hypothetic,card:BlueCard,square:int):int =
   let

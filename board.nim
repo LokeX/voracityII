@@ -253,8 +253,8 @@ proc doMoveAnimation*(b:var Boxy) =
     if moveAnimation.currentSquare == moveAnimation.squares.high:
       moveAnimation.active = false
 
-proc drawMoveToSquares*(b:var Boxy) =
-  b.drawDynamicImage moveToSquaresPainter
+# proc drawMoveToSquares*(b:var Boxy) =
+#   b.drawDynamicImage moveToSquaresPainter
 
 proc drawBoard*(b:var Boxy) =
   b.drawImage("board",boardPos)

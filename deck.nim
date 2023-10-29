@@ -10,11 +10,11 @@ type
   Reveal* = enum Front,Back,UserSetFront
   ProtoCard = array[4,string]
   PlanSquares = tuple[required,oneInMany:seq[int]]
-  CardKind* = enum Plan,Job,Event,News,Talent,Mission
+  CardKind* = enum Deed,Plan,Job,Event,News,Talent,Mission
   BlueCard* = object
     title*:string
     case cardKind*:CardKind
-    of Plan,Mission,Job:
+    of Plan,Mission,Job,Deed:
       squares*:PlanSquares
       cash*:int
       eval*:int
@@ -57,7 +57,8 @@ const
   cardSlotsX = initPosDim.buildCardSlots
 
 let
-  planbg = readImage "pics\\planbg.jpg"
+  deedbg = readImage "pics\\deedbg.jpg"
+  planbg = readImage "pics\\bronze_plates.jpg"
   jobbg = readImage "pics\\silverback.jpg"
   missionbg = readImage "pics\\mission.jpg"
   blueBack = readImage "pics\\blueback.jpg"
@@ -90,9 +91,12 @@ func parseProtoCards(lines:sink seq[string]):seq[ProtoCard] =
     else: inc cardLine
 
 func parseCardSquares(str:string,brackets:array[2,char]):seq[int] =
+  debugEcho "parsing squares"
   let (f,l) = (str.find(brackets[0]),str.find(brackets[1]))
   if -1 in [f,l]: result = @[] else:
     result = str[f+1..l-1].split(',').mapIt it.parseInt
+  debugEcho "parsing squares end"
+  debugEcho result
 
 func parseCardKindFrom(kind:string):CardKind =
   try: CardKind(CardKind.mapIt(($it).toLower).find kind[0..kind.high-1].toLower) 
@@ -101,10 +105,14 @@ func parseCardKindFrom(kind:string):CardKind =
 func buildPlanFrom(protoCard:sink ProtoCard,kind:CardKind):BlueCard =
   debugecho "building: ",protoCard[1]
   result = BlueCard(title:protoCard[1],cardKind:kind)
+  debugecho result.title
+  debugEcho $result.cardkind
   result.squares = (
     parseCardSquares(protoCard[2],['{','}']),
     parseCardSquares(protoCard[2],['[',']']),)
+  debugEcho "start parsing cash"
   result.cash = protoCard[3].parseInt
+  debugEcho "end building"
 
 func buildEventFrom(protoCard:sink ProtoCard):BlueCard =
   result = BlueCard(title:protoCard[1],cardKind:Event)
@@ -121,7 +129,7 @@ func newBlueCards(protoCards:seq[ProtoCard]): seq[BlueCard] =
     debugecho (count+1),": ",protoCard[1]
     let kind = parseCardKindFrom protoCard[0]
     case kind
-    of Plan,Mission,Job: result.add buildPlanFrom(protoCard,kind)
+    of Plan,Mission,Job,Deed: result.add buildPlanFrom(protoCard,kind)
     of Event: result.add buildEventFrom(protoCard)
     of News: result.add buildNewsFrom(protoCard)
     else:discard
@@ -186,7 +194,7 @@ func newsText(blue:BlueCard,squares:BoardSquares):seq[string] =
 proc typesetBoxedText(blue:BlueCard,squares:BoardSquares):(Arrangement,float32) =
   var txt:seq[string]
   case blue.cardKind
-  of Plan,Mission,Job:
+  of Plan,Mission,Job,Deed:
     txt = blue.required squares
     txt.insert "Requires: ",0
     txt.add "Rewards:\n" & ($blue.cash).insertSep('.')&" in cash"
@@ -243,6 +251,7 @@ proc paintTitleOn(card:BlueCard,img:var Image,borderSize:float) =
 proc paintBackgroundImage(card:BlueCard,ctx:Context,borderSize:float):Image =
   result = ctx.image
   case card.cardKind
+  of Deed: result.draw(deedbg,translate vec2(borderSize,borderSize))
   of Plan: result.draw(planbg,translate vec2(borderSize,borderSize))
   of Mission: result.draw(missionbg,translate vec2(borderSize,borderSize))
   of Job: result.draw(jobbg,translate vec2(borderSize,borderSize))
@@ -272,7 +281,7 @@ proc paintCardKindOn(card:BlueCard,img:var Image,borderSize:float) =
 proc paintIconsOn(card:BlueCard,img:var Image,squares:BoardSquares) =
   var cardSquares:seq[int] 
   case card.cardKind
-  of Mission,Plan,Job:
+  of Mission,Plan,Job,Deed:
     cardSquares = card.squares.required
     if card.squares.oneInMany.len > 0:
       cardSquares.add card.squares.oneInMany[0]

@@ -132,15 +132,14 @@ proc animate(batch:var Batch) =
     batch.update = true
 
 proc drawReport*(b:var Boxy,playerBatch:PlayerColor) =
-  # var report = 
-  #   if playerBatch == turnPlayer.color:
-  #     turnReport
-  #   else:
-  #     reportBatches[playerBatch]
+  echo "draw report: "&($playerBatch)&" player"
   if selectedBatch == -1 or playerBatch != PlayerColor(selectedBatch):
+    echo "start report animation"
     selectedBatch = playerBatch.ord
     reportBatches[playerBatch].startAnimation
   animate reportBatches[playerBatch]
+  echo "done animation"
   b.drawDynamicImage reportBatches[playerBatch]
+  echo "end report"
 
 reportBatches = initReportBatches()

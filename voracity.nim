@@ -17,33 +17,33 @@ import random
  
 # var frames:float
 
-type ShowCashedCards = enum LastCashed,AllCashed
-
 var 
   mouseOnBatchPlayerNr = -1
-  showCashedCards:ShowCashedCards
+  pinnedBatchNr = -1
 
 template mouseOnBatchColor:untyped = players[mouseOnBatchPlayerNr].color
 
+template selectedBatchColor:untyped =
+  if mouseOnBatchPlayerNr != -1: players[mouseOnBatchPlayerNr].color
+  else: players[pinnedBatchNr].color
+
+template batchSelected:bool =
+  mouseOnBatchPlayerNr != -1 or pinnedBatchNr != -1
+
 proc cashedCards:seq[BlueCard] =
-  if showCashedCards == LastCashed:
-    if mouseOnBatchColor == turnPlayer.color:
-      result.add turnReport.cards.cashed
-    else:
-      result.add mouseOnBatchColor.reports[^1].cards.cashed
-  else: 
-    result.add mouseOnBatchColor.reports.mapIt(it.cards.cashed).flatMap
-    if turnPlayer.kind == Human and mouseOnBatchColor == turnPlayer.color:
-      result.add turnReport.cards.cashed
+  echo "cashed cards collect"
+  result.add selectedBatchColor.reports.mapIt(it.cards.cashed).flatMap
+  if turnPlayer.kind == Human and selectedBatchColor == turnPlayer.color:
+    result.add turnReport.cards.cashed
+  echo "cashed cards collect end"
 
 proc drawCards(b:var Boxy) =
-  if mouseOnBatchPlayerNr != -1 and mouseOnBatchColor.reports.len > 0:
+  if batchSelected and selectedBatchColor.reports.len > 0:
     if (let cashedCards = cashedCards(); cashedCards.len > 0):
       let storedRevealSetting = blueDeck.reveal
       blueDeck.reveal = Front
       b.paintCards blueDeck,cashedCards
       blueDeck.reveal = storedRevealSetting   
-    else: b.paintCards blueDeck,turnPlayer.hand
   else: b.paintCards blueDeck,turnPlayer.hand
 
 proc setRevealCards(deck:var Deck,playerKind:PlayerKind) =
@@ -103,15 +103,13 @@ proc mouse(m:KeyEvent) =
   if m.leftMousePressed:
     blueDeck.leftMousePressed
     if mouseOnBatchPlayerNr != -1:
-      case showCashedCards
-      of LastCashed: showCashedCards = AllCashed
-      of AllCashed: showCashedCards = LastCashed
+      pinnedBatchNr = mouseOnBatchPlayerNr
+    else: pinnedBatchNr = -1
     if turn.nr == 0: togglePlayerKind()
     if showMenu and mouseOnMenuSelection():
       menuSelection()
     elif turnPlayer.kind == Human:
       m.leftMouse()
-      echo "left mouse done"
       if turn.nr > 0 and mouseOnDice() and mayReroll(): 
         startDiceRoll(humanRoll)
   elif m.rightMousePressed: 

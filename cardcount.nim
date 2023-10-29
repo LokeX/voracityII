@@ -1,22 +1,23 @@
 import strutils
 
-const fileName = "dat\\blues.txt"
+type 
+  CardKind = enum Deed,Plan,Job,Event,News,Mission
 
-var plans,missions,jobs,events,news:int
+const 
+  fileName = "dat\\blues.txt"
+
+var 
+  counts:array[CardKind,int]
+  total:int
+
 for line in lines fileName:
-  let colon = line.find ":"
-  if colon != -1:
-    case line[0..<colon]
-    of "plan": inc plans
-    of "mission": inc missions
-    of "job": inc jobs
-    of "event": inc events
-    of "news": inc news
-    else: discard
+  if (let colon = line.find ":"; colon != -1):
+    for kind in CardKind:
+      if line[0..<colon] == ($kind).toLower:
+        inc counts[kind]
 
-echo "plans: "&($plans)
-echo "missions: "&($missions)
-echo "jobs: "&($jobs)
-echo "events: "&($events)
-echo "news: "&($news)
+for i,count in counts:
+  total += count
+  echo $CardKind(i)&"s: ",count
+echo "Total: ",total
 

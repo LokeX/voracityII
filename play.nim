@@ -125,7 +125,7 @@ func pieceOnSquare(player:Player,square:int):int =
     if piece == square: return i
 
 proc drawMoveToSquares*(b:var Boxy,square:int) =
-  if square != moveSelection.hoverSquare and turnPlayer.hasPieceOn(square):
+  if square != moveSelection.hoverSquare:
     if turn.diceMoved:
       moveToSquaresPainter.context = square.moveToSquares
     else:
@@ -136,8 +136,8 @@ proc drawMoveToSquares*(b:var Boxy,square:int) =
 
 proc drawSquares*(b:var Boxy) =
   if moveSelection.fromSquare != -1:
-    b.drawMoveToSquares
-  elif (let square = mouseOnSquare(); square != -1) and turnPlayer.hasPieceOn square:
+    b.drawDynamicImage moveToSquaresPainter
+  elif (let square = mouseOnSquare(); square != -1) and turnPlayer.hasPieceOn(square):
     b.drawMoveToSquares square
 
 proc barToMassacre(player:Player,players:seq[Player]):int =
