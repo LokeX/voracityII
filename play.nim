@@ -139,6 +139,7 @@ proc drawSquares*(b:var Boxy) =
     b.drawDynamicImage moveToSquaresPainter
   elif (let square = mouseOnSquare(); square != -1) and turnPlayer.hasPieceOn(square):
     b.drawMoveToSquares square
+  else: moveSelection.hoverSquare = -1
 
 proc barToMassacre(player:Player,players:seq[Player]):int =
   if (let playerBars = turnPlayer.onBars; playerBars.len > 0):
@@ -172,6 +173,7 @@ proc playCashPlansTo*(deck:var Deck) =
 
 proc move*(square:int)
 proc barMove(moveEvent:BlueCard):bool =
+  echo "barmove event"
   let barsWithPieces = bars.filterIt it in turnPlayer.pieces
   if (barsWithPieces.len > 0):
     let chosenBar = barsWithPieces[rand 0..barsWithPieces.high]
@@ -297,7 +299,10 @@ proc killPieceAndMove*(confirmedKill:string) =
   animateMove()
 
 proc shouldKillEnemyOn(killer:Player,toSquare:int): bool =
-  if killer.hasPieceOn(toSquare): 
+  let
+    agroKill = rand(1..100) <= killer.agro
+    needsProtection = killer.needsProtectionOn(moveSelection.fromSquare,toSquare)
+  if not agroKill or killer.hasPieceOn(toSquare) or needsProtection: 
     return false 
   else:
     let 
@@ -305,9 +310,7 @@ proc shouldKillEnemyOn(killer:Player,toSquare:int): bool =
       barKill = toSquare in bars and (
         killer.nrOfPiecesOnBars > 1 or players.len < 3
       )
-    (planChance > 0.05*players.len.toFloat) or 
-    (rand(1..100) <= killer.agro) or 
-    barKill
+    (planChance > 0.05*players.len.toFloat) or agroKill or barKill
 
 proc aiRemovePiece(move:Move): bool =
   turnPlayer.hypotheticalInit.friendlyFireAdviced(move) or 

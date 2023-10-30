@@ -62,7 +62,7 @@ proc reportLines:array[9,string] = [
   "Dice Rolls:\n"&turnReport.diceRolls.mapIt($it).join("\n"),
   "Moves:\n"&turnReport.moves.mapIt($it).join("\n"),
   "Kills: "&($turnReport.kills),
-  "Cards:",
+  "Cards: ",
   # "Drawn: "&turnReport.cards.drawn.mapIt(it.title).join(","),
   "Played: "&turnReport.cards.played.mapIt(it.title).join(","),
   "Cashed: "&turnReport.cards.cashed.mapIt(it.title).join(","),

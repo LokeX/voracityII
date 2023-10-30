@@ -166,6 +166,20 @@ func cashablePlans*(player:Player):tuple[cashable,notCashable:seq[BlueCard]] =
     if player.isCashable plan: result.cashable.add plan
     else: result.notCashable.add plan
 
+func needsProtectionOn*(player:Player,fromSquare,toSquare:int):bool =
+  var hypoPlayer = player
+  debugecho "needs protection report: "
+  debugecho "player color: ",player.color
+  debugecho "player pieces: ",player.pieces
+  debugecho "move from: ",fromSquare
+  debugecho "move to: ",toSquare
+
+  try:
+    hypoPlayer.pieces[hypoPlayer.pieces.find fromSquare] = toSquare
+  except: raise newException(CatchableError,"no piece on: "&($fromSquare))
+  hypoPlayer.cashablePlans.notCashable
+    .anyIt(toSquare in it.squares.required or toSquare in it.squares.oneInMany)
+
 proc discardCards*(player:var Player,deck:var Deck):seq[BlueCard] =
   while player.hand.len > 3:
     result.add player.hand[player.hand.high]
@@ -199,7 +213,7 @@ proc newPlayers*:seq[Player] =
       kind:player.kind,
       pieces:highways,
       cash:25000,
-      agro:rand 1..33
+      agro:rand 1..66
     )
   playerSlots.filterIt it.kind != None
 

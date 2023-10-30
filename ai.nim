@@ -33,6 +33,7 @@ proc drawCards =
     drawCardFrom blueDeck
     playCashPlansTo blueDeck
   hypo.cards = turnPlayer.hand
+  hypo.pieces = turnPlayer.pieces
   if hypo.cards.len > 3:
     hypo.cards = hypo.evalBluesThreaded
     turnPlayer.hand = hypo.cards
@@ -47,14 +48,16 @@ proc reroll(hypothetical:Hypothetic): bool =
 
 proc moveAi =
   echo "move ai"
-  for blue in turnPlayer.hand: echo blue.title
-  for blue in hypo.cards: echo blue.title
+  # for blue in turnPlayer.hand: echo blue.title
+  # for blue in hypo.cards: echo blue.title
   let 
     move = hypo.move([diceRoll[1].ord,diceRoll[2].ord])
     currentPosEval = hypo.evalPos()
   if move.eval.toFloat >= currentPosEval.toFloat*0.75:
     updateTurnReport move
     moveSelection.fromSquare = move.fromSquare
+    echo "move: ",move
+    echo "ai pieces: ",turnPlayer.pieces
     move move.toSquare
   else:
     echo "ai skips move:"

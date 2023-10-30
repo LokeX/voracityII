@@ -18,6 +18,6 @@ for line in lines fileName:
 
 for i,count in counts:
   total += count
-  echo $CardKind(i)&"s: ",count
+  echo $CardKind(i),": ",count
 echo "Total: ",total
 

@@ -443,8 +443,8 @@ Lay down the law
 {10,36}
 pics\\news\\trumle.jpg
 news:
-Canon fodder
-{57,6}
+Boozers
+{48,60}
 pics\\news\\fitti2.jpg
 news:
 Demolision

@@ -17,10 +17,13 @@ type
     hoverSquare,fromSquare,toSquare:int
     toSquares:seq[int]
     event:bool
-  MoveAnimation* = tuple
-    active:bool
-    frame,moveOnFrame,currentSquare,fromsquare,toSquare:int
+  AnimationMove = tuple[fromSquare,toSquare:int]
+  MoveAnimation* = object
+    active*:bool
+    frame,moveOnFrame,currentSquare,fromsquare*,toSquare*:int
     color:PlayerColor
+    movesIdx:int
+    moves:seq[AnimationMove]
     squares:seq[int]
 
 const
@@ -225,15 +228,24 @@ func animationSquares(fromSquare,toSquare:int):seq[int] =
     if count > 60: 
       count = 1
 
-proc startMoveAnimation*(color:PlayerColor,fromSquare,toSquare:int) =
-  moveAnimation.fromsquare = fromSquare
-  moveAnimation.toSquare = toSquare
-  moveAnimation.squares = animationSquares(fromSquare,toSquare)
+proc startMoveAnimation*(color:PlayerColor,moves:seq[AnimationMove]) =
+  moveAnimation.moves = moves
+  moveAnimation.fromsquare = moves[moveAnimation.movesIdx].fromSquare
+  moveAnimation.toSquare = moves[moveAnimation.movesIdx].toSquare
+  moveAnimation.squares = animationSquares(
+    moveAnimation.fromSquare,
+    moveAnimation.toSquare
+  )
   moveAnimation.color = color
   moveAnimation.frame = 0
   moveAnimation.moveOnFrame = 60 div moveAnimation.squares.len
   moveAnimation.currentSquare = 0
   moveAnimation.active = true
+
+proc startMoveAnimation*(color:PlayerColor,fromSquare,toSquare:int) =
+  var moves:seq[AnimationMove]
+  moves.add (fromSquare,toSquare)
+  startMoveAnimation(color,moves)
 
 proc moveAnimationActive*:bool = moveAnimation.active
 

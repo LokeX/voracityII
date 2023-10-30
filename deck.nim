@@ -371,7 +371,7 @@ var
   )
 
 proc drawCardSquares(b:var Boxy,blue:BlueCard) =
-  if blue.cardKind in [Mission,Plan,Job]:
+  if blue.cardKind in [Mission,Plan,Job,Deed]:
     if cardSquaresPainter.context.title != blue.title:
       cardSquaresPainter.update = true
       cardSquaresPainter.context = blue
