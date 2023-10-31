@@ -18,6 +18,10 @@ import eval
  
 # var frames:float
 
+let
+  voracityLogo = readImage "pics\\voracity.png"
+  lets_rockLogo = readImage "pics\\lets_rock.png"
+
 var 
   mouseOnBatchPlayerNr = -1
   pinnedBatchNr = -1
@@ -66,6 +70,9 @@ proc draw(b:var Boxy) =
   # frames += 1
   if oldBg != -1: b.drawImage backgrounds[oldBg].name,oldBgRect
   b.drawImage backgrounds[bgSelected].name,bgRect
+  if turn.nr == 0:
+    b.drawImage("voracitylogo",vec2(1475,100))
+    b.drawImage("lets_rocklogo",vec2(1525,160))
   b.drawBoard
   b.drawDynamicImage piecesImg
   b.drawPlayerBatches
@@ -184,6 +191,8 @@ var
     timer:timerCall()
   )
 
+addImage("voracitylogo",voracityLogo)
+addImage("lets_rocklogo",lets_rockLogo)
 window.icon = readImage "pics\\BarMan.png"
 randomize()
 setVolume 0.05

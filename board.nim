@@ -134,6 +134,13 @@ func noDiceUsedToMove*(fromSquare,toSquare:int):bool =
   (fromSquare == 0 or fromSquare in highways) and
   (tosquare in highways or toSquare in gasStations)
 
+func dieUsed*(fromSquare,toSquare:int,dice:Dice):int =
+  if toSquare in moveToSquares(fromSquare,dice[1].ord):
+    dice[1].ord
+  elif toSquare in moveToSquares(fromSquare,dice[2].ord):
+    dice[2].ord
+  else: -1
+
 func squareDims:array[61,Dims] =
   result[0].rect = Rect(x:1225,y:150,w:35,h:100)
   for i in 0..17:

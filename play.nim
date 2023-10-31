@@ -258,11 +258,14 @@ proc getMove:Move =
 
 proc move =
   echo "executing move"
+  var move = getMove()
   if not turn.diceMoved and not moveSelection.event:
     turn.diceMoved = not noDiceUsedToMove(
-      moveSelection.fromSquare,moveSelection.toSquare)
+      moveSelection.fromSquare,moveSelection.toSquare
+    )
+    if turn.diceMoved:
+      move.die = dieUsed(moveSelection.fromSquare,moveSelection.toSquare,diceRoll)
   elif moveSelection.event: moveSelection.event = false
-  let move = getMove()
   updateTurnReport move
   turnPlayer.pieces[move.pieceNr] = moveSelection.toSquare
   if moveSelection.fromSquare == 0: 

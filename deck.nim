@@ -91,28 +91,20 @@ func parseProtoCards(lines:sink seq[string]):seq[ProtoCard] =
     else: inc cardLine
 
 func parseCardSquares(str:string,brackets:array[2,char]):seq[int] =
-  debugEcho "parsing squares"
   let (f,l) = (str.find(brackets[0]),str.find(brackets[1]))
   if -1 in [f,l]: result = @[] else:
     result = str[f+1..l-1].split(',').mapIt it.parseInt
-  debugEcho "parsing squares end"
-  debugEcho result
 
 func parseCardKindFrom(kind:string):CardKind =
   try: CardKind(CardKind.mapIt(($it).toLower).find kind[0..kind.high-1].toLower) 
   except: raise(newException(CatchableError,"Error, parsing CardKind: "&kind))
 
 func buildPlanFrom(protoCard:sink ProtoCard,kind:CardKind):BlueCard =
-  debugecho "building: ",protoCard[1]
   result = BlueCard(title:protoCard[1],cardKind:kind)
-  debugecho result.title
-  debugEcho $result.cardkind
   result.squares = (
     parseCardSquares(protoCard[2],['{','}']),
     parseCardSquares(protoCard[2],['[',']']),)
-  debugEcho "start parsing cash"
   result.cash = protoCard[3].parseInt
-  debugEcho "end building"
 
 func buildEventFrom(protoCard:sink ProtoCard):BlueCard =
   result = BlueCard(title:protoCard[1],cardKind:Event)
@@ -126,7 +118,6 @@ func buildNewsFrom(protoCard:sink ProtoCard):BlueCard =
 
 func newBlueCards(protoCards:seq[ProtoCard]): seq[BlueCard] =
   for count,protoCard in protoCards:
-    debugecho (count+1),": ",protoCard[1]
     let kind = parseCardKindFrom protoCard[0]
     case kind
     of Plan,Mission,Job,Deed: result.add buildPlanFrom(protoCard,kind)
