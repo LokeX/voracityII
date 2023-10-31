@@ -25,39 +25,39 @@ Safe bet
 deed:
 Light load
 {49}[23,34,42,44,50]
-30000
+50000
 deed:
 Razia
 {60}[23,34,42,44,50]
-30000
+50000
 deed:
 Moonshine
 {48}[1,16,18,20,28,35,40,46,51,54]
-25000
+40000
 deed:
 Polterabend
 {21}[1,16,18,20,28,35,40,46,51,54]
-25000
+40000
 deed:
 Aiding and abetting
 {60}[56,58,59]
-35000
+55000
 deed:
 Concuctions
 {45}[56,58,59]
-35000
+55000
 deed:
 Home brew
 {48}[31,32]
-35000
+55000
 deed:
 Local dealership
 {30}[31,32]
-35000
+60000
 deed:
 Protection
 {30}[23,34,42,44,50]
-30000
+50000
 job:
 Grapevine
 {4,30,48}
@@ -65,11 +65,11 @@ Grapevine
 deed:
 Body count
 {26}[56,58,59]
-35000
+55000
 deed:
 Blood suckers
 {25}[3,14,24,38,52]
-30000
+50000
 plan:
 Dead weight
 {26,45}
@@ -81,15 +81,15 @@ Broken bones
 deed:
 Slum lord
 {22}[56,58,59]
-35000
+55000
 deed:
 Laundry
 {12}[3,14,24,38,52]
-30000
+50000
 deed:
 Financing
 {22}[3,14,24,38,52]
-30000
+50000
 plan:
 Choire boys
 {7,57}
@@ -97,7 +97,7 @@ Choire boys
 deed:
 Outsider
 {36}
-20000
+30000
 plan:
 Load
 {30,49}
@@ -125,7 +125,7 @@ Foreign aid
 deed:
 Underhanded
 {22}
-20000
+30000
 plan:
 Small arms
 {6,57}
@@ -161,15 +161,15 @@ Agent
 deed:
 Burglary
 {8}
-20000
+30000
 deed:
 Pure luck
 {12}
-20000
+30000
 deed:
 Demolition
 {43}
-20000
+30000
 plan:
 Party drugs
 {45,19}
@@ -177,7 +177,7 @@ Party drugs
 deed:
 Duty free
 {11}
-20000
+30000
 plan:
 Delivery
 {30,19}
@@ -185,7 +185,7 @@ Delivery
 deed:
 Cold meds
 {45}
-20000
+30000
 plan:
 Brotherhood
 {7,9}
@@ -237,7 +237,7 @@ Rock solid claims
 deed:
 Ram theft
 {13}
-20000
+30000
 plan:
 Recycling
 {26,7}
@@ -249,7 +249,7 @@ Secret weapon
 deed:
 Sing along song
 {10}
-20000
+30000
 plan:
 Small box
 {11,30}

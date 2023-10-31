@@ -14,6 +14,7 @@ import reports
 import sequtils
 import misc
 import random
+import eval
  
 # var frames:float
 
@@ -36,6 +37,15 @@ proc cashedCards:seq[BlueCard] =
   if turnPlayer.kind == Human and selectedBatchColor == turnPlayer.color:
     result.add turnReport.cards.cashed
   echo "cashed cards collect end"
+
+proc reportAnimationMoves:seq[AnimationMove] =
+  echo "collect animation moves"
+  if selectedBatchColor == turnPlayer.color:
+    result.add turnReport.moves.mapIt (it.fromSquare,it.toSquare)
+  else: result.add selectedBatchColor
+    .reports[^1].moves
+    .mapIt (it.fromSquare,it.toSquare)
+  echo "collect animation moves end"
 
 proc drawCards(b:var Boxy) =
   if batchSelected and selectedBatchColor.reports.len > 0:
@@ -151,13 +161,11 @@ proc cycle =
     aiTakeTurn()
 
 proc timer = 
+  if turnPlayer.kind == Human and turnReport.diceRolls.len < diceRolls.len:
+    updateTurnReport diceRolls[^1]
   if not moveAnimation.active and mouseOnBatchPlayerNr != -1:
-    if (let reports = mouseOnBatchColor.reports; reports.len > 0):
-      startMoveAnimation(
-        mouseOnBatchColor,
-        reports[^1].moves[^1].fromSquare,
-        reports[^1].moves[^1].toSquare,
-      )
+    if (let moves = reportAnimationMoves(); moves.len > 0):
+        startMovesAnimations(mouseOnBatchColor,moves)
   # echo frames*2.5
   # frames = 0
   showCursor = not showCursor

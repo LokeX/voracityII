@@ -2,7 +2,6 @@ import win
 import board
 import play
 import game
-import deck
 import eval
 import sequtils
 import times
@@ -54,7 +53,7 @@ proc moveAi =
     move = hypo.move([diceRoll[1].ord,diceRoll[2].ord])
     currentPosEval = hypo.evalPos()
   if move.eval.toFloat >= currentPosEval.toFloat*0.75:
-    updateTurnReport move
+    # updateTurnReport move
     moveSelection.fromSquare = move.fromSquare
     echo "move: ",move
     echo "ai pieces: ",turnPlayer.pieces

@@ -17,7 +17,7 @@ type
     hoverSquare,fromSquare,toSquare:int
     toSquares:seq[int]
     event:bool
-  AnimationMove = tuple[fromSquare,toSquare:int]
+  AnimationMove* = tuple[fromSquare,toSquare:int]
   MoveAnimation* = object
     active*:bool
     frame,moveOnFrame,currentSquare,fromsquare*,toSquare*:int
@@ -45,6 +45,7 @@ const
   bars* = [1,16,18,20,28,35,40,46,51,54]
 
 var
+  diceRolls*:seq[Dice]
   diceRoll*:Dice = [DieFace3,DieFace4]
   dieRollFrame* = maxRollFrames
   moveSelection*:MoveSelection = (-1,-1,-1,@[],false)
@@ -83,6 +84,8 @@ proc drawDice*(b:var Boxy) =
     b.rotateDie(1)
     b.rotateDie(2)
     inc dieRollFrame
+    if dieRollFrame == maxRollFrames:
+      diceRolls.add diceRoll
 
 proc isRollingDice*: bool = dieRollFrame < maxRollFrames
 
@@ -228,10 +231,9 @@ func animationSquares(fromSquare,toSquare:int):seq[int] =
     if count > 60: 
       count = 1
 
-proc startMoveAnimation*(color:PlayerColor,moves:seq[AnimationMove]) =
-  moveAnimation.moves = moves
-  moveAnimation.fromsquare = moves[moveAnimation.movesIdx].fromSquare
-  moveAnimation.toSquare = moves[moveAnimation.movesIdx].toSquare
+proc startMoveAnimation*(color:PlayerColor,fromSquare,toSquare:int) =
+  moveAnimation.fromsquare = fromSquare
+  moveAnimation.toSquare = toSquare
   moveAnimation.squares = animationSquares(
     moveAnimation.fromSquare,
     moveAnimation.toSquare
@@ -241,11 +243,21 @@ proc startMoveAnimation*(color:PlayerColor,moves:seq[AnimationMove]) =
   moveAnimation.moveOnFrame = 60 div moveAnimation.squares.len
   moveAnimation.currentSquare = 0
   moveAnimation.active = true
+ 
+proc startMovesAnimations*(color:PlayerColor,moves:seq[AnimationMove]) =
+  moveAnimation.moves = moves
+  moveAnimation.movesIdx =  0
+  startMoveAnimation(color,
+    moves[moveAnimation.movesIdx].fromSquare,
+    moves[moveAnimation.movesIdx].toSquare
+  )
 
-proc startMoveAnimation*(color:PlayerColor,fromSquare,toSquare:int) =
-  var moves:seq[AnimationMove]
-  moves.add (fromSquare,toSquare)
-  startMoveAnimation(color,moves)
+proc nextMoveAnimation =
+  inc moveAnimation.movesIdx
+  startMoveAnimation(moveAnimation.color,
+    moveAnimation.moves[moveAnimation.movesIdx].fromSquare,
+    moveAnimation.moves[moveAnimation.movesIdx].toSquare
+  )
 
 proc moveAnimationActive*:bool = moveAnimation.active
 
@@ -263,10 +275,9 @@ proc doMoveAnimation*(b:var Boxy) =
       pieceRect.y = by+pieceRect.y
       b.drawRect(pieceRect,playerColors[moveAnimation.color])
     if moveAnimation.currentSquare == moveAnimation.squares.high:
-      moveAnimation.active = false
-
-# proc drawMoveToSquares*(b:var Boxy) =
-#   b.drawDynamicImage moveToSquaresPainter
+      if moveAnimation.moves.len > 1 and moveAnimation.movesIdx < moveAnimation.moves.high:
+        nextMoveAnimation()
+      else: moveAnimation.active = false
 
 proc drawBoard*(b:var Boxy) =
   b.drawImage("board",boardPos)

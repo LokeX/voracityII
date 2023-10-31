@@ -56,32 +56,44 @@ proc initReportBatches:ReportBatches =
 proc reports*(playerColor:PlayerColor):seq[TurnReport] =
   turnReports.filterIt(it.playerBatch.color == playerColor)
 
-proc reportLines:array[9,string] = [
-  "Turn nr: "&($turnReport.turnNr),
-  "Player: "&($turnReport.playerBatch),
-  "Dice Rolls:\n"&turnReport.diceRolls.mapIt($it).join("\n"),
-  "Moves:\n"&turnReport.moves.mapIt($it).join("\n"),
-  "Kills: "&($turnReport.kills),
-  "Cards: ",
-  # "Drawn: "&turnReport.cards.drawn.mapIt(it.title).join(","),
-  "Played: "&turnReport.cards.played.mapIt(it.title).join(","),
-  "Cashed: "&turnReport.cards.cashed.mapIt(it.title).join(","),
-  "Discarded: "&turnReport.cards.discarded.mapIt(it.title).join(","),
-]
+proc reportLines(report:TurnReport):seq[string] = 
+  result.add @[
+    "Turn nr: "&($report.turnNr),
+    "Player: "&($report.playerBatch),
+    "Dice Rolls:\n"&report.diceRolls.mapIt($it).join("\n"),
+    "Moves:\n"&report.moves.mapIt($it).join("\n"),
+    "Kills: "&($report.kills),
+  ]
+  if turnPlayer.cash >= cashToWin:
+    result.add @[
+      "Hand: "&turnPlayer.hand.mapIt(it.title).join(","),
+      "Drawn: "&report.cards.drawn.mapIt(it.title).join(","),
+    ]
+  result.add @[
+    "Played: "&report.cards.played.mapIt(it.title).join(","),
+    "Cashed: "&report.cards.cashed.mapIt(it.title).join(","),
+    "Discarded: "&report.cards.discarded.mapIt(it.title).join(","),
+  ]
 
 proc echoTurnReport* =
-  for line in reportLines(): echo line
+  for line in reportLines turnReport: echo line
 
-proc batchUpdate:seq[Span] =
-  for line in reportLines():
+proc batchUpdate(turnReport:TurnReport):seq[Span] =
+  for line in reportLines turnReport:
     result.add newSpan(line&"\n",plainFont)
+
+proc writeEndOfGameReports* =
+  for i,batch in reportBatches:
+    if turnPlayer.color != PlayerColor(i):
+      batch.setSpans batchUpdate turnReports
+        .filterIt(it.playerBatch.color == PlayerColor(i))[^1]
 
 proc initTurnReport* =
   turnReport = TurnReport()
   turnReport.turnNr = turnPlayer.turnNr+1
   turnReport.playerBatch.color = turnPlayer.color
   turnReport.playerBatch.kind = turnPlayer.kind
-  reportBatches[turnPlayer.color].setSpans batchUpdate()
+  reportBatches[turnPlayer.color].setSpans batchUpdate turnReport
   reportBatches[turnPlayer.color].update = true
 
 proc updateTurnReport*[T](item:T) =
@@ -91,7 +103,9 @@ proc updateTurnReport*[T](item:T) =
     turnReport.diceRolls.add item
   when typeof(T) is PlayerColor: 
     turnReport.kills.add item
-  reportBatches[turnPlayer.color].setSpans batchUpdate()
+  reportBatches[turnPlayer.color].setSpans batchUpdate turnReport
+  if turnPlayer.cash >= cashToWin:
+    writeEndOfGameReports()
   reportBatches[turnPlayer.color].update = true
 
 proc updateTurnReportCards*(blues:seq[BlueCard],playedCard:PlayedCard) =
@@ -100,7 +114,9 @@ proc updateTurnReportCards*(blues:seq[BlueCard],playedCard:PlayedCard) =
   of Played: turnReport.cards.played.add blues
   of Cashed: turnReport.cards.cashed.add blues
   of Discarded: turnReport.cards.discarded.add blues
-  reportBatches[turnPlayer.color].setSpans batchUpdate()
+  reportBatches[turnPlayer.color].setSpans batchUpdate turnReport
+  if turnPlayer.cash >= cashToWin:
+    writeEndOfGameReports()
   reportBatches[turnPlayer.color].update = true
 
 proc resetReports* =

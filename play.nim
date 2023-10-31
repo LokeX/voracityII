@@ -263,7 +263,7 @@ proc move =
       moveSelection.fromSquare,moveSelection.toSquare)
   elif moveSelection.event: moveSelection.event = false
   let move = getMove()
-  if turnPlayer.kind == Human: updateTurnReport move
+  updateTurnReport move
   turnPlayer.pieces[move.pieceNr] = moveSelection.toSquare
   if moveSelection.fromSquare == 0: 
     turnPlayer.cash -= 5000
@@ -380,8 +380,10 @@ proc newGame =
 proc nextTurn =
   playSound "page-flip-2"
   turnReport.cards.discarded.add turnPlayer.discardCards blueDeck
+  diceRolls.setLen 0
   echoTurnReport()
   if turnPlayer.kind == Human:
+    # updateTurnReport diceRoll
     recordTurnReport()
   nextPlayerTurn()
   initTurnReport()
