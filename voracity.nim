@@ -18,13 +18,44 @@ import eval
  
 # var frames:float
 
+const
+  logoFontPath = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
+  logoText = [
+    "Created by",
+    "Sebastian Tue Øltieng",
+    "Per Ulrik Bøge Nielsen",
+    "",
+    "Coded by",
+    "Per Ulrik Bøge Nielsen",
+    "",
+    "All rights reserved (1998 - 2023)",
+  ]
+
 let
   voracityLogo = readImage "pics\\voracity.png"
   lets_rockLogo = readImage "pics\\lets_rock.png"
+  logoFont = setNewFont(logoFontPath,size = 16.0,color(1,1,1))
 
 var 
   mouseOnBatchPlayerNr = -1
   pinnedBatchNr = -1
+
+proc logoTextArrangement(width,height:float):Arrangement =
+  var spans:seq[Span]
+  logoFont.lineHeight = 22
+  for line in logoText:
+    spans.add newSpan(line&"\n",logoFont.copy)
+  spans.typeset(
+    bounds = vec2(width,height),
+    hAlign = CenterAlign
+  )
+
+proc paintLogo:Image =
+  result = newImage(350,400)
+  var ctx = result.newContext
+  ctx.drawImage(voracityLogo,vec2(0,0))
+  ctx.drawImage(lets_rockLogo,vec2(50,70))
+  ctx.image.fillText(logoTextArrangement(350,200),translate vec2(0,150))
 
 template mouseOnBatchColor:untyped = players[mouseOnBatchPlayerNr].color
 
@@ -70,14 +101,12 @@ proc draw(b:var Boxy) =
   # frames += 1
   if oldBg != -1: b.drawImage backgrounds[oldBg].name,oldBgRect
   b.drawImage backgrounds[bgSelected].name,bgRect
-  if turn.nr == 0:
-    b.drawImage("voracitylogo",vec2(1475,100))
-    b.drawImage("lets_rocklogo",vec2(1525,160))
   b.drawBoard
   b.drawDynamicImage piecesImg
   b.drawPlayerBatches
   if showMenu: b.drawDynamicImage mainMenu
   if turn.nr > 0:  
+    if mouseOn squares[0].dims.area: b.drawKillMatrix
     b.doMoveAnimation
     b.drawCards
     b.drawCursor
@@ -87,6 +116,7 @@ proc draw(b:var Boxy) =
       b.drawDynamicImage nrOfUndrawnBluesPainter
     if mouseOnBatchPlayerNr != -1 and gotReport mouseOnBatchColor:
       b.drawReport mouseOnBatchColor
+  else: b.drawImage("logo",vec2(1475,60))
 
 proc really(title:string,answer:string -> void) =
   let entries:seq[string] = @[
@@ -191,8 +221,7 @@ var
     timer:timerCall()
   )
 
-addImage("voracitylogo",voracityLogo)
-addImage("lets_rocklogo",lets_rockLogo)
+addImage("logo",paintLogo())
 window.icon = readImage "pics\\BarMan.png"
 randomize()
 setVolume 0.05

@@ -1,4 +1,4 @@
-import win
+import win except align
 import batch
 import colors
 import sequtils
@@ -10,6 +10,7 @@ import eval
 import misc
 
 type 
+  KillMatrix = array[PlayerColor,array[PlayerColor,int]]
   PlayedCard* = enum Drawn,Played,Cashed,Discarded
   ReportBatches = array[PlayerColor,Batch]
   TurnReport* = object
@@ -21,11 +22,13 @@ type
     kills*:seq[PlayerColor]
 
 const
+  killMatrixFont = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
   reportFont = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
   (rbx,rby) = (450,280)
 
 let
   plainFont = setNewFont(reportFont,18,contrastColors[turnPlayer.color])
+  matrixFont = setNewFont(killMatrixFont,size = 16.0)
 
 var
   reportBatches:ReportBatches
@@ -46,6 +49,81 @@ proc initReportBatch:Batch =
     opacity:25,
     shadow:(10,1.75,color(255,255,255,100))
   )
+
+proc victims(killer:PlayerColor):seq[PlayerColor] =
+  for report in turnReports:
+    if report.playerBatch.color == killer:
+      result.add report.kills
+  if killer == turnPlayer.color:
+    result.add turnReport.kills
+
+proc killMatrix:KillMatrix =
+  for killer in PlayerColor:
+    let kills = killer.victims
+    # block:
+    #   var k:seq[PlayerColor]
+    #   for report in turnReports:
+    #     if report.playerBatch.color == killer:
+    #       for kill in report.kills:
+    #         k.add kill
+    #   k
+    # let kills = turnReports
+    #   .filterIt(it.playerBatch.color == killer)
+    #   .mapIt(it.kills)
+    #   .flatMap
+    for victim in PlayerColor:
+      result[victim][killer] = kills.count(victim)
+      # result[victim][killer] = turnReports
+      #   .filterIt(it.playerBatch.color == killer)
+      #   .mapIt(it.kills)
+      #   .flatMap
+      #   .count(victim)
+
+      # if killer == turnPlayer.color:
+      #   result[victim][killer] += turnReport.kills.count(victim)
+
+proc typesetKillMatrix(width,height:float):Arrangement =
+  let matrix = killMatrix()
+  var spans:seq[Span]
+  for rowColor,row in matrix:
+    var font = matrixFont.copy
+    font.paint = playerColors[PlayerColor(rowColor)]
+    for column,value in row:
+      spans.add newSpan(($value).align(8),font)
+      if column == row.high: spans[^1].text.add "\n"
+  spans.typeset(bounds = vec2(width,height))
+
+proc paintMatrixShadow(img:Image):Image =
+  var ctx = newImage(225,205).newContext
+  ctx.fillStyle = color(0,0,0,100)
+  ctx.fillRect(Rect(x:5,y:5,w:220,h:200))
+  ctx.image.draw(img,translate vec2(0,0))
+  ctx.image
+
+proc paintKillMatrix:Image =
+  result = newImage(220,200)
+  result.fill color(0,100,100)
+  var 
+    ctx = result.newContext
+    xPos:int
+  for color in playerColors:
+    ctx.fillStyle = color
+    ctx.fillRect(Rect(x:(20+(xPos*32)).toFloat,y:10,w:20,h:20))
+    inc xPos
+  ctx.image.fillText(typesetKillMatrix(200,100),translate vec2(0,50))
+  result = ctx.image.paintMatrixShadow
+  result.applyOpacity 25
+
+var 
+  killMatrixPainter = DynamicImage[void](
+    name:"killMatrix",
+    area:(300+bx.toInt,300+by.toInt,0,0),
+    updateImage:paintKillMatrix,
+    update:true
+  )
+
+proc drawKillMatrix*(b:var Boxy) =
+  b.drawDynamicImage killMatrixPainter
 
 proc initReportBatches:ReportBatches =
   for i,batch in reportBatches.enum_mitems:
@@ -103,6 +181,7 @@ proc updateTurnReport*[T](item:T) =
     turnReport.diceRolls.add item
   when typeof(T) is PlayerColor: 
     turnReport.kills.add item
+    killMatrixPainter.update = true
   reportBatches[turnPlayer.color].setSpans batchUpdate turnReport
   if turnPlayer.cash >= cashToWin:
     writeEndOfGameReports()

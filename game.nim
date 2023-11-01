@@ -213,7 +213,7 @@ proc newPlayers*:seq[Player] =
       kind:player.kind,
       pieces:highways,
       cash:25000,
-      agro:rand 1..66
+      agro:rand 1..100
     )
   playerSlots.filterIt it.kind != None
 
