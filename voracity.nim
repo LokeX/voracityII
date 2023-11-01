@@ -15,8 +15,9 @@ import sequtils
 import misc
 import random
 import eval
+import strutils
  
-# var frames:float
+var frames:float
 
 const
   logoFontPath = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
@@ -34,6 +35,7 @@ const
 let
   voracityLogo = readImage "pics\\voracity.png"
   lets_rockLogo = readImage "pics\\lets_rock.png"
+  barMan = readImage "pics\\barman.jpg"
   logoFont = setNewFont(logoFontPath,size = 16.0,color(1,1,1))
 
 var 
@@ -41,11 +43,9 @@ var
   pinnedBatchNr = -1
 
 proc logoTextArrangement(width,height:float):Arrangement =
-  var spans:seq[Span]
   logoFont.lineHeight = 22
-  for line in logoText:
-    spans.add newSpan(line&"\n",logoFont.copy)
-  spans.typeset(
+  logoFont.typeset(
+    logoText.join("\n"),
     bounds = vec2(width,height),
     hAlign = CenterAlign
   )
@@ -57,6 +57,18 @@ proc paintLogo:Image =
   ctx.drawImage(lets_rockLogo,vec2(50,70))
   ctx.image.fillText(logoTextArrangement(350,200),translate vec2(0,150))
 
+proc paintBarman:Image =
+  let 
+    (w,h) = (barMan.width,barMan.height)
+    shadow = 5
+  result = newImage(w+shadow,h+shadow)
+  var ctx = result.newContext
+  ctx.fillStyle = color(0,0,0,100)
+  ctx.fillRect(Rect(x:shadow.toFloat,y:shadow.toFloat,w:w.toFloat,h:h.toFloat))
+  ctx.image.blur 2
+  ctx.drawImage(barman,vec2(0,0))
+  ctx.image.applyOpacity 25
+
 template mouseOnBatchColor:untyped = players[mouseOnBatchPlayerNr].color
 
 template selectedBatchColor:untyped =
@@ -67,20 +79,16 @@ template batchSelected:bool =
   mouseOnBatchPlayerNr != -1 or pinnedBatchNr != -1
 
 proc cashedCards:seq[BlueCard] =
-  echo "cashed cards collect"
   result.add selectedBatchColor.reports.mapIt(it.cards.cashed).flatMap
   if turnPlayer.kind == Human and selectedBatchColor == turnPlayer.color:
     result.add turnReport.cards.cashed
-  echo "cashed cards collect end"
 
 proc reportAnimationMoves:seq[AnimationMove] =
-  echo "collect animation moves"
   if selectedBatchColor == turnPlayer.color:
     result.add turnReport.moves.mapIt (it.fromSquare,it.toSquare)
   else: result.add selectedBatchColor
     .reports[^1].moves
     .mapIt (it.fromSquare,it.toSquare)
-  echo "collect animation moves end"
 
 proc drawCards(b:var Boxy) =
   if batchSelected and selectedBatchColor.reports.len > 0:
@@ -98,7 +106,7 @@ proc setRevealCards(deck:var Deck,playerKind:PlayerKind) =
     else: deck.reveal = Front
 
 proc draw(b:var Boxy) =
-  # frames += 1
+  frames += 1
   if oldBg != -1: b.drawImage backgrounds[oldBg].name,oldBgRect
   b.drawImage backgrounds[bgSelected].name,bgRect
   b.drawBoard
@@ -116,7 +124,9 @@ proc draw(b:var Boxy) =
       b.drawDynamicImage nrOfUndrawnBluesPainter
     if mouseOnBatchPlayerNr != -1 and gotReport mouseOnBatchColor:
       b.drawReport mouseOnBatchColor
-  else: b.drawImage("logo",vec2(1475,60))
+  else: 
+    b.drawImage("logo",vec2(1475,60))
+    b.drawImage("barman",Rect(x:1575,y:450,w:150,h:200))
 
 proc really(title:string,answer:string -> void) =
   let entries:seq[string] = @[
@@ -204,7 +214,7 @@ proc timer =
     if (let moves = reportAnimationMoves(); moves.len > 0):
         startMovesAnimations(mouseOnBatchColor,moves)
   # echo frames*2.5
-  # frames = 0
+  frames = 0
   showCursor = not showCursor
 
 proc timerCall:TimerCall =
@@ -222,6 +232,7 @@ var
   )
 
 addImage("logo",paintLogo())
+addImage("barman",paintBarman())
 window.icon = readImage "pics\\BarMan.png"
 randomize()
 setVolume 0.05

@@ -178,7 +178,7 @@ func evalBlues(hypothetical:Hypothetic,cards:seq[BlueCard]):seq[BlueCard] =
   hypo.cards = cards
   hypo.evalBlues
 
-proc evalBluesThreaded*(hypothetical:Hypothetic): seq[BlueCard] =
+proc evalBluesThreaded*(hypothetical:Hypothetic): seq[BlueCard] {.gcSafe.} =
   let evals = hypothetical.cards.mapIt(spawn hypothetical.evalBlue it)
   for i,card in hypothetical.cards:
     result.add card
@@ -226,7 +226,7 @@ func bestMove(hypothetical:Hypothetic,pieceNr,fromSquare,die:int):Move =
     eval = evals[bestEval]
   (pieceNr,die,fromSquare,bestSquare,eval)
 
-proc move*(hypothetical:Hypothetic,dice:openArray[int]):Move = 
+proc move*(hypothetical:Hypothetic,dice:openArray[int]):Move {.gcSafe.} = 
   var flowMoves:seq[FlowVar[Move]]
   for pieceNr,fromSquare in hypothetical.pieces:
     for die in dice:
@@ -234,7 +234,7 @@ proc move*(hypothetical:Hypothetic,dice:openArray[int]):Move =
   # let moves = flowMoves.mapIt(^it)
   flowMoves.mapIt(^it).sortedByIt(it.eval)[^1]
 
-proc diceMoves(hypothetical:Hypothetic):seq[FlowVar[Move]] =
+proc diceMoves(hypothetical:Hypothetic):seq[FlowVar[Move]] {.gcSafe.} =
   for pieceNr,fromSquare in hypothetical.pieces:
     for die in 1..6: result.add spawn hypothetical.bestMove(pieceNr,fromSquare,die)
 
@@ -255,6 +255,6 @@ proc hypotheticalInit*(player:Player):Hypothetic =
   player.pieces,
   player.hand)
 
-proc sortBlues*(player:Player):seq[BlueCard] =
+proc sortBlues*(player:Player):seq[BlueCard] {.gcSafe.} =
   player.hypotheticalInit.evalBluesThreaded
 

@@ -11,17 +11,17 @@
         "c",
         "-r",
         "-d:release",
-        "--parallelBuild:6",
-        "--warning:all:off",
+        
         // "--opt:speed",
         // "--floatChecks:off",
         // "--overflowChecks:off",
         // "--nanChecks:off",
         // "--infChecks:off",
         // "--objChecks:off",
-        // "--excessiveStackTrace:on",
-        // "--experimental:parallel",
-        // "--verbosity:0",
+
+        "--excessiveStackTrace:on",        
+        "--parallelBuild:6",
+        "--warning:all:off",
         "voracity.nim"
       ],
       "problemMatcher": [],

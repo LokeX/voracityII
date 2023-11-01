@@ -143,7 +143,6 @@ proc drawSquares*(b:var Boxy) =
 
 proc barToMassacre(player:Player,players:seq[Player]):int =
   if (let playerBars = turnPlayer.onBars; playerBars.len > 0):
-    echo "turnPlayer bars: ",playerBars
     let 
       maxPieces = playerBars.mapIt(players.nrOfPiecesOn it).max
       barsWithMaxPieces = playerBars.filterIt(players.nrOfPiecesOn(it) == maxPieces)
@@ -155,12 +154,10 @@ proc playMassacre =
   const noSuchBar = -1
   if (let bar = turnPlayer.barToMassacre players; bar != noSuchBar):
     for (playerNr,pieceNr) in players.piecesOn bar:
-      echo "killing ",$players[playerNr].color," piece on square: ",$players[playerNr].pieces[pieceNr]
       players[playerNr].pieces[pieceNr] = 0
       playSound "Deanscream-2"
       playSound "Gunshot"
     piecesImg.update = true
-    echo "massacre bar, square: ",bar
 
 proc playCashPlansTo*(deck:var Deck) =
   if (let cashedPlans = cashInPlansTo(deck); cashedPlans.len > 0):
@@ -173,7 +170,6 @@ proc playCashPlansTo*(deck:var Deck) =
 
 proc move*(square:int)
 proc barMove(moveEvent:BlueCard):bool =
-  echo "barmove event"
   let barsWithPieces = bars.filterIt it in turnPlayer.pieces
   if (barsWithPieces.len > 0):
     let chosenBar = barsWithPieces[rand 0..barsWithPieces.high]
@@ -198,7 +194,6 @@ proc playDejaVue =
   turnPlayer.hand.add blueDeck.discardPile[^2]
   delete(blueDeck.discardPile,blueDeck.discardPile.high - 1)
   blueDeck.lastDrawn = turnPlayer.hand[^1].title
-  echo "Deja vue: survived discard pile draw"
   if turnPlayer.hand.len > 0: 
     case turnPlayer.hand[^1].cardKind 
     of Event: playEvent()
@@ -224,8 +219,6 @@ proc playEvent =
 
 proc drawCardFrom*(deck:var Deck) =
   turnPlayer.hand.drawFrom deck
-  echo "drew card: ",turnPlayer.hand[^1].title
-  echo "card kind: ",turnPlayer.hand[^1].cardKind
   var action:PlayedCard = Played
   let blue = turnPlayer.hand[^1]
   case blue.cardKind
@@ -257,7 +250,6 @@ proc getMove:Move =
   result.pieceNr = turnPlayer.pieceOnSquare moveSelection.fromSquare
 
 proc move =
-  echo "executing move"
   var move = getMove()
   if not turn.diceMoved and not moveSelection.event:
     turn.diceMoved = not noDiceUsedToMove(
@@ -271,11 +263,8 @@ proc move =
   if moveSelection.fromSquare == 0: 
     turnPlayer.cash -= 5000
     updateBatch turn.player
-  echo "cashing plans"
   playCashPlansTo blueDeck
-  echo "survived: cashing plans"
   turnPlayer.hand = turnPlayer.sortBlues
-  echo "survived sorting blues"
   playerBatches[turn.player].update = true
   moveSelection.fromSquare = -1
   piecesImg.update = true
@@ -362,7 +351,6 @@ proc leftMouse*(m:KeyEvent) =
         select square
       elif moveSelection.fromSquare != -1:
         move square
-        echo "back from move"
     elif turnPlayer.hand.len > 3: 
       if (let slotNr = turnPlayer.mouseOnCardSlot blueDeck; slotNr != -1):
         turnPlayer.hand.playTo blueDeck,slotNr
@@ -384,7 +372,7 @@ proc nextTurn =
   playSound "page-flip-2"
   turnReport.cards.discarded.add turnPlayer.discardCards blueDeck
   diceRolls.setLen 0
-  echoTurnReport()
+  # echoTurnReport()
   if turnPlayer.kind == Human:
     # updateTurnReport diceRoll
     recordTurnReport()

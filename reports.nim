@@ -60,27 +60,8 @@ proc victims(killer:PlayerColor):seq[PlayerColor] =
 proc killMatrix:KillMatrix =
   for killer in PlayerColor:
     let kills = killer.victims
-    # block:
-    #   var k:seq[PlayerColor]
-    #   for report in turnReports:
-    #     if report.playerBatch.color == killer:
-    #       for kill in report.kills:
-    #         k.add kill
-    #   k
-    # let kills = turnReports
-    #   .filterIt(it.playerBatch.color == killer)
-    #   .mapIt(it.kills)
-    #   .flatMap
     for victim in PlayerColor:
       result[victim][killer] = kills.count(victim)
-      # result[victim][killer] = turnReports
-      #   .filterIt(it.playerBatch.color == killer)
-      #   .mapIt(it.kills)
-      #   .flatMap
-      #   .count(victim)
-
-      # if killer == turnPlayer.color:
-      #   result[victim][killer] += turnReport.kills.count(victim)
 
 proc typesetKillMatrix(width,height:float):Arrangement =
   let matrix = killMatrix()

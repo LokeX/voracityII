@@ -27,7 +27,6 @@ proc aiTurn*(): bool =
   not isRollingDice()
 
 proc drawCards =
-  echo "draw cards"
   while turn.undrawnBlues > 0:
     drawCardFrom blueDeck
     playCashPlansTo blueDeck
@@ -46,9 +45,6 @@ proc reroll(hypothetical:Hypothetic): bool =
   isDouble() and diceRoll[1].ord notIn bestDice[^2..^1]
 
 proc moveAi =
-  echo "move ai"
-  # for blue in turnPlayer.hand: echo blue.title
-  # for blue in hypo.cards: echo blue.title
   let 
     move = hypo.move([diceRoll[1].ord,diceRoll[2].ord])
     currentPosEval = hypo.evalPos()
@@ -79,21 +75,18 @@ proc rerollPhase =
     phase = AiMove
 
 proc postMovePhase =
-  echo "postMove"
   moveSelection.fromSquare = -1
   drawCards()
   recordTurnReport()
   phase = EndTurn
 
 proc endTurn = 
-  echo "endTurn" 
   showMenu = false
   phase = Await
   nextGameState()
 
 proc endTurnPhase =
   if autoEndTurn and turnPlayer.cash < cashToWin:
-    echo "auto end turn"
     endTurn()
 
 proc aiTakeTurn*() =
