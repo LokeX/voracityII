@@ -167,18 +167,11 @@ func isCashable*(player:Player,plan:BlueCard):bool =
 
 func cashablePlans*(player:Player):tuple[cashable,notCashable:seq[BlueCard]] =
   for plan in player.hand:
-    # debugecho "checking isCashable: ",plan.title
     if player.isCashable plan: result.cashable.add plan
     else: result.notCashable.add plan
 
 func needsProtectionOn*(player:Player,fromSquare,toSquare:int):bool =
   var hypoPlayer = player
-  debugecho "needs protection report: "
-  debugecho "player color: ",player.color
-  debugecho "player pieces: ",player.pieces
-  debugecho "move from: ",fromSquare
-  debugecho "move to: ",toSquare
-
   try:
     hypoPlayer.pieces[hypoPlayer.pieces.find fromSquare] = toSquare
   except: raise newException(CatchableError,"no piece on: "&($fromSquare))
@@ -245,11 +238,6 @@ proc playerKindsFromFile:seq[PlayerKind] =
 proc playerKindsToFile*(playerKinds:openArray[PlayerKind]) =
   writeFile(settingsFile,$playerKinds.mapIt($it))
 
-proc printPlayers =
-  for player in players:
-    for field,value in player.fieldPairs:
-      echo field,": ",value
-
 proc initPlayers =
   randomize()
   for i,kind in playerKindsFromFile(): playerKinds[i] = kind
@@ -258,9 +246,4 @@ proc initPlayers =
 
 initPlayers()
 blueDeck.initCardSlots discardPile,popUpCard,drawPile
-
-when isMainModule:
-  printPlayers()
-  players = newPlayers()
-  printPlayers()
 

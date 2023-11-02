@@ -14,12 +14,12 @@ type
   PlayedCard* = enum Drawn,Played,Cashed,Discarded
   ReportBatches = array[PlayerColor,Batch]
   TurnReport* = object
-    turnNr*:int
-    playerBatch*:tuple[color:PlayerColor,kind:PlayerKind]
+    turnNr:int
+    playerBatch:tuple[color:PlayerColor,kind:PlayerKind]
     diceRolls*:seq[Dice]
     moves*:seq[Move]
     cards*:tuple[drawn,played,cashed,discarded:seq[BlueCard]]
-    kills*:seq[PlayerColor]
+    kills:seq[PlayerColor]
 
 const
   killMatrixFont = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
@@ -32,8 +32,8 @@ let
 
 var
   reportBatches:ReportBatches
-  selectedBatch*:int
-  turnReports*:seq[TurnReport]
+  selectedBatch:int
+  turnReports:seq[TurnReport]
   turnReport*:TurnReport
 
 proc initReportBatch:Batch = 
@@ -129,17 +129,14 @@ proc reportLines(report:TurnReport):seq[string] =
     "Discarded: "&report.cards.discarded.mapIt(it.title).join(","),
   ]
 
-proc echoTurnReport* =
-  for line in reportLines turnReport: echo line
-
-proc batchUpdate(turnReport:TurnReport):seq[Span] =
+proc reportSpansFrom(turnReport:TurnReport):seq[Span] =
   for line in reportLines turnReport:
     result.add newSpan(line&"\n",plainFont)
 
 proc recordTurnReport* =
   turnReports.add turnReport
 
-proc writeEndOfGameReports* =
+proc writeEndOfGameReports =
   for player in players:
     let report = if player.color == turnPlayer.color: turnReport else:
       turnReports.filterIt(it.playerBatch.color == player.color)[^1]
@@ -155,11 +152,11 @@ proc initTurnReport* =
   turnReport.turnNr = turnPlayer.turnNr+1
   turnReport.playerBatch.color = turnPlayer.color
   turnReport.playerBatch.kind = turnPlayer.kind
-  reportBatches[turnPlayer.color].setSpans batchUpdate turnReport
+  reportBatches[turnPlayer.color].setSpans reportSpansFrom turnReport
   reportBatches[turnPlayer.color].update = true
 
 proc writeUpdate =
-  reportBatches[turnPlayer.color].setSpans batchUpdate turnReport
+  reportBatches[turnPlayer.color].setSpans reportSpansFrom turnReport
   if turnPlayer.cash >= cashToWin:
     writeEndOfGameReports()
   reportBatches[turnPlayer.color].update = true
@@ -218,7 +215,7 @@ proc squareVisits:array[1..60,int] =
   for square in turnReports.mapIt(it.moves.mapIt(it.toSquare)).flatMap:
     inc result[square]
 
-proc writeEndOfGameReport* =
+proc writeGamestats* =
   var squareVisits:seq[string]
   for i,visits in squareVisits():
     squareVisits.add squares[i].name&" Nr."&($i)&": "&($visits)

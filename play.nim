@@ -371,9 +371,7 @@ proc nextTurn =
   playSound "page-flip-2"
   updateTurnReportCards(turnPlayer.discardCards blueDeck, Discarded)
   diceRolls.setLen 0
-  # echoTurnReport()
   if turnPlayer.kind == Human:
-    # updateTurnReport diceRoll
     recordTurnReport()
   nextPlayerTurn()
   initTurnReport()
@@ -381,7 +379,7 @@ proc nextTurn =
 
 proc nextGameState* =
   if turnPlayer.cash >= cashToWin: 
-    # writeEndOfGameReport()
+    writeGamestats()
     setupGame()
   else:
     if turn.nr == 0: 
