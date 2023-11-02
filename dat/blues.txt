@@ -3,6 +3,14 @@ Blood diamants
 {8,11,13}
 125000
 job:
+Heartless
+{11,25,26}
+125000
+job:
+Express demands
+{11,45,55}
+125000
+job:
 Bootlegging
 {48,49,55}
 125000

@@ -291,13 +291,12 @@ proc killPieceAndMove*(confirmedKill:string) =
   animateMove()
 
 proc shouldKillEnemyOn(killer:Player,toSquare:int): bool =
-  let
-    agroKill = rand(1..100) <= killer.agro
-    needsProtection = killer.needsProtectionOn(moveSelection.fromSquare,toSquare)
-  if not agroKill or killer.hasPieceOn(toSquare) or needsProtection: 
+  if killer.hasPieceOn(toSquare): 
     return false 
   else:
     let 
+      agroKill = rand(1..100) <= killer.agro
+      # needsProtection = killer.needsProtectionOn(moveSelection.fromSquare,toSquare)
       planChance = players[singlePiece.playerNr].planChanceOn(toSquare,blueDeck)
       barKill = toSquare in bars and (
         killer.nrOfPiecesOnBars > 1 or players.len < 3
@@ -370,7 +369,7 @@ proc newGame =
 
 proc nextTurn =
   playSound "page-flip-2"
-  turnReport.cards.discarded.add turnPlayer.discardCards blueDeck
+  updateTurnReportCards(turnPlayer.discardCards blueDeck, Discarded)
   diceRolls.setLen 0
   # echoTurnReport()
   if turnPlayer.kind == Human:
@@ -382,6 +381,7 @@ proc nextTurn =
 
 proc nextGameState* =
   if turnPlayer.cash >= cashToWin: 
+    writeEndOfGameReport()
     setupGame()
   else:
     if turn.nr == 0: 

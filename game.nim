@@ -40,7 +40,7 @@ const
   settingsFile* = "settings.cfg"
   defaultPlayerKinds = @[Human,Computer,None,None,None,None]
   (pbx,pby) = (20,20)
-  cashToWin* = 1_000_000
+  cashToWin* = 250_000
   popUpCard = Rect(x:500,y:275,w:cardWidth,h:cardHeight)
   drawPile = Rect(x:855,y:495,w:110,h:180)
   discardPile = Rect(x:1025,y:495,w:cardWidth*0.441,h:cardHeight*0.441)
@@ -111,6 +111,11 @@ proc newPlayerBatches*:array[6,Batch] =
     setup = batchSetup playerNr
     result[playerNr] = setup.playerBatch yOffset
     result[playerNr].update = true
+
+func indexFromColor*(players:seq[Player],playerColor:PlayerColor):int =
+  result = -1
+  for i,player in players:
+    if player.color == playerColor: return i
 
 func knownBluesIn(discardPile,hand:seq[BlueCard]):seq[BlueCard] =
   result.add discardPile

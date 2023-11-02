@@ -59,9 +59,8 @@ proc victims(killer:PlayerColor):seq[PlayerColor] =
 
 proc killMatrix:KillMatrix =
   for killer in PlayerColor:
-    let kills = killer.victims
     for victim in PlayerColor:
-      result[victim][killer] = kills.count(victim)
+      result[victim][killer] = killer.victims.count(victim)
 
 proc typesetKillMatrix(width,height:float):Arrangement =
   let matrix = killMatrix()
@@ -123,11 +122,6 @@ proc reportLines(report:TurnReport):seq[string] =
     "Moves:\n"&report.moves.mapIt($it).join("\n"),
     "Kills: "&($report.kills),
   ]
-  if turnPlayer.cash >= cashToWin:
-    result.add @[
-      "Hand: "&turnPlayer.hand.mapIt(it.title).join(","),
-      "Drawn: "&report.cards.drawn.mapIt(it.title).join(","),
-    ]
   result.add @[
     "Played: "&report.cards.played.mapIt(it.title).join(","),
     "Cashed: "&report.cards.cashed.mapIt(it.title).join(","),
@@ -142,10 +136,14 @@ proc batchUpdate(turnReport:TurnReport):seq[Span] =
     result.add newSpan(line&"\n",plainFont)
 
 proc writeEndOfGameReports* =
-  for i,batch in reportBatches:
-    if turnPlayer.color != PlayerColor(i):
-      batch.setSpans batchUpdate turnReports
-        .filterIt(it.playerBatch.color == PlayerColor(i))[^1]
+  for playerColor,batch in reportBatches:
+    let report = turnReports.filterIt(it.playerBatch.color == playerColor)[^1]
+    var reportLines = report.reportLines
+    reportLines.add @[
+      "Hand: "&players[players.indexFromColor playerColor].hand.mapIt(it.title).join(","),
+      "Drawn: "&report.cards.drawn.mapIt(it.title).join(","),
+    ]
+    batch.setSpans reportLines.mapIt newSpan(it&"\n",plainFont)
 
 proc initTurnReport* =
   turnReport = TurnReport()
@@ -153,6 +151,12 @@ proc initTurnReport* =
   turnReport.playerBatch.color = turnPlayer.color
   turnReport.playerBatch.kind = turnPlayer.kind
   reportBatches[turnPlayer.color].setSpans batchUpdate turnReport
+  reportBatches[turnPlayer.color].update = true
+
+proc writeUpdate =
+  reportBatches[turnPlayer.color].setSpans batchUpdate turnReport
+  if turnPlayer.cash >= cashToWin:
+    writeEndOfGameReports()
   reportBatches[turnPlayer.color].update = true
 
 proc updateTurnReport*[T](item:T) =
@@ -163,24 +167,17 @@ proc updateTurnReport*[T](item:T) =
   when typeof(T) is PlayerColor: 
     turnReport.kills.add item
     killMatrixPainter.update = true
-  reportBatches[turnPlayer.color].setSpans batchUpdate turnReport
-  if turnPlayer.cash >= cashToWin:
-    writeEndOfGameReports()
-  reportBatches[turnPlayer.color].update = true
-
+  writeUpdate()
+  
 proc updateTurnReportCards*(blues:seq[BlueCard],playedCard:PlayedCard) =
   case playedCard
   of Drawn: turnReport.cards.drawn.add blues
   of Played: turnReport.cards.played.add blues
   of Cashed: turnReport.cards.cashed.add blues
   of Discarded: turnReport.cards.discarded.add blues
-  reportBatches[turnPlayer.color].setSpans batchUpdate turnReport
-  if turnPlayer.cash >= cashToWin:
-    writeEndOfGameReports()
-  reportBatches[turnPlayer.color].update = true
+  writeUpdate()
 
 proc resetReports* =
-  writeFile("test.txt",turnReports.mapIt($it).join "\n")
   for batch in reportBatches.mitems:
     batch.setSpans @[]
   initTurnReport()
@@ -208,14 +205,21 @@ proc animate(batch:var Batch) =
     batch.update = true
 
 proc drawReport*(b:var Boxy,playerBatch:PlayerColor) =
-  echo "draw report: "&($playerBatch)&" player"
   if selectedBatch == -1 or playerBatch != PlayerColor(selectedBatch):
-    echo "start report animation"
     selectedBatch = playerBatch.ord
     reportBatches[playerBatch].startAnimation
   animate reportBatches[playerBatch]
-  echo "done animation"
   b.drawDynamicImage reportBatches[playerBatch]
-  echo "end report"
+
+proc squareVisits:array[1..60,int] =
+  for square in turnReports.mapIt(it.moves.mapIt(it.toSquare)).flatMap:
+    inc result[square]
+
+proc writeEndOfGameReport* =
+  var squareVisits:seq[string]
+  for i,visits in squareVisits():
+    squareVisits.add squares[i].name&" Nr."&($i)&": "&($visits)
+    echo squareVisits[^1]
+  writeFile("report.txt",squareVisits.join "\n")
 
 reportBatches = initReportBatches()

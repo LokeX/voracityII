@@ -38,19 +38,8 @@ echo Circle.perimeter
 echo Rectangle.area
 echo Rectangle.perimeter
 
-type
-  O = object
-    x: float
-    i: int
-    b: bool
+var t:array[1..3,int]
 
-var s: seq[O]
-s.add(O(x: 3.1415, i: 12, b: true))
-var f = open("NoImportantData", fmWrite)
-discard f.writeBuffer(addr(s[0]), sizeof(O) * s.len)
-f.close
-f = open("NoImportantData", fmRead)
-var s2 = newSeq[O](1)
-discard f.readBuffer(addr(s2[0]), sizeof(O) * s2.len)
-f.close
-echo s2[0]
+for i,e in t:
+  echo i
+  
