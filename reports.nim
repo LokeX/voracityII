@@ -123,6 +123,7 @@ proc reportLines(report:TurnReport):seq[string] =
     "Kills: "&($report.kills),
   ]
   result.add @[
+    "Cards:\n",
     "Played: "&report.cards.played.mapIt(it.title).join(","),
     "Cashed: "&report.cards.cashed.mapIt(it.title).join(","),
     "Discarded: "&report.cards.discarded.mapIt(it.title).join(","),
@@ -135,15 +136,19 @@ proc batchUpdate(turnReport:TurnReport):seq[Span] =
   for line in reportLines turnReport:
     result.add newSpan(line&"\n",plainFont)
 
+proc recordTurnReport* =
+  turnReports.add turnReport
+
 proc writeEndOfGameReports* =
-  for playerColor,batch in reportBatches:
-    let report = turnReports.filterIt(it.playerBatch.color == playerColor)[^1]
+  for player in players:
+    let report = if player.color == turnPlayer.color: turnReport else:
+      turnReports.filterIt(it.playerBatch.color == player.color)[^1]
     var reportLines = report.reportLines
     reportLines.add @[
-      "Hand: "&players[players.indexFromColor playerColor].hand.mapIt(it.title).join(","),
+      "Hand: "&player.hand.mapIt(it.title).join(","),
       "Drawn: "&report.cards.drawn.mapIt(it.title).join(","),
     ]
-    batch.setSpans reportLines.mapIt newSpan(it&"\n",plainFont)
+    reportBatches[player.color].setSpans reportLines.mapIt newSpan(it&"\n",plainFont)
 
 proc initTurnReport* =
   turnReport = TurnReport()
@@ -184,9 +189,6 @@ proc resetReports* =
   turnReports.setLen 0
   selectedBatch = -1
 
-proc recordTurnReport* =
-  turnReports.add turnReport
-
 template gotReport*(player:PlayerColor):bool =
   reportBatches[player].spansLength > 0
 
@@ -204,12 +206,13 @@ proc animate(batch:var Batch) =
     batch.setPos(rbx,rby)
     batch.update = true
 
-proc drawReport*(b:var Boxy,playerBatch:PlayerColor) =
-  if selectedBatch == -1 or playerBatch != PlayerColor(selectedBatch):
-    selectedBatch = playerBatch.ord
-    reportBatches[playerBatch].startAnimation
-  animate reportBatches[playerBatch]
-  b.drawDynamicImage reportBatches[playerBatch]
+proc drawReport*(b:var Boxy,playerColor:PlayerColor) =
+  if selectedBatch == -1 or playerColor != PlayerColor(selectedBatch):
+    selectedBatch = playerColor.ord
+    reportBatches[playerColor].startAnimation
+  if reportBatches[playerColor].rect.y.toInt != rby:
+    animate reportBatches[playerColor]
+  b.drawDynamicImage reportBatches[playerColor]
 
 proc squareVisits:array[1..60,int] =
   for square in turnReports.mapIt(it.moves.mapIt(it.toSquare)).flatMap:

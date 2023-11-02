@@ -49,10 +49,7 @@ proc moveAi =
     move = hypo.move([diceRoll[1].ord,diceRoll[2].ord])
     currentPosEval = hypo.evalPos()
   if move.eval.toFloat >= currentPosEval.toFloat*0.75:
-    # updateTurnReport move
     moveSelection.fromSquare = move.fromSquare
-    echo "move: ",move
-    echo "ai pieces: ",turnPlayer.pieces
     move move.toSquare
   else:
     echo "ai skips move:"

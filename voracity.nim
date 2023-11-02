@@ -92,11 +92,10 @@ proc reportAnimationMoves:seq[AnimationMove] =
 
 proc drawCards(b:var Boxy) =
   if batchSelected and selectedBatchColor.reports.len > 0:
-    if (let cashedCards = cashedCards(); cashedCards.len > 0):
-      let storedRevealSetting = blueDeck.reveal
-      blueDeck.reveal = Front
-      b.paintCards blueDeck,cashedCards
-      blueDeck.reveal = storedRevealSetting   
+    let storedRevealSetting = blueDeck.reveal
+    blueDeck.reveal = Front
+    b.paintCards blueDeck,cashedCards()
+    blueDeck.reveal = storedRevealSetting   
   else: b.paintCards blueDeck,turnPlayer.hand
 
 proc setRevealCards(deck:var Deck,playerKind:PlayerKind) =

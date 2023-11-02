@@ -381,7 +381,7 @@ proc nextTurn =
 
 proc nextGameState* =
   if turnPlayer.cash >= cashToWin: 
-    writeEndOfGameReport()
+    # writeEndOfGameReport()
     setupGame()
   else:
     if turn.nr == 0: 
