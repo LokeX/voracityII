@@ -295,13 +295,14 @@ proc shouldKillEnemyOn(killer:Player,toSquare:int): bool =
     return false 
   else:
     let 
-      agroKill = rand(1..100) <= killer.agro
-      # needsProtection = killer.needsProtectionOn(moveSelection.fromSquare,toSquare)
+      randKill = rand(1..100) <= 5
+      needsProtection = killer.needsProtectionOn(moveSelection.fromSquare,toSquare)
+      agroKill = rand(1..100) <= killer.agro and not needsProtection
       planChance = players[singlePiece.playerNr].planChanceOn(toSquare,blueDeck)
       barKill = toSquare in bars and (
         killer.nrOfPiecesOnBars > 1 or players.len < 3
       )
-    (planChance > 0.05*players.len.toFloat) or agroKill or barKill
+    (planChance > 0.05*(players.len.toFloat/2)) or agroKill or barKill or randKill
 
 proc aiRemovePiece(move:Move): bool =
   turnPlayer.hypotheticalInit.friendlyFireAdviced(move) or 
@@ -355,11 +356,14 @@ proc leftMouse*(m:KeyEvent) =
         turnPlayer.hand.playTo blueDeck,slotNr
         turnPlayer.hand = turnPlayer.sortBlues
 
-proc setupGame =
+proc endGame =
+  if turnPlayer.kind == Human:
+    recordTurnReport()
+  writeGamestats()
   setupNewGame()
   setMenuTo SetupMenu
 
-proc newGame =
+proc startNewGame =
   inc turn.nr
   players = newPlayers()
   playerBatches = newPlayerBatches()
@@ -370,20 +374,19 @@ proc newGame =
 proc nextTurn =
   playSound "page-flip-2"
   updateTurnReportCards(turnPlayer.discardCards blueDeck, Discarded)
-  diceRolls.setLen 0
   if turnPlayer.kind == Human:
     recordTurnReport()
+  diceRolls.setLen 0
   nextPlayerTurn()
   initTurnReport()
   showMenu = false
 
 proc nextGameState* =
   if turnPlayer.cash >= cashToWin: 
-    writeGamestats()
-    setupGame()
+    endGame()
   else:
     if turn.nr == 0: 
-      newGame()
+      startNewGame()
     else: 
       nextTurn()
     startDiceRoll(if turnPlayer.kind == Human: humanRoll else: computerRoll)

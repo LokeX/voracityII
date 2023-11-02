@@ -24,7 +24,7 @@ proc consoleChoice*[T:enum](menuItems:T):T =
 template init*[T](t:var T) = t = default typeof T
 
 iterator enum_mitems*[T](x:var openArray[T]):(int,var T) =
-  var idx = 0
+  var idx = x.low
   while idx <= x.high:
     yield (idx,x[idx])
     inc idx

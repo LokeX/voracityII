@@ -125,7 +125,7 @@ proc draw(b:var Boxy) =
       b.drawReport mouseOnBatchColor
   else: 
     b.drawImage("logo",vec2(1475,60))
-    b.drawImage("barman",Rect(x:1575,y:450,w:150,h:200))
+    b.drawImage("barman",Rect(x:1540,y:500,w:225,h:300))
 
 proc really(title:string,answer:string -> void) =
   let entries:seq[string] = @[

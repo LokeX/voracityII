@@ -12,12 +12,12 @@
         "-r",
         "-d:release",
         
-        // "--opt:speed",
-        // "--floatChecks:off",
-        // "--overflowChecks:off",
-        // "--nanChecks:off",
-        // "--infChecks:off",
-        // "--objChecks:off",
+        "--opt:speed",
+        "--floatChecks:off",
+        "--overflowChecks:off",
+        "--nanChecks:off",
+        "--infChecks:off",
+        "--objChecks:off",
 
         "--excessiveStackTrace:on",        
         "--parallelBuild:6",

@@ -200,9 +200,6 @@ proc drawDynamicImage*[T](b:var Boxy,dynImg:DynamicImage[T]) =
   if dynImg.update: b.updateDynamicImage dynImg
   b.drawImage(dynImg.name,dynImg.rect)
 
-# proc drawImageArea*(b:var Boxy,imageArea:ImageArea) =
-#   b.drawImage(imageArea.name,imageArea.area.toRect)
-
 proc keyState(b:Button):KeyState =
   (window.buttonDown[b],window.buttonReleased[b],window.buttonToggle[b])
 

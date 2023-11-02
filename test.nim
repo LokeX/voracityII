@@ -38,8 +38,8 @@ echo Circle.perimeter
 echo Rectangle.area
 echo Rectangle.perimeter
 
-var t:array[1..3,int]
+import misc
+var te = [1,2,3]
 
-for i,e in t:
+for i,e in te.enum_mitems:
   echo i
-  

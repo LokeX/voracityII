@@ -1,4 +1,4 @@
-import win except align
+import win except align,split
 import batch
 import colors
 import sequtils
@@ -8,6 +8,7 @@ import deck
 import board
 import eval
 import misc
+import os
 
 type 
   KillMatrix = array[PlayerColor,array[PlayerColor,int]]
@@ -211,15 +212,31 @@ proc drawReport*(b:var Boxy,playerColor:PlayerColor) =
     animate reportBatches[playerColor]
   b.drawDynamicImage reportBatches[playerColor]
 
-proc squareVisits:array[1..60,int] =
+proc readReportedVisits:array[1..60,int] =
   for square in turnReports.mapIt(it.moves.mapIt(it.toSquare)).flatMap:
     inc result[square]
 
-proc writeGamestats* =
+proc readVisitsFile(path:string):array[1..60,int] =
+  if fileExists path:
+    var square = 1
+    for line in lines path:
+      try: result[square] = line.split[^1].parseInt except:discard
+      inc square
+ 
+proc allSquareVisits(path:string):array[1..60,int] =
+  let
+    reportVisits = readReportedVisits()
+    fileVisits = readVisitsFile path
+  for i,visitCount in result.enum_mitems:
+    visitCount = reportVisits[i+1] + fileVisits[i+1]
+  
+proc writeSquareVisits(path:string) =
   var squareVisits:seq[string]
-  for i,visits in squareVisits():
+  for i,visits in allSquareVisits path:
     squareVisits.add squares[i].name&" Nr."&($i)&": "&($visits)
-    echo squareVisits[^1]
-  writeFile("report.txt",squareVisits.join "\n")
+  writeFile(path,squareVisits.join "\n")
+
+proc writeGamestats* =
+  writeSquareVisits "report.txt"
 
 reportBatches = initReportBatches()
