@@ -11,6 +11,7 @@ import misc
 import os
 
 type 
+  CashedCards = seq[tuple[title:string,count:int]]  
   KillMatrix = array[PlayerColor,array[PlayerColor,int]]
   PlayedCard* = enum Drawn,Played,Cashed,Discarded
   ReportBatches = array[PlayerColor,Batch]
@@ -213,7 +214,7 @@ proc drawReport*(b:var Boxy,playerColor:PlayerColor) =
   b.drawDynamicImage reportBatches[playerColor]
 
 proc readReportedVisits:array[1..60,int] =
-  for square in turnReports.mapIt(it.moves.mapIt(it.toSquare)).flatMap:
+  for square in turnReports.mapIt(it.moves.mapIt(it.toSquare)).flatMap.filterIt(it != 0):
     inc result[square]
 
 proc readVisitsFile(path:string):array[1..60,int] =
@@ -227,16 +228,45 @@ proc allSquareVisits(path:string):array[1..60,int] =
   let
     reportVisits = readReportedVisits()
     fileVisits = readVisitsFile path
-  for i,visitCount in result.enum_mitems:
-    visitCount = reportVisits[i+1] + fileVisits[i+1]
+  var count = 1
+  for visitCount in result.mitems:
+    visitCount = reportVisits[count] + fileVisits[count]
+    inc count
   
-proc writeSquareVisits(path:string) =
+proc writeSquareVisitsTo(path:string) =
   var squareVisits:seq[string]
   for i,visits in allSquareVisits path:
     squareVisits.add squares[i].name&" Nr."&($i)&": "&($visits)
   writeFile(path,squareVisits.join "\n")
 
+proc reportedCashedCards:CashedCards =
+  let titles = turnReports.mapIt(it.cards.cashed.mapIt(it.title)).flatMap
+  for title in titles:
+    if title notin result.mapIt it.title:
+      result.add (title,titles.count title)
+
+proc readCashedCardsFrom(path:string):CashedCards =
+  if fileExists path:
+    for line in lines path:
+      let lineSplit = line.split
+      try: 
+        result.add (lineSplit[0],lineSplit[^1].parseInt)
+      except:discard
+ 
+proc allCashedCards(path:string):CashedCards =
+  let
+    cashedCards = reportedCashedCards()
+    cardsOnFile = readCashedCardsFrom path
+  for card in cashedCards:
+    if (let idx = cardsOnFile.mapIt(it.title).find card.title; idx != -1):
+      result.add (card.title,card.count+cardsOnFile[idx].count)
+    else: result.add card
+  
+proc writeCashedCardsTo(path:string) =
+  writeFile(path,allCashedCards(path).mapIt(it.title&": "&($it.count)).join "\n")
+
 proc writeGamestats* =
-  writeSquareVisits "report.txt"
+  writeSquareVisitsTo "visits.txt"
+  writeCashedCardsTo "cashed.txt"
 
 reportBatches = initReportBatches()

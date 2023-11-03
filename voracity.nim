@@ -17,8 +17,6 @@ import random
 import eval
 import strutils
  
-var frames:float
-
 const
   logoFontPath = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
   logoText = [
@@ -31,6 +29,10 @@ const
     "",
     "All rights reserved (1998 - 2023)",
   ]
+  adviceText = [
+    "The way is long, dark and lonely",
+    "Let perseverance light your path"
+  ]
 
 let
   voracityLogo = readImage "pics\\voracity.png"
@@ -41,6 +43,19 @@ let
 var 
   mouseOnBatchPlayerNr = -1
   pinnedBatchNr = -1
+  frames:float
+
+proc paintAdviceText:Image =
+  var logoFontYellow = logoFont.copy
+  logoFontYellow.paint = color(1,1,0)
+  let 
+    arrangement = logoFontYellow.typeset(
+      adviceText.join("\n"),
+      bounds = vec2(250,100),
+      hAlign = CenterAlign
+    )
+  result = newImage(250,100)
+  result.fillText(arrangement,translate vec2(0,0))
 
 proc logoTextArrangement(width,height:float):Arrangement =
   logoFont.lineHeight = 22
@@ -117,7 +132,7 @@ proc draw(b:var Boxy) =
     b.doMoveAnimation
     b.drawCards
     b.drawCursor
-    b.drawDice
+    if not turn.diceMoved: b.drawDice
     if not isRollingDice() and turnPlayer.kind == Human: b.drawSquares
     if turnPlayer.kind == Human and turn.undrawnBlues > 0: 
       b.drawDynamicImage nrOfUndrawnBluesPainter
@@ -125,7 +140,8 @@ proc draw(b:var Boxy) =
       b.drawReport mouseOnBatchColor
   else: 
     b.drawImage("logo",vec2(1475,60))
-    b.drawImage("barman",Rect(x:1540,y:500,w:225,h:300))
+    b.drawImage("advicetext",vec2(1525,450))
+    b.drawImage("barman",Rect(x:1515,y:510,w:275,h:365))
 
 proc really(title:string,answer:string -> void) =
   let entries:seq[string] = @[
@@ -209,7 +225,7 @@ proc cycle =
 proc timer = 
   if turnPlayer.kind == Human and turnReport.diceRolls.len < diceRolls.len:
     updateTurnReport diceRolls[^1]
-  if not moveAnimation.active and mouseOnBatchPlayerNr != -1:
+  if turn.nr > 0 and  not moveAnimation.active and mouseOnBatchPlayerNr != -1:
     if (let moves = reportAnimationMoves(); moves.len > 0):
         startMovesAnimations(mouseOnBatchColor,moves)
   # echo frames*2.5
@@ -232,6 +248,7 @@ var
 
 addImage("logo",paintLogo())
 addImage("barman",paintBarman())
+addImage("advicetext",paintAdviceText())
 window.icon = readImage "pics\\BarMan.png"
 randomize()
 setVolume 0.05
