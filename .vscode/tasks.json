@@ -4,22 +4,20 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Run Voracity",
+      "label": "Run Voracity for release",
       "type": "process",
       "command": "nim",
       "args": [
         "c",
         "-r",
-        // "-d:release",
-        
+        "-d:release",
         "--opt:speed",
         "--floatChecks:off",
         "--overflowChecks:off",
         "--nanChecks:off",
         "--infChecks:off",
         "--objChecks:off",
-
-        "--excessiveStackTrace:on",        
+        "--excessiveStackTrace:on",
         "--parallelBuild:6",
         "--warning:all:off",
         "voracity.nim"
@@ -28,6 +26,30 @@
       "group": {
         "kind": "build",
         "isDefault": true
+      }
+    },
+    {
+      "label": "Run Voracity",
+      "type": "process",
+      "command": "nim",
+      "args": [
+        "c",
+        "-r",
+        "--opt:speed",
+        "--floatChecks:off",
+        "--overflowChecks:off",
+        "--nanChecks:off",
+        "--infChecks:off",
+        "--objChecks:off",
+        "--excessiveStackTrace:on",
+        "--parallelBuild:6",
+        "--warning:all:off",
+        "voracity.nim"
+      ],
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": false
       }
     },
     {
@@ -49,16 +71,16 @@
       "label": "nim: build current file (for debugging)",
       "command": "nim",
       "args": [
-          "compile",
-          "-g",
-          "--debugger:native",
-          "-o:${workspaceRoot}/bin/${fileBasenameNoExtension}",
-          "${relativeFile}"
+        "compile",
+        "-g",
+        "--debugger:native",
+        "-o:${workspaceRoot}/bin/${fileBasenameNoExtension}",
+        "${relativeFile}"
       ],
       "options": {
-          "cwd": "${workspaceRoot}"
+        "cwd": "${workspaceRoot}"
       },
-      "type": "shell",
-    }  
+      "type": "shell"
+    }
   ]
 }

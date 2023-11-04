@@ -78,7 +78,7 @@ proc postMovePhase =
   phase = EndTurn
 
 proc endTurn = 
-  showMenu = false
+  # showMenu = false
   phase = Await
   nextGameState()
 
@@ -101,5 +101,5 @@ proc aiRightMouse*(m:KeyEvent) =
   if phase == EndTurn: 
     if showMenu: 
       endTurn()
-    else: showMenu = true
+  showMenu = not showMenu
  

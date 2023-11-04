@@ -24,6 +24,7 @@ type
     kills:seq[PlayerColor]
 
 const
+  robotoRegular* = "fonts\\Roboto-Regular_1.ttf"
   killMatrixFont = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
   reportFont = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
   (rbx,rby) = (450,280)

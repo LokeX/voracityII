@@ -1,7 +1,7 @@
 import win
 import sequtils
 import times
-import strutils
+import strutils except strip
  
 type
   BatchKind* = enum TextBatch,MenuBatch,InputBatch
@@ -32,6 +32,7 @@ type
     showCursor,forceCursor:bool
     maxChars:int
     numbers:HSlice[int,int]
+    alphaOnly:bool
     cursor:Cursor
     line:Line
   Text = tuple
@@ -53,6 +54,7 @@ type
       selectorLine*:Line
       selectionRange*:HSlice[int,int]
     of InputBatch:
+      alphaOnly*:bool
       inputLine*:Line
       inputCursor*:Cursor
       inputMaxChars*:int
@@ -254,6 +256,8 @@ template inputOk:bool =
   if batch.input.numbers.b > 0:
     try: k.rune.toUTF8.parseInt in batch.input.numbers
     except: false
+  elif batch.input.alphaOnly:
+    k.rune.isAlpha
   else: true
 
 template lengthOk(txt:untyped):bool =
@@ -263,11 +267,13 @@ proc keyInput(batch:Batch,k:KeyboardEvent) =
   let txt = batch.text.spans[^1].text
   batch.update = true
   if k.hasRune and txt.lengthOk and inputOk:
-    batch.text.spans[^1].text.add k.rune.toUTF8
+    batch.text.spans[^1].text.add k.rune
   elif k.keyState.down:
     case k.button:
     of KeyBackspace:
-      if txt.len > 0: batch.text.spans[^1].text = txt[0..<txt.high]
+      if txt.len > 0:
+        let t = txt.toRunes
+        batch.text.spans[^1].text = t[0..t.high-1].join
     else: batch.update = false
   else: batch.update = false
   if batch.update: batch.input.forceCursor = true
@@ -332,6 +338,7 @@ template initInputBatch =
   else: batch.input.maxChars = -1
   if batchInit.inputNumbers.b > 0:
     batch.input.numbers = batchInit.inputNumbers
+  batch.input.alphaOnly = batchInit.alphaOnly
   batch.input.line = batchInit.inputLine
   batch.input.cursor = batchInit.inputCursor
   batch.text.hAlign = LeftAlign
@@ -363,7 +370,6 @@ template initBatch*(batchKind:BatchKind,batch,userInitBlock:untyped):Batch =
     batch.rect.y = (scaledHeight.toFloat-batch.rect.h)/3
     batch.area = batch.rect.toArea
     batch.pos = (batch.rect.x.toInt,batch.rect.y.toInt)
-    echo batch.area
   if batch.kind == MenuBatch: 
     batch.selector.selectionRange = selectionRange
     batch.selector.selection = batch.selector.selectionRange.a
@@ -403,9 +409,13 @@ proc input*(batch:Batch):string =
     batch.text.spans[^1].text
   else: "error, batch is not InputBatch"
 
+proc deleteInput*(batch:Batch) =
+  if batch.kind == InputBatch: 
+    batch.text.spans[^1].text = ""
+  else: echo "error, batch is not InputBatch"
+
 proc resetMenu*(batch:Batch,entries:seq[string],selectionRange:HSlice[int,int]) =
   if batch.kind == MenuBatch:
-    # batch.text.spans.setLen 0
     batch.text.spans = batchSpans(entries,batch.font)
     batch.setDimensions
     batch.selector.selectionRange = selectionRange

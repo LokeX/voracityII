@@ -16,7 +16,7 @@ import misc
 import random
 import eval
 import strutils
- 
+
 const
   logoFontPath = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
   logoText = [
@@ -41,16 +41,22 @@ let
   logoFont = setNewFont(logoFontPath,size = 16.0,color(1,1,1))
 
 var 
+  batchInputNr = -1
   mouseOnBatchPlayerNr = -1
   pinnedBatchNr = -1
   frames:float
 
 proc paintAdviceText:Image =
-  var logoFontYellow = logoFont.copy
+  var 
+    spans:seq[Span]
+    logoFontYellow = logoFont.copy
+    logoFontBlack = logoFont.copy
   logoFontYellow.paint = color(1,1,0)
+  logoFontBlack.paint = color(0,0,0)
+  spans.add newSpan(adviceText[0]&"\n",logoFontBlack)
+  spans.add newSpan(adviceText[1],logoFontYellow)
   let 
-    arrangement = logoFontYellow.typeset(
-      adviceText.join("\n"),
+    arrangement = spans.typeset(
       bounds = vec2(250,100),
       hAlign = CenterAlign
     )
@@ -127,6 +133,7 @@ proc draw(b:var Boxy) =
   b.drawDynamicImage piecesImg
   b.drawPlayerBatches
   if showMenu: b.drawDynamicImage mainMenu
+  if batchInputNr != -1: b.drawBatch inputBatch
   if turn.nr > 0:  
     if mouseOn squares[0].dims.area: b.drawKillMatrix
     b.doMoveAnimation
@@ -172,11 +179,16 @@ proc menuSelection =
     else: confirmEndGame()
 
 proc mouse(m:KeyEvent) =
+  if mouseOnBatchPlayerNr != -1:
+    if turn.nr > 0: pinnedBatchNr = mouseOnBatchPlayerNr
+  else: 
+    pinnedBatchNr = -1
+    batchInputNr = -1
+    inputBatch.deleteInput
+  if m.rightMousePressed and turn.nr == 0 and mouseOnBatchPlayerNr != -1:
+    batchInputNr = mouseOnBatchPlayerNr
   if m.leftMousePressed:
     blueDeck.leftMousePressed
-    if mouseOnBatchPlayerNr != -1:
-      pinnedBatchNr = mouseOnBatchPlayerNr
-    else: pinnedBatchNr = -1
     if turn.nr == 0: togglePlayerKind()
     if showMenu and mouseOnMenuSelection():
       menuSelection()
@@ -184,7 +196,7 @@ proc mouse(m:KeyEvent) =
       m.leftMouse()
       if turn.nr > 0 and mouseOnDice() and mayReroll(): 
         startDiceRoll(humanRoll)
-  elif m.rightMousePressed: 
+  elif m.rightMousePressed and batchInputNr == -1: 
     if turn.nr > 0 and turnPlayer.kind == Computer: 
       m.aiRightMouse
     else:
@@ -196,8 +208,18 @@ proc mouseMoved =
     mainMenu.mouseSelect
 
 proc keyboard (key:KeyboardEvent) =
+  if batchInputNr != -1: key.batchKeyb inputBatch
   if key.keyPressed: 
     case key.button
+    of KeyEnter:
+      if batchInputNr != -1: 
+        if inputBatch.input.len > 0:
+          playerKinds[batchInputNr] = Human
+        playerHandles[batchInputNr] = inputBatch.input
+        updateBatch batchInputNr
+        echo "playerHandle ",batchInputNr,": ",playerHandles[batchInputNr]
+        batchInputNr = -1
+        inputBatch.deleteInput
     of KeyE: autoEndTurn = not autoEndTurn
     of KeyR: 
       case blueDeck.reveal
@@ -223,14 +245,19 @@ proc cycle =
     aiTakeTurn()
 
 proc timer = 
+  showCursor = not showCursor
   if turnPlayer.kind == Human and turnReport.diceRolls.len < diceRolls.len:
     updateTurnReport diceRolls[^1]
-  if turn.nr > 0 and  not moveAnimation.active and mouseOnBatchPlayerNr != -1:
-    if (let moves = reportAnimationMoves(); moves.len > 0):
-        startMovesAnimations(mouseOnBatchColor,moves)
+  if turn.nr > 0 and not moveAnimation.active and mouseOnBatchPlayerNr != -1:
+    if mouseOnBatchColor.gotReport:
+      if (let moves = reportAnimationMoves(); moves.len > 0):
+          startMovesAnimations(mouseOnBatchColor,moves)
   # echo frames*2.5
   frames = 0
-  showCursor = not showCursor
+
+proc quitVoracity =
+  playerKindsToFile playerKinds
+  playerHandlesToFile playerHandles
 
 proc timerCall:TimerCall =
   TimerCall(call:timer,lastTime:cpuTime(),secs:0.4)
@@ -246,6 +273,7 @@ var
     timer:timerCall()
   )
 
+window.onCloseRequest = quitVoracity
 addImage("logo",paintLogo())
 addImage("barman",paintBarman())
 addImage("advicetext",paintAdviceText())
@@ -257,4 +285,3 @@ addCall dialogCall # we add dialog second - or it will be drawn beneath the boar
 runWinWith: 
   callCycles()
   callTimers()
-playerKindsToFile playerKinds

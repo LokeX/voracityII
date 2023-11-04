@@ -1,4 +1,4 @@
-import win
+import win except strip
 import deck
 import strutils
 import sequtils
@@ -7,6 +7,7 @@ import random
 import batch
 import colors
 import board
+import os
  
 type
   PlayerKind* = enum Human,Computer,None
@@ -20,7 +21,7 @@ type
     cash*:int
     agro*:int
   Turn* = tuple
-    nr:int # turnNr == 0 is player setup flag?
+    nr:int 
     player:int
     diceMoved:bool
     undrawnBlues:int
@@ -38,17 +39,47 @@ const
   fjallaOneRegular* = "fonts\\FjallaOne-Regular.ttf"
   ibmBold* = "fonts\\IBMPlexMono-Bold.ttf"
   settingsFile* = "settings.cfg"
+  handlesFile = "dat\\handles.txt"
+  
   defaultPlayerKinds = @[Human,Computer,None,None,None,None]
-  (pbx,pby) = (20,20)
   cashToWin* = 1_000_000
+  
+  (pbx,pby) = (20,20)
   popUpCard = Rect(x:500,y:275,w:cardWidth,h:cardHeight)
   drawPile = Rect(x:855,y:495,w:110,h:180)
   discardPile = Rect(x:1025,y:495,w:cardWidth*0.441,h:cardHeight*0.441)
 
+  inputEntries:seq[string] = @[
+    "Write player handle:\n",
+    "\n",
+  ]
+  condensedRegular = "fonts\\AsapCondensed-Regular.ttf"
+  titleBorder:Border = (size:0,angle:0,color:color(0,0,100))
+  inputBorder:Border = (size:0,angle:0,color:color(0,0,100))
+  inputBatchInit = BatchInit(
+    kind:InputBatch,
+    name:"inputBatch",
+    titleOn:true,
+    titleLine:(color:color(1,1,0),bgColor:color(0,0,0),border:titleBorder),
+    pos:(400,200),
+    inputCursor:(0.5,color(0,1,0)),
+    inputLine:(color(0,1,0),color(0,0,0),inputBorder),
+    padding:(40,40,20,20),
+    entries:inputEntries,
+    inputMaxChars:8,
+    alphaOnly:true,
+    font:(condensedRegular,30.0,color(1,1,1)),
+    bgColor:color(0,0,0),
+    border:(15,25,color(0,0,100)),
+    shadow:(15,1.5,color(255,255,255,200))
+  )
+
 var 
+  inputBatch* = newBatch inputBatchInit
   blueDeck* = newDeck "dat\\blues.txt"
   playerKinds*:array[6,PlayerKind]
   playerBatches*:array[6,Batch]
+  playerHandles*:array[6,string]
   players*:seq[Player]
   turn*:Turn
   showCursor*:bool
@@ -74,7 +105,10 @@ proc playerBatch(setup:BatchSetup,yOffset:int):Batch =
 
 proc playerBatchTxt(playerNr:int):seq[string] =
   if turn.nr == 0:
-    @[$playerKinds[playerNr]]
+    if playerKinds[playerNr] == Human and playerHandles[playerNr].len > 0:
+      @[playerHandles[playerNr]]
+    else:
+      @[$playerKinds[playerNr]]
   else: @[
     "Turn Nr: "&($turn.nr)&"\n",
     "Cards: "&($players[playerNr].hand.len)&"\n",
@@ -111,6 +145,9 @@ proc newPlayerBatches*:array[6,Batch] =
     setup = batchSetup playerNr
     result[playerNr] = setup.playerBatch yOffset
     result[playerNr].update = true
+
+func anyHuman*(players:seq[Player]):bool =
+  players.anyIt it.kind == Human
 
 func indexFromColor*(players:seq[Player],playerColor:PlayerColor):int =
   result = -1
@@ -238,9 +275,21 @@ proc playerKindsFromFile:seq[PlayerKind] =
 proc playerKindsToFile*(playerKinds:openArray[PlayerKind]) =
   writeFile(settingsFile,$playerKinds.mapIt($it))
 
+proc playerHandlesToFile*(playerHandles:openArray[string]) =
+  writeFile(handlesFile,playerHandles.mapIt(if it.len > 0: it else: "n/a").join "\n")
+
+proc playerHandlesFromFile:array[6,string] =
+  if fileExists handlesFile:
+    var count = 0
+    for line in lines handlesFile:
+      let lineStrip = line.strip
+      if lineStrip != "n/a":
+        result[count] = lineStrip
+
 proc initPlayers =
   randomize()
   for i,kind in playerKindsFromFile(): playerKinds[i] = kind
+  playerHandles = playerHandlesFromFile()
   players = newDefaultPlayers()
   playerBatches = newPlayerBatches()
 
