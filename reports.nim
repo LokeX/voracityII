@@ -1,4 +1,4 @@
-import win except align,split
+import win except align,split,strip
 import batch
 import colors
 import sequtils
@@ -11,6 +11,7 @@ import misc
 import os
 
 type 
+  GameStat = tuple[name:string,count:int]
   CashedCards = seq[tuple[title:string,count:int]]  
   KillMatrix = array[PlayerColor,array[PlayerColor,int]]
   PlayedCard* = enum Drawn,Played,Cashed,Discarded
@@ -27,6 +28,9 @@ const
   robotoRegular* = "fonts\\Roboto-Regular_1.ttf"
   killMatrixFont = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
   reportFont = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
+  visitsFile = "dat\\visits.txt"
+  cashedFile = "dat\\cashed.txt"
+  gamesFile = "dat\\games.txt"
   (rbx,rby) = (450,280)
 
 let
@@ -63,7 +67,7 @@ proc victims(killer:PlayerColor):seq[PlayerColor] =
 proc killMatrix:KillMatrix =
   for killer in PlayerColor:
     for victim in PlayerColor:
-      result[victim][killer] = killer.victims.count(victim)
+      result[victim][killer] = killer.victims.count victim
 
 proc typesetKillMatrix(width,height:float):Arrangement =
   let matrix = killMatrix()
@@ -229,10 +233,10 @@ proc allSquareVisits(path:string):array[1..60,int] =
   let
     reportVisits = readReportedVisits()
     fileVisits = readVisitsFile path
-  var count = 1
+  var idx = 1
   for visitCount in result.mitems:
-    visitCount = reportVisits[count] + fileVisits[count]
-    inc count
+    visitCount = reportVisits[idx] + fileVisits[idx]
+    inc idx
   
 proc writeSquareVisitsTo(path:string) =
   var squareVisits:seq[string]
@@ -253,12 +257,10 @@ proc readCashedCardsFrom(path:string):CashedCards =
       try: 
         result.add (lineSplit[0],lineSplit[^1].parseInt)
       except:discard
- 
+
 proc allCashedCards(path:string):CashedCards =
-  let
-    cashedCards = reportedCashedCards()
-    cardsOnFile = readCashedCardsFrom path
-  for card in cashedCards:
+  let cardsOnFile = readCashedCardsFrom path
+  for card in reportedCashedCards():
     if (let idx = cardsOnFile.mapIt(it.title).find card.title; idx != -1):
       result.add (card.title,card.count+cardsOnFile[idx].count)
     else: result.add card
@@ -266,8 +268,51 @@ proc allCashedCards(path:string):CashedCards =
 proc writeCashedCardsTo(path:string) =
   writeFile(path,allCashedCards(path).mapIt(it.title&": "&($it.count)).join "\n")
 
+proc readGameStatsFrom(path:string):seq[GameStat] =
+  if fileExists path:
+    for line in lines path:
+      let splitLine = line.split({'=',chr 32})
+      try:
+        result.add (splitLine[0].strip,splitLine[^1].parseInt)
+      except:discard
+
+proc writeGameStatsTo(path:string) =
+  let handle = playerHandles[turnReport.playerBatch.color.ord].toLower
+  var 
+    statsOnFile = readGameStatsFrom gamesFile
+    writeLines:seq[string]
+  if statsOnFile.len == 0: 
+    writeLines.add "turnCount = " & $turnReport.turnNr
+    writeLines.add "gamesCount = 1"
+    writeLines.add "computerCount = "&(
+      if turnReport.playerBatch.kind == Computer: "1" else: "0"
+    )
+    if turnReport.playerBatch.kind == Human:
+      if handle.len > 0: writeLines.add handle&" = 1"
+      else: writeLines.add "human = 1"
+  else:
+    writeLines.add "turnCount = " & $(statsOnFile[0].count+turnReport.turnNr)
+    writeLines.add "gamesCount = " & $(statsOnFile[1].count+1)
+    writeLines.add "computerCount = "&(
+      if turnReport.playerBatch.kind == Computer: 
+        $(statsOnFile[2].count+1) 
+      else: $(statsOnFile[2].count)
+    )
+    if turnReport.playerBatch.kind == Human:
+      let 
+        prop = if handle.len > 0: handle else: "human"
+        propIdx = statsOnFile.mapIt(it.name).find prop
+      if propIdx == -1: writeLines.add prop&" = 1"
+      else:
+        writeLines.add prop&" = " & $(statsOnFile[propIdx].count+1)
+        statsOnFile.del propIdx
+      for idx in 3..statsOnFile.high:
+        writeLines.add statsOnFile[idx].name&" = " & $statsOnFile[idx].count
+  writeFile(path,writeLines.join "\n")
+
 proc writeGamestats* =
-  writeSquareVisitsTo "visits.txt"
-  writeCashedCardsTo "cashed.txt"
+  writeSquareVisitsTo visitsFile
+  writeCashedCardsTo cashedFile
+  writeGameStatsTo gamesFile
 
 reportBatches = initReportBatches()

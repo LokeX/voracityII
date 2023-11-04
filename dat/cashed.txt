@@ -1,0 +1,53 @@
+Outsider: 1
+Financing: 1
+Small arms: 2
+Concuctions: 1
+Bootlegging: 1
+Agent: 1
+Light load: 1
+High society: 1
+Drug Dealer: 1
+Color revolution: 2
+Demolition: 1
+Party drugs: 2
+Aiding and abetting: 2
+Knocked out: 1
+Heartless: 1
+Bodyguard: 1
+Outstanding: 1
+Meat: 1
+Bystanders: 1
+Moonshine: 1
+Transition: 1
+Secret weapon: 2
+Duty free: 1
+Pimp: 1
+Occupational hazard: 1
+Insurgency: 1
+Deadly cargo: 1
+Recycling: 1
+Gangbanger: 1
+Hooters: 1
+Diamonds are...: 1
+Foreign aid: 1
+Blood suckers: 1
+Chicks in cages: 1
+Rock solid claims: 1
+Lord of War: 1
+Legalese: 1
+Informer: 1
+Grapevine: 1
+Safe bet: 1
+Brotherhood: 1
+Protection: 1
+Nose job: 1
+Advisory board: 1
+Spy: 1
+Body count: 1
+Pure luck: 1
+Local dealership: 1
+Jet setter: 1
+Slum lord: 1
+Choire boys: 1
+Burglary: 1
+Grand designs: 1

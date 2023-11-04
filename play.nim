@@ -97,8 +97,6 @@ proc togglePlayerKind(batchNr:int) =
     of Human:Computer
     of Computer:None
     of None:Human
-  # playerBatches[batchNr].setSpanText($playerKinds[batchNr],0)
-  # playerBatches[batchNr].update = true
   players[batchNr].kind = playerKinds[batchNr]
   updateBatch batchNr
   piecesImg.update = true
