@@ -1,0 +1,4 @@
+turnCount = 84
+gamesCount = 2
+computerCount = 0
+grum = 2

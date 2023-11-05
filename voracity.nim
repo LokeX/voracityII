@@ -134,7 +134,7 @@ proc draw(b:var Boxy) =
   b.drawPlayerBatches
   if showMenu: b.drawDynamicImage mainMenu
   if batchInputNr != -1: b.drawBatch inputBatch
-  if turn.nr > 0:  
+  if turn.nr > 0:
     if mouseOn squares[0].dims.area: b.drawKillMatrix
     b.doMoveAnimation
     b.drawCards
@@ -148,7 +148,7 @@ proc draw(b:var Boxy) =
   else: 
     b.drawImage("logo",vec2(1475,60))
     b.drawImage("advicetext",vec2(1525,450))
-    b.drawImage("barman",Rect(x:1515,y:510,w:275,h:365))
+    b.drawImage("barman",Rect(x:1545,y:530,w:220,h:275))
 
 proc really(title:string,answer:string -> void) =
   let entries:seq[string] = @[

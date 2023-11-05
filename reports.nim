@@ -42,6 +42,7 @@ var
   selectedBatch:int
   turnReports:seq[TurnReport]
   turnReport*:TurnReport
+  gameStats:seq[GameStat]
 
 proc initReportBatch:Batch = 
   newBatch BatchInit(
@@ -121,20 +122,17 @@ proc initReportBatches:ReportBatches =
 proc reports*(playerColor:PlayerColor):seq[TurnReport] =
   turnReports.filterIt(it.playerBatch.color == playerColor)
 
-proc reportLines(report:TurnReport):seq[string] = 
-  result.add @[
-    "Turn nr: "&($report.turnNr),
-    "Player: "&($report.playerBatch),
-    "Dice Rolls:\n"&report.diceRolls.mapIt($it).join("\n"),
-    "Moves:\n"&report.moves.mapIt($it).join("\n"),
-    "Kills: "&($report.kills),
-  ]
-  result.add @[
-    "Cards:\n",
-    "Played: "&report.cards.played.mapIt(it.title).join(","),
-    "Cashed: "&report.cards.cashed.mapIt(it.title).join(","),
-    "Discarded: "&report.cards.discarded.mapIt(it.title).join(","),
-  ]
+proc reportLines(report:TurnReport):seq[string] = @[
+  "Turn nr: "&($report.turnNr),
+  "Player: "&($report.playerBatch),
+  "Dice Rolls:\n"&report.diceRolls.mapIt($it).join("\n"),
+  "Moves:\n"&report.moves.mapIt($it).join("\n"),
+  "Kills: "&($report.kills),
+  "Cards:\n",
+  "Played: "&report.cards.played.mapIt(it.title).join(","),
+  "Cashed: "&report.cards.cashed.mapIt(it.title).join(","),
+  "Discarded: "&report.cards.discarded.mapIt(it.title).join(","),
+]
 
 proc reportSpansFrom(turnReport:TurnReport):seq[Span] =
   for line in reportLines turnReport:
@@ -268,51 +266,49 @@ proc allCashedCards(path:string):CashedCards =
 proc writeCashedCardsTo(path:string) =
   writeFile(path,allCashedCards(path).mapIt(it.title&": "&($it.count)).join "\n")
 
+func parseGameStats(gameStatsLines:seq[string]):seq[GameStat] =
+  for line in gameStatsLines:
+    let splitLine = line.split
+    try: result.add (splitLine[0].strip,splitLine[^1].parseInt)
+    except:discard
+
 proc readGameStatsFrom(path:string):seq[GameStat] =
-  if fileExists path:
-    for line in lines path:
-      let splitLine = line.split({'=',chr 32})
-      try:
-        result.add (splitLine[0].strip,splitLine[^1].parseInt)
-      except:discard
+  if fileExists path: 
+    result = readFile(path).splitLines.parseGameStats
+
+proc buildGameStats:seq[GameStat] =
+  let handle = playerHandles[turnReport.playerBatch.color.ord].toLower
+  if gameStats.len == 0: 
+    result.add ("turnCount",turnReport.turnNr)
+    result.add ("gamesCount",1)
+    result.add ("computerCount",(
+      if turnReport.playerBatch.kind == Computer: 1 else: 0
+    ))
+    if turnReport.playerBatch.kind == Human:
+      result.add ((if handle.len > 0: handle else: "human"),1)
+  else:
+    result.add ("turnCount",gameStats[0].count+turnReport.turnNr)
+    result.add ("gamesCount",gameStats[1].count+1)
+    result.add ("computer",
+      gameStats[2].count+(if turnReport.playerBatch.kind == Computer: 1 else: 0)
+    )
+    var propIdx = -1
+    if turnReport.playerBatch.kind == Human:
+      let prop = if handle.len > 0: handle else: "human"
+      propIdx = gameStats.mapIt(it.name).find prop
+      result.add (prop,(if propIdx == -1: 1 else: gameStats[propIdx].count+1))
+    for idx in 3..gameStats.high:
+      if idx != propIdx: result.add (gameStats[idx].name,gameStats[idx].count)
 
 proc writeGameStatsTo(path:string) =
-  let handle = playerHandles[turnReport.playerBatch.color.ord].toLower
-  var 
-    statsOnFile = readGameStatsFrom gamesFile
-    writeLines:seq[string]
-  if statsOnFile.len == 0: 
-    writeLines.add "turnCount = " & $turnReport.turnNr
-    writeLines.add "gamesCount = 1"
-    writeLines.add "computerCount = "&(
-      if turnReport.playerBatch.kind == Computer: "1" else: "0"
-    )
-    if turnReport.playerBatch.kind == Human:
-      if handle.len > 0: writeLines.add handle&" = 1"
-      else: writeLines.add "human = 1"
-  else:
-    writeLines.add "turnCount = " & $(statsOnFile[0].count+turnReport.turnNr)
-    writeLines.add "gamesCount = " & $(statsOnFile[1].count+1)
-    writeLines.add "computerCount = "&(
-      if turnReport.playerBatch.kind == Computer: 
-        $(statsOnFile[2].count+1) 
-      else: $(statsOnFile[2].count)
-    )
-    if turnReport.playerBatch.kind == Human:
-      let 
-        prop = if handle.len > 0: handle else: "human"
-        propIdx = statsOnFile.mapIt(it.name).find prop
-      if propIdx == -1: writeLines.add prop&" = 1"
-      else:
-        writeLines.add prop&" = " & $(statsOnFile[propIdx].count+1)
-        statsOnFile.del propIdx
-      for idx in 3..statsOnFile.high:
-        writeLines.add statsOnFile[idx].name&" = " & $statsOnFile[idx].count
-  writeFile(path,writeLines.join "\n")
+  writeFile path,gameStats.mapIt(it.name&" = " & $it.count).join "\n"
 
 proc writeGamestats* =
   writeSquareVisitsTo visitsFile
   writeCashedCardsTo cashedFile
+  gameStats = buildGameStats()
   writeGameStatsTo gamesFile
 
 reportBatches = initReportBatches()
+gameStats = readGameStatsFrom gamesFile
+

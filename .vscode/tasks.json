@@ -16,7 +16,7 @@
         "--overflowChecks:off",
         "--nanChecks:off",
         "--infChecks:off",
-        "--objChecks:off",
+        // "--objChecks:off",
         "--excessiveStackTrace:on",
         "--parallelBuild:6",
         "--warning:all:off",

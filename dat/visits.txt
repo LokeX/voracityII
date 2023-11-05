@@ -1,60 +1,60 @@
-Bar Nr.1: 1
+Bar Nr.1: 5
 Gas Station Nr.2: 0
-Bank Nr.3: 3
-Town Hall Nr.4: 5
-Highway Nr.5: 4
-Barracks Nr.6: 8
-Church Nr.7: 6
-Villa Nr.8: 3
-Embassey Nr.9: 9
-Courthouse Nr.10: 0
-Airport Nr.11: 6
-Casino Nr.12: 3
-Jeweler Nr.13: 1
-Bank Nr.14: 3
-Gas Station Nr.15: 1
-Bar Nr.16: 7
-Highway Nr.17: 2
-Bar Nr.18: 2
-Disco Nr.19: 10
-Bar Nr.20: 9
-Brothel Nr.21: 7
-Realestate Nr.22: 5
-Shop Nr.23: 2
-Bank Nr.24: 2
-Hospital Nr.25: 10
-Undertaker Nr.26: 3
-Gas Station Nr.27: 1
-Bar Nr.28: 5
-Highway Nr.29: 2
-McLeans Nr.30: 15
-Condo Nr.31: 1
-Condo Nr.32: 0
-Lawyers Nr.33: 1
-Shop Nr.34: 0
-Bar Nr.35: 4
-Prison Nr.36: 5
+Bank Nr.3: 8
+Town Hall Nr.4: 29
+Highway Nr.5: 14
+Barracks Nr.6: 36
+Church Nr.7: 19
+Villa Nr.8: 7
+Embassey Nr.9: 22
+Courthouse Nr.10: 8
+Airport Nr.11: 19
+Casino Nr.12: 5
+Jeweler Nr.13: 3
+Bank Nr.14: 7
+Gas Station Nr.15: 3
+Bar Nr.16: 25
+Highway Nr.17: 8
+Bar Nr.18: 4
+Disco Nr.19: 24
+Bar Nr.20: 18
+Brothel Nr.21: 23
+Realestate Nr.22: 13
+Shop Nr.23: 5
+Bank Nr.24: 3
+Hospital Nr.25: 17
+Undertaker Nr.26: 14
+Gas Station Nr.27: 3
+Bar Nr.28: 14
+Highway Nr.29: 8
+McLeans Nr.30: 60
+Condo Nr.31: 5
+Condo Nr.32: 1
+Lawyers Nr.33: 11
+Shop Nr.34: 1
+Bar Nr.35: 12
+Prison Nr.36: 17
 Gas Station Nr.37: 1
-Bank Nr.38: 1
-Debt Inc Nr.39: 4
-Bar Nr.40: 3
-Highway Nr.41: 3
-Shop Nr.42: 3
-Entreprenour Nr.43: 5
-Shop Nr.44: 1
-Pharmacy Nr.45: 4
-Bar Nr.46: 6
-Gas Station Nr.47: 0
-Brewery Nr.48: 7
-Harbour Nr.49: 5
-Shop Nr.50: 0
-Bar Nr.51: 11
-Bank Nr.52: 1
-Highway Nr.53: 2
-Bar Nr.54: 2
-Import inc Nr.55: 7
-Slum Nr.56: 4
-Alley Nr.57: 10
-Slum Nr.58: 3
-Slum Nr.59: 2
-Police Nr.60: 8
+Bank Nr.38: 3
+Debt Inc Nr.39: 15
+Bar Nr.40: 21
+Highway Nr.41: 9
+Shop Nr.42: 5
+Entreprenour Nr.43: 19
+Shop Nr.44: 3
+Pharmacy Nr.45: 16
+Bar Nr.46: 17
+Gas Station Nr.47: 2
+Brewery Nr.48: 22
+Harbour Nr.49: 27
+Shop Nr.50: 1
+Bar Nr.51: 21
+Bank Nr.52: 3
+Highway Nr.53: 8
+Bar Nr.54: 11
+Import inc Nr.55: 19
+Slum Nr.56: 6
+Alley Nr.57: 25
+Slum Nr.58: 4
+Slum Nr.59: 5
+Police Nr.60: 21
