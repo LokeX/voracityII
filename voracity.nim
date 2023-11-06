@@ -139,7 +139,7 @@ proc draw(b:var Boxy) =
     b.doMoveAnimation
     b.drawCards
     b.drawCursor
-    if not turn.diceMoved: b.drawDice
+    if not turn.diceMoved or turnPlayer.kind == Computer: b.drawDice
     if not isRollingDice() and turnPlayer.kind == Human: b.drawSquares
     if turnPlayer.kind == Human and turn.undrawnBlues > 0: 
       b.drawDynamicImage nrOfUndrawnBluesPainter
@@ -273,15 +273,15 @@ var
     timer:timerCall()
   )
 
-window.onCloseRequest = quitVoracity
 addImage("logo",paintLogo())
 addImage("barman",paintBarman())
 addImage("advicetext",paintAdviceText())
-window.icon = readImage "pics\\BarMan.png"
 randomize()
 setVolume 0.05
 addCall call
 addCall dialogCall # we add dialog second - or it will be drawn beneath the board
+window.onCloseRequest = quitVoracity
+window.icon = readImage "pics\\BarMan.png"
 runWinWith: 
   callCycles()
   callTimers()

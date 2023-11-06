@@ -20,6 +20,7 @@ type
     board:array[61,int]
     pieces:array[5,int]
     cards:seq[BlueCard]
+    cash:int
 
 func countBars*(hypothetical:Hypothetic): int = hypothetical.pieces.countIt(it in bars)
 
@@ -164,7 +165,8 @@ func evalBlue(hypothetical:Hypothetic,card:BlueCard): int =
   evalPos (
     baseEvalBoard(hypothetical),
     hypothetical.pieces,
-    @[card]
+    @[card],
+    hypothetical.cash
   )
 
 func evalBlues*(hypothetical:Hypothetic):seq[BlueCard] =
@@ -213,8 +215,8 @@ func evalMove(hypothetical:Hypothetic,pieceNr,toSquare:int): int =
     pieces[pieceNr] = 0 else: pieces[pieceNr] = toSquare
   let
     cards = hypothetical.cards.filterIt(it.title notIn hypothetical.player.cashablePlans.cashable.mapIt(it.title))
-    before = (hypothetical.board,pieces,hypothetical.cards.threeBest).evalPos
-    after = (hypothetical.board,pieces,hypothetical.evalBlues(cards).threeBest).evalPos
+    before = (hypothetical.board,pieces,hypothetical.cards.threeBest,hypothetical.cash).evalPos
+    after = (hypothetical.board,pieces,hypothetical.evalBlues(cards).threeBest,hypothetical.cash).evalPos
   before+(before-after)
 
 func bestMove(hypothetical:Hypothetic,pieceNr,fromSquare,die:int):Move =
@@ -226,17 +228,18 @@ func bestMove(hypothetical:Hypothetic,pieceNr,fromSquare,die:int):Move =
     eval = evals[bestEval]
   (pieceNr,die,fromSquare,bestSquare,eval)
 
-proc move*(hypothetical:Hypothetic,dice:openArray[int]):Move {.gcSafe.} = 
+proc move*(hypothetical:Hypothetic,dice:openArray[int]):Move = 
   var flowMoves:seq[FlowVar[Move]]
   for pieceNr,fromSquare in hypothetical.pieces:
-    for die in dice:
-      flowMoves.add spawn hypothetical.bestMove(pieceNr,fromSquare,die)
-  # let moves = flowMoves.mapIt(^it)
+    if fromSquare != 0 or hypothetical.cash >= piecePrice:
+      for die in dice:
+        flowMoves.add spawn hypothetical.bestMove(pieceNr,fromSquare,die)
   flowMoves.mapIt(^it).sortedByIt(it.eval)[^1]
 
 proc diceMoves(hypothetical:Hypothetic):seq[FlowVar[Move]] {.gcSafe.} =
   for pieceNr,fromSquare in hypothetical.pieces:
-    for die in 1..6: result.add spawn hypothetical.bestMove(pieceNr,fromSquare,die)
+    if fromSquare != 0 or hypothetical.cash >= piecePrice:
+      for die in 1..6: result.add spawn hypothetical.bestMove(pieceNr,fromSquare,die)
 
 proc bestDiceMoves*(hypothetical:Hypothetic):seq[Move] =
   let moves = hypothetical.diceMoves.mapIt ^it
@@ -250,10 +253,12 @@ proc hypotheticalInit*(player:Player):Hypothetic =
   (baseEvalBoard(
     (board,
     player.pieces,
-    player.hand)
+    player.hand,
+    player.cash)
   ),
   player.pieces,
-  player.hand)
+  player.hand,
+  player.cash)
 
 proc sortBlues*(player:Player):seq[BlueCard] {.gcSafe.} =
   player.hypotheticalInit.evalBluesThreaded

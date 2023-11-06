@@ -122,7 +122,7 @@ proc initReportBatches:ReportBatches =
 proc reports*(playerColor:PlayerColor):seq[TurnReport] =
   turnReports.filterIt(it.playerBatch.color == playerColor)
 
-proc reportLines(report:TurnReport):seq[string] = @[
+func reportLines(report:TurnReport):seq[string] = @[
   "Turn nr: "&($report.turnNr),
   "Player: "&($report.playerBatch),
   "Dice Rolls:\n"&report.diceRolls.mapIt($it).join("\n"),
@@ -276,19 +276,19 @@ proc readGameStatsFrom(path:string):seq[GameStat] =
   if fileExists path: 
     result = readFile(path).splitLines.parseGameStats
 
-proc buildGameStats:seq[GameStat] =
+proc newGameStats:seq[GameStat] =
   let handle = playerHandles[turnReport.playerBatch.color.ord].toLower
   if gameStats.len == 0: 
-    result.add ("turnCount",turnReport.turnNr)
-    result.add ("gamesCount",1)
-    result.add ("computerCount",(
+    result.add ("turns",turnReport.turnNr)
+    result.add ("games",1)
+    result.add ("computer",(
       if turnReport.playerBatch.kind == Computer: 1 else: 0
     ))
     if turnReport.playerBatch.kind == Human:
       result.add ((if handle.len > 0: handle else: "human"),1)
   else:
-    result.add ("turnCount",gameStats[0].count+turnReport.turnNr)
-    result.add ("gamesCount",gameStats[1].count+1)
+    result.add ("turns",gameStats[0].count+turnReport.turnNr)
+    result.add ("games",gameStats[1].count+1)
     result.add ("computer",
       gameStats[2].count+(if turnReport.playerBatch.kind == Computer: 1 else: 0)
     )
@@ -306,8 +306,9 @@ proc writeGameStatsTo(path:string) =
 proc writeGamestats* =
   writeSquareVisitsTo visitsFile
   writeCashedCardsTo cashedFile
-  gameStats = buildGameStats()
-  writeGameStatsTo gamesFile
+  if players.anyHuman and players.anyComputer:
+    gameStats = newGameStats()
+    writeGameStatsTo gamesFile
 
 reportBatches = initReportBatches()
 gameStats = readGameStatsFrom gamesFile

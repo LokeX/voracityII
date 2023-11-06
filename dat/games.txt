@@ -1,4 +1,4 @@
-turnCount = 84
-gamesCount = 2
-computerCount = 0
-grum = 2
+turns = 253
+games = 6
+computer = 1
+grum = 5

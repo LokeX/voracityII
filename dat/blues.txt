@@ -1,4 +1,12 @@
 job:
+VIP Lounge
+{9,12,19}
+125000
+job:
+Digestion issues
+{13,25,55}
+125000
+job:
 Blood diamants
 {8,11,13}
 125000
@@ -27,8 +35,20 @@ Meat
 {55,57}
 60000
 plan:
+Lipstick on a pig
+{13,19}
+60000
+plan:
 Safe bet
 {4,12}
+60000
+plan:
+Golden chains
+{13,30}
+60000
+plan:
+Ludomania
+{8,12}
 60000
 deed:
 Light load

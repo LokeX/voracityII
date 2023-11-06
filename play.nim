@@ -11,6 +11,7 @@ import eval
 import menu
 import reports
 import random
+import strutils
 
 type
   SinglePiece = tuple[playerNr,pieceNr:int]
@@ -260,7 +261,7 @@ proc move =
   updateTurnReport move
   turnPlayer.pieces[move.pieceNr] = moveSelection.toSquare
   if moveSelection.fromSquare == 0: 
-    turnPlayer.cash -= 5000
+    turnPlayer.cash -= piecePrice
     updateBatch turn.player
   playCashPlansTo blueDeck
   turnPlayer.hand = turnPlayer.sortBlues
@@ -290,14 +291,15 @@ proc killPieceAndMove*(confirmedKill:string) =
   animateMove()
 
 proc shouldKillEnemyOn(killer:Player,toSquare:int): bool =
-  if killer.hasPieceOn(toSquare): 
-    return false 
+  if killer.hasPieceOn(toSquare) or 
+    killer.cash-(killer.removedPieces*piecePrice) <= startCash div 2: 
+      return false 
   else:
     let 
       randKill = rand(1..100) <= 5
       needsProtection = killer.needsProtectionOn(moveSelection.fromSquare,toSquare)
       agroKill = rand(1..100) <= killer.agro and not needsProtection
-      planChance = players[singlePiece.playerNr].planChanceOn(toSquare,blueDeck)
+      planChance = players[singlePiece.playerNr].cashChanceOn(toSquare,blueDeck)
       barKill = toSquare in bars and (
         killer.nrOfPiecesOnBars > 0 or players.len < 3
       )
@@ -316,15 +318,20 @@ proc aiKillDecision =
   )
 
 proc startKillDialog(square:int) =
-  let entries:seq[string] = @[
-    "Remove piece on:\n",
-    squares[square].name&" Nr."&($squares[square].nr)&"?\n",
-    "\n",
-    "Yes\n",
-    "No",
-  ]
+  let 
+    targetPlayer = players[singlePiece.playerNr]
+    targetSquare = targetPlayer.pieces[singlePiece.pieceNr]
+    cashChance = targetPlayer.cashChanceOn(targetSquare,blueDeck)*100
+    entries:seq[string] = @[
+      "Remove piece on:\n",
+      squares[square].name&" Nr."&($squares[square].nr)&"?\n",
+      "Cash chance: "&cashChance.formatFloat(ffDecimal,2)&"%\n",
+      "\n",
+      "Yes\n",
+      "No",
+    ]
   showMenu = false
-  startDialog(entries,3..4,killPieceAndMove)
+  startDialog(entries,4..5,killPieceAndMove)
 
 proc hasKillablePiece(square:int):bool =
   singlePiece = players.singlePieceOn square

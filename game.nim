@@ -43,6 +43,8 @@ const
   
   defaultPlayerKinds = @[Human,Computer,None,None,None,None]
   cashToWin* = 1_000_000
+  piecePrice* = 10_000
+  startCash* = 50_000
   
   (pbx,pby) = (20,20)
   popUpCard = Rect(x:500,y:275,w:cardWidth,h:cardHeight)
@@ -149,6 +151,12 @@ proc newPlayerBatches*:array[6,Batch] =
 func anyHuman*(players:seq[Player]):bool =
   players.anyIt it.kind == Human
 
+func anyComputer*(players:seq[Player]):bool =
+  players.anyIt it.kind == Computer
+
+func removedPieces*(player:Player):int =
+  player.pieces.count 0
+
 func indexFromColor*(players:seq[Player],playerColor:PlayerColor):int =
   result = -1
   for i,player in players:
@@ -161,7 +169,7 @@ func knownBluesIn(discardPile,hand:seq[BlueCard]):seq[BlueCard] =
 func require(cards:seq[BlueCard],square:int): seq[BlueCard] =
   cards.filterIt(square in it.squares.required or square in it.squares.oneInMany)
 
-func planChanceOn*(player:Player,square:int,deck:Deck): float =
+func cashChanceOn*(player:Player,square:int,deck:Deck): float =
   let 
     knownCards = knownBluesIn(deck.discardPile,player.hand)
     unknownCards = deck.fullDeck
@@ -247,7 +255,7 @@ proc newPlayers*:seq[Player] =
       color:player.color,
       kind:player.kind,
       pieces:highways,
-      cash:25000,
+      cash:startCash,
       agro:rand 1..100
     )
   playerSlots.filterIt it.kind != None
