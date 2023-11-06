@@ -1,45 +1,51 @@
-Burglary: 2
-Meat: 1
-Polterabend: 1
-Redemption: 2
-Demolition: 2
-Color revolution: 2
-Diamonds are...: 1
-Occupational hazard: 2
-Choire boys: 2
-Insurgency: 2
-Delivery: 1
-Concuctions: 1
-Dead weight: 1
-Secret weapon: 2
-Higher power: 1
-Hooked: 1
-Outsider: 1
-Financing: 2
-Transition: 1
-Express demands: 2
-Health plan: 1
-High society: 2
-Razia: 1
-Agent: 1
-Legalese: 1
-Sing along song: 1
-Grand designs: 2
-Home brew: 1
-Informer: 1
-Small box: 1
-Foreign aid: 1
-Up yours: 1
-Recycling: 2
-Small arms: 1
-Judicial murder: 1
-Stove away: 1
-Ram theft: 1
-Pimp: 1
-Heartless: 1
+Underhanded: 3
+Bail: 1
+Debt to society: 1
+Knocked out: 1
+Bystanders: 1
+Et spiritus sancti: 1
+White collars: 1
+Protection: 1
 Brotherhood: 1
+Small arms: 2
+Meat: 1
+Choire boys: 1
+Higher power: 1
+VIP Lounge: 2
+Secret weapon: 1
+Sing along song: 2
+Insurgency: 1
+Judicial murder: 1
+Polterabend: 1
+Express demands: 2
+Sweet hearts: 1
+Stove away: 1
+Hooked: 1
+Strong medicine: 1
+Cold meds: 2
+Home brew: 2
+Blood diamants: 1
+Demolition: 2
+Redemption: 1
+Bodyguard: 1
+Projects: 1
+Pimp: 1
+Laundry: 1
+Financing: 1
+Informer: 1
+Advisory board: 1
+Concuctions: 1
+Pure luck: 1
+Outsider: 1
+Side effects: 1
+Open house: 1
+Rock solid claims: 1
+Outstanding: 1
+Chicks in cages: 1
 Human resources: 1
+Burglary: 1
+Dead weight: 1
+Acquittal: 1
+Aiding and abetting: 1
+Light load: 1
 Knock knock: 1
-Party drugs: 1
-Local dealership: 1
-Jet setter: 1

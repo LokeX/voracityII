@@ -3,6 +3,18 @@ VIP Lounge
 {9,12,19}
 125000
 job:
+White collars
+{12,13,33}
+125000
+job:
+Addictions
+{12,48,60}
+125000
+job:
+Open house
+{8,22,26}
+125000
+job:
 Digestion issues
 {13,25,55}
 125000
@@ -71,16 +83,24 @@ Aiding and abetting
 {60}[56,58,59]
 55000
 deed:
+Projects
+{43}[56,58,59]
+55000
+deed:
 Concuctions
 {45}[56,58,59]
 55000
 deed:
 Home brew
 {48}[31,32]
-55000
+60000
 deed:
 Local dealership
 {30}[31,32]
+60000
+deed:
+rentals
+{39}[31,32]
 60000
 deed:
 Protection

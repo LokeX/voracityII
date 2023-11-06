@@ -1,4 +1,4 @@
-turns = 253
-games = 6
-computer = 1
-grum = 5
+turns = 352
+games = 8
+computer = 2
+grum = 6
