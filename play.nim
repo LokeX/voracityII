@@ -301,7 +301,7 @@ proc shouldKillEnemyOn(killer:Player,toSquare:int): bool =
       agroKill = rand(1..100) <= killer.agro and not needsProtection
       planChance = players[singlePiece.playerNr].cashChanceOn(toSquare,blueDeck)
       barKill = toSquare in bars and (
-        killer.nrOfPiecesOnBars > 0 or players.len < 3
+        killer.nrOfPiecesOnBars > 1 or players.len < 3
       )
     (planChance > 0.05*(players.len.toFloat/2)) or agroKill or barKill or randKill
 

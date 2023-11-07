@@ -154,6 +154,9 @@ func anyHuman*(players:seq[Player]):bool =
 func anyComputer*(players:seq[Player]):bool =
   players.anyIt it.kind == Computer
 
+func anyHandles*(handles:seq[string]):bool =
+  handles.anyIt it.len > 0
+
 func removedPieces*(player:Player):int =
   player.pieces.count 0
 

@@ -9,7 +9,7 @@ import threadpool
 
 const
   highwayVal* = 1000
-  valBar = 2500
+  valBar = 5000
   posPercent = [1.0,0.3,0.3,0.3,0.3,0.3,0.3,0.15,0.14,0.12,0.10,0.08,0.05]
 
 type
@@ -25,7 +25,7 @@ type
 func countBars*(hypothetical:Hypothetic): int = hypothetical.pieces.countIt(it in bars)
 
 func cardVal(hypothetical:Hypothetic): int =
-  if (let val = 3 - hypothetical.cards.len; val > 0): val*5000 else: 0
+  if (let val = 3 - hypothetical.cards.len; val > 0): val*10000 else: 0
 
 func barVal*(hypothetical:Hypothetic): int = 
   let 
@@ -88,10 +88,6 @@ func oneInMoreBonus(hypothetical:Hypothetic,card:BlueCard,square:int):int =
       result = card.cash div 2
   elif piecesOnRequiredSquare and square in card.squares.oneInMany:
     result = card.cash
-    # if hypothetical.piecesOn(square) > 0: 
-    #   result = 40_000
-    # else: 
-    #   result = 20_000
 
 func oneRequiredBonus(hypothetical:Hypothetic,card:BlueCard,square:int): int =
   if card.squares.oneInMany.len > 0:
@@ -121,6 +117,7 @@ func blueBonus(hypothetical:Hypothetic,card:BlueCard,square:int):int =
         for square in 0..requiredSquares.high:
           nrOfPieces += min(piecesOn[square],requiredPiecesOn[square])
         result = (card.cash div nrOfPiecesRequired)*nrOfPieces
+        # if nrOfPiecesRequired == nrOfPieces: result *= 2
 
 func blueVals*(hypothetical:Hypothetic,squares:seq[int]):seq[int] =
   result.setLen(squares.len)
@@ -214,10 +211,10 @@ func evalMove(hypothetical:Hypothetic,pieceNr,toSquare:int): int =
   if hypothetical.friendlyFireAdviced (pieceNr,0,pieces[pieceNr],toSquare,0):
     pieces[pieceNr] = 0 else: pieces[pieceNr] = toSquare
   let
-    cards = hypothetical.cards.filterIt(it.title notIn hypothetical.player.cashablePlans.cashable.mapIt(it.title))
+    # cards = hypothetical.cards.filterIt(it.title notIn hypothetical.player.cashablePlans.cashable.mapIt(it.title))
     before = (hypothetical.board,pieces,hypothetical.cards.threeBest,hypothetical.cash).evalPos
-    after = (hypothetical.board,pieces,hypothetical.evalBlues(cards).threeBest,hypothetical.cash).evalPos
-  before+(before-after)
+    # after = (hypothetical.board,pieces,hypothetical.evalBlues(cards).threeBest,hypothetical.cash).evalPos
+  before#+(before-after)
 
 func bestMove(hypothetical:Hypothetic,pieceNr,fromSquare,die:int):Move =
   let

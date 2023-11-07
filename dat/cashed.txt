@@ -1,51 +1,55 @@
-Underhanded: 3
-Bail: 1
-Debt to society: 1
-Knocked out: 1
-Bystanders: 1
-Et spiritus sancti: 1
-White collars: 1
-Protection: 1
-Brotherhood: 1
-Small arms: 2
-Meat: 1
-Choire boys: 1
-Higher power: 1
-VIP Lounge: 2
-Secret weapon: 1
-Sing along song: 2
-Insurgency: 1
-Judicial murder: 1
-Polterabend: 1
-Express demands: 2
-Sweet hearts: 1
-Stove away: 1
-Hooked: 1
-Strong medicine: 1
-Cold meds: 2
-Home brew: 2
-Blood diamants: 1
-Demolition: 2
-Redemption: 1
-Bodyguard: 1
-Projects: 1
-Pimp: 1
-Laundry: 1
-Financing: 1
-Informer: 1
+Party drugs: 1
+High society: 2
+Delivery: 1
+Recycling: 3
 Advisory board: 1
-Concuctions: 1
-Pure luck: 1
-Outsider: 1
-Side effects: 1
-Open house: 1
-Rock solid claims: 1
-Outstanding: 1
-Chicks in cages: 1
-Human resources: 1
 Burglary: 1
-Dead weight: 1
-Acquittal: 1
-Aiding and abetting: 1
+Home brew: 1
+Insurgency: 2
+Hooters: 2
+Bail: 1
+Express demands: 1
+Et spiritus sancti: 1
+Concuctions: 2
+Judicial murder: 2
+Side effects: 1
+Financing: 1
+Underhanded: 2
+Safe bet: 1
+Protection: 2
+Debt to society: 2
+Legalese: 2
+Agent: 2
+Polterabend: 2
+Grand designs: 2
+Local dealership: 1
+Meat: 1
+Hooked: 1
 Light load: 1
-Knock knock: 1
+Flay'em: 2
+Human resources: 1
+Choire boys: 1
+Deadly cargo: 1
+Duty free: 2
+Outsider: 2
+Pure luck: 1
+Moonshine: 1
+Sweet hearts: 1
+Color revolution: 1
+Redemption: 1
+Outstanding: 1
+Laundry: 1
+Health plan: 1
+Slum lord: 1
+Ludomania: 1
+Higher power: 1
+VIP Lounge: 1
+Golden chains: 1
+Lawfare: 1
+Brotherhood: 1
+Foreign aid: 1
+Small arms: 1
+Jet setter: 1
+Drug Dealer: 1
+Rentals: 1
+Heartless: 1

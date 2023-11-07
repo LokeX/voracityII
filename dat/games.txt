@@ -1,4 +1,4 @@
-turns = 352
-games = 8
+turns = 538
+games = 12
 computer = 2
-grum = 6
+human = 3

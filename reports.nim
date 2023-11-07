@@ -11,7 +11,8 @@ import misc
 import os
 
 type 
-  GameStat = tuple[name:string,count:int]
+  Stat = tuple[name:string,count:int]
+  Stats = tuple[game,won,lost:seq[Stat]]
   CashedCards = seq[tuple[title:string,count:int]]  
   KillMatrix = array[PlayerColor,array[PlayerColor,int]]
   PlayedCard* = enum Drawn,Played,Cashed,Discarded
@@ -42,7 +43,7 @@ var
   selectedBatch:int
   turnReports:seq[TurnReport]
   turnReport*:TurnReport
-  gameStats:seq[GameStat]
+  gameStats:seq[Stat]
 
 proc initReportBatch:Batch = 
   newBatch BatchInit(
@@ -266,39 +267,41 @@ proc allCashedCards(path:string):CashedCards =
 proc writeCashedCardsTo(path:string) =
   writeFile(path,allCashedCards(path).mapIt(it.title&": "&($it.count)).join "\n")
 
-func parseGameStats(gameStatsLines:seq[string]):seq[GameStat] =
+func parseGameStats(gameStatsLines:seq[string]):seq[Stat] =
   for line in gameStatsLines:
     let splitLine = line.split
     try: result.add (splitLine[0].strip,splitLine[^1].parseInt)
     except:discard
 
-proc readGameStatsFrom(path:string):seq[GameStat] =
+proc readGameStatsFrom(path:string):seq[Stat] =
   if fileExists path: 
     result = readFile(path).splitLines.parseGameStats
 
-proc newGameStats:seq[GameStat] =
+proc handleStats(path:string):seq[Stat] =
   let handle = playerHandles[turnReport.playerBatch.color.ord].toLower
+  var propIdx = -1
+  if turnReport.playerBatch.kind == Human:
+    let prop = if handle.len > 0: handle else: "human"
+    propIdx = gameStats.mapIt(it.name).find prop
+    result.add (prop,(if propIdx == -1: 1 else: gameStats[propIdx].count+1))
+  for idx in 3..gameStats.high:
+    if idx != propIdx: result.add (gameStats[idx].name,gameStats[idx].count)
+
+proc newGameStats:seq[Stat] =
   if gameStats.len == 0: 
     result.add ("turns",turnReport.turnNr)
     result.add ("games",1)
-    result.add ("computer",(
-      if turnReport.playerBatch.kind == Computer: 1 else: 0
-    ))
-    if turnReport.playerBatch.kind == Human:
-      result.add ((if handle.len > 0: handle else: "human"),1)
+    result.add ("computer",(if turnReport.playerBatch.kind == Computer: 1 else: 0))
+    result.add ("human",(if turnReport.playerBatch.kind == Human: 1 else: 0))
   else:
     result.add ("turns",gameStats[0].count+turnReport.turnNr)
     result.add ("games",gameStats[1].count+1)
     result.add ("computer",
       gameStats[2].count+(if turnReport.playerBatch.kind == Computer: 1 else: 0)
     )
-    var propIdx = -1
-    if turnReport.playerBatch.kind == Human:
-      let prop = if handle.len > 0: handle else: "human"
-      propIdx = gameStats.mapIt(it.name).find prop
-      result.add (prop,(if propIdx == -1: 1 else: gameStats[propIdx].count+1))
-    for idx in 3..gameStats.high:
-      if idx != propIdx: result.add (gameStats[idx].name,gameStats[idx].count)
+    result.add ("human",
+      gameStats[2].count+(if turnReport.playerBatch.kind == Human: 1 else: 0)
+    )
 
 proc writeGameStatsTo(path:string) =
   writeFile path,gameStats.mapIt(it.name&" = " & $it.count).join "\n"

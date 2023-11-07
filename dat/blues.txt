@@ -99,7 +99,7 @@ Local dealership
 {30}[31,32]
 60000
 deed:
-rentals
+Rentals
 {39}[31,32]
 60000
 deed:
