@@ -34,30 +34,32 @@ const
   gamesFile = "dat\\games.txt"
   (rbx,rby) = (450,280)
 
+  condensedRegular = "fonts\\AsapCondensed-Regular.ttf"
+  statsBatchInit = BatchInit(
+    kind:InputBatch,
+    name:"stats",
+    pos:(450,550),
+    padding:(20,20,10,10),
+    # entries:inputEntries,
+    font:(condensedRegular,20.0,color(1,1,1)),
+    bgColor:color(0,0,0),
+    # blur:2,
+    opacity:25,
+    shadow:(10,1.5,color(255,255,255,150))
+  )
+
 let
   plainFont = setNewFont(reportFont,18,contrastColors[turnPlayer.color])
   matrixFont = setNewFont(killMatrixFont,size = 16.0)
+  roboto = setNewFont(robotoRegular,size = 15.0)
 
 var
+  statsBatch = newBatch statsBatchInit
   reportBatches:ReportBatches
   selectedBatch:int
   turnReports:seq[TurnReport]
   turnReport*:TurnReport
   gameStats:seq[Stat]
-
-proc initReportBatch:Batch = 
-  newBatch BatchInit(
-    kind:TextBatch,
-    name:"aireport",
-    pos:(rbx,rby),
-    padding:(20,20,20,20),
-    font:(reportFont,24,color(1,1,1)),
-    border:(5,15,color(0,0,0)),
-    bgColor:color(245,0,0),
-    blur:2,
-    opacity:25,
-    shadow:(10,1.75,color(255,255,255,100))
-  )
 
 proc victims(killer:PlayerColor):seq[PlayerColor] =
   for report in turnReports:
@@ -113,6 +115,20 @@ var
 
 proc drawKillMatrix*(b:var Boxy) =
   b.drawDynamicImage killMatrixPainter
+
+proc initReportBatch:Batch = 
+  newBatch BatchInit(
+    kind:TextBatch,
+    name:"aireport",
+    pos:(rbx,rby),
+    padding:(20,20,20,20),
+    font:(reportFont,24,color(1,1,1)),
+    border:(5,15,color(0,0,0)),
+    bgColor:color(245,0,0),
+    blur:2,
+    opacity:25,
+    shadow:(10,1.75,color(255,255,255,100))
+  )
 
 proc initReportBatches:ReportBatches =
   for i,batch in reportBatches.enum_mitems:
@@ -217,6 +233,41 @@ proc drawReport*(b:var Boxy,playerColor:PlayerColor) =
     animate reportBatches[playerColor]
   b.drawDynamicImage reportBatches[playerColor]
 
+proc updateStats* =
+  if gameStats.len > 0:
+    var rob = roboto.copy
+    rob.lineHeight = 24
+    var 
+      robotoYellow = rob.copy
+      robotoPurple = rob.copy
+    robotoPurple.paint = color(25,0,25)
+    robotoYellow.paint = color(25,25,0)
+    let 
+      human = $((gameStats[3].count.toFloat/gameStats[1].count.toFloat)*100)
+        .formatFloat(ffDecimal,2)
+      computer = $((gameStats[2].count.toFloat/gameStats[1].count.toFloat)*100)
+        .formatFloat(ffDecimal,2)
+      spans = @[
+        newSpan("Games: ",robotoPurple),
+        newSpan($(gameStats[1].count),robotoYellow),
+        newSpan("  |  Turns: ",robotoPurple),
+        newSpan($gameStats[0].count,robotoYellow),
+        newSpan("  |  Avg turns: ",robotoPurple),
+        newSpan($(gameStats[0].count div gameStats[1].count)&"\n",robotoYellow),
+        newSpan("Human wins: ",robotoPurple),
+        newSpan($gameStats[3].count&"  |  ",robotoYellow),
+        newSpan(human&"%\n",robotoYellow),
+        newSpan("Computer wins: ",robotoPurple),
+        newSpan($gameStats[2].count&"  |  ",robotoYellow),
+        newSpan(computer&"%",robotoYellow),
+      ]
+    statsBatch.setSpans spans
+    statsBatch.update = true
+
+proc drawStats*(b:var Boxy) =
+  if gameStats.len > 0:
+    b.drawDynamicImage statsBatch
+
 proc readReportedVisits:array[1..60,int] =
   for square in turnReports.mapIt(it.moves.mapIt(it.toSquare)).flatMap.filterIt(it != 0):
     inc result[square]
@@ -312,7 +363,8 @@ proc writeGamestats* =
   if players.anyHuman and players.anyComputer:
     gameStats = newGameStats()
     writeGameStatsTo gamesFile
+    updateStats()
 
 reportBatches = initReportBatches()
 gameStats = readGameStatsFrom gamesFile
-
+updateStats()

@@ -1,4 +1,0 @@
-turns = 538
-games = 12
-computer = 2
-human = 3

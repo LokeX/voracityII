@@ -42,7 +42,7 @@ const
   handlesFile = "dat\\handles.txt"
   
   defaultPlayerKinds = @[Human,Computer,None,None,None,None]
-  cashToWin* = 1_000_000
+  cashToWin* = 500_000
   piecePrice* = 10_000
   startCash* = 50_000
   

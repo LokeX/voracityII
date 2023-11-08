@@ -35,7 +35,7 @@ Bootlegging
 {48,49,55}
 125000
 job:
-Transition
+Trans action
 {21,25,36}
 125000
 plan:

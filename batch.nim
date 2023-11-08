@@ -430,12 +430,12 @@ proc setSpanTexts*(batch:Batch,spans:seq[string]) =
 
 proc setSpans*(batch:Batch,spans:seq[Span]) =
   batch.text.spans = spans
-  batch.setDimensions()
+  batch.setDimensions
 
 proc setSpanText*(batch:Batch,text:string,idx:int) =
   if idx < batch.text.spans.len and idx >= 0:
     batch.text.spans[idx].text = text
-    batch.setDimensions()
+    batch.setDimensions
 
 proc setShallowPos*(batch:Batch,x,y:int) =
   batch.area.x1 = x
@@ -448,7 +448,7 @@ proc setPos*(batch:Batch,x,y:int) =
   batch.rect.y = y.toFloat
   batch.area = batch.rect.toArea
   if batch.kind == MenuBatch:
-    batch.selector.selectionAreas = batch.computeSelectionAreas()
+    batch.selector.selectionAreas = batch.computeSelectionAreas
   batch.update = true
 
 proc pos*(batch:Batch):tuple[x,y:int] = (batch.area.x1,batch.area.y1)

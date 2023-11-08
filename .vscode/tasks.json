@@ -10,7 +10,7 @@
       "args": [
         "c",
         "-r",
-        "-d:release",
+        // "-d:release",
         "--opt:speed",
         "--floatChecks:off",
         "--overflowChecks:off",

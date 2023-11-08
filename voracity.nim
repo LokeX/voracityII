@@ -132,6 +132,7 @@ proc draw(b:var Boxy) =
   b.drawBoard
   b.drawDynamicImage piecesImg
   b.drawPlayerBatches
+  b.drawStats
   if showMenu: b.drawDynamicImage mainMenu
   if batchInputNr != -1: b.drawBatch inputBatch
   if turn.nr > 0:
