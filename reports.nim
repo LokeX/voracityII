@@ -12,7 +12,7 @@ import os
 
 type 
   Stat = tuple[name:string,count:int]
-  Stats = tuple[game,won,lost:seq[Stat]]
+  # Stats = tuple[game,won,lost:seq[Stat]]
   CashedCards = seq[tuple[title:string,count:int]]  
   KillMatrix = array[PlayerColor,array[PlayerColor,int]]
   PlayedCard* = enum Drawn,Played,Cashed,Discarded
@@ -26,6 +26,7 @@ type
     kills:seq[PlayerColor]
 
 const
+  # condensedRegular = "fonts\\AsapCondensed-Regular.ttf"
   robotoRegular* = "fonts\\Roboto-Regular_1.ttf"
   killMatrixFont = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
   reportFont = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
@@ -34,16 +35,13 @@ const
   gamesFile = "dat\\games.txt"
   (rbx,rby) = (450,280)
 
-  condensedRegular = "fonts\\AsapCondensed-Regular.ttf"
   statsBatchInit = BatchInit(
     kind:InputBatch,
     name:"stats",
     pos:(450,550),
     padding:(20,20,10,10),
-    # entries:inputEntries,
-    font:(condensedRegular,20.0,color(1,1,1)),
+    font:(robotoRegular,20.0,color(1,1,1)),
     bgColor:color(0,0,0),
-    # blur:2,
     opacity:25,
     shadow:(10,1.5,color(255,255,255,150))
   )
@@ -233,15 +231,18 @@ proc drawReport*(b:var Boxy,playerColor:PlayerColor) =
     animate reportBatches[playerColor]
   b.drawDynamicImage reportBatches[playerColor]
 
-proc updateStats* =
+let (robotoPurple,robotoYellow) = block:
+  var rob = roboto.copy
+  rob.lineHeight = 24
+  var 
+    robotoYellow = rob.copy
+    robotoPurple = rob.copy
+  robotoPurple.paint = color(25,0,25)
+  robotoYellow.paint = color(25,25,0)
+  (robotoPurple,robotoYellow)
+
+proc updateStatsBatch* =
   if gameStats.len > 0:
-    var rob = roboto.copy
-    rob.lineHeight = 24
-    var 
-      robotoYellow = rob.copy
-      robotoPurple = rob.copy
-    robotoPurple.paint = color(25,0,25)
-    robotoYellow.paint = color(25,25,0)
     let 
       human = $((gameStats[3].count.toFloat/gameStats[1].count.toFloat)*100)
         .formatFloat(ffDecimal,2)
@@ -304,8 +305,7 @@ proc readCashedCardsFrom(path:string):CashedCards =
   if fileExists path:
     for line in lines path:
       let lineSplit = line.split
-      try: 
-        result.add (lineSplit[0],lineSplit[^1].parseInt)
+      try: result.add (lineSplit[0],lineSplit[^1].parseInt)
       except:discard
 
 proc allCashedCards(path:string):CashedCards =
@@ -328,31 +328,33 @@ proc readGameStatsFrom(path:string):seq[Stat] =
   if fileExists path: 
     result = readFile(path).splitLines.parseGameStats
 
-proc handleStats(path:string):seq[Stat] =
-  let handle = playerHandles[turnReport.playerBatch.color.ord].toLower
-  var propIdx = -1
-  if turnReport.playerBatch.kind == Human:
-    let prop = if handle.len > 0: handle else: "human"
-    propIdx = gameStats.mapIt(it.name).find prop
-    result.add (prop,(if propIdx == -1: 1 else: gameStats[propIdx].count+1))
-  for idx in 3..gameStats.high:
-    if idx != propIdx: result.add (gameStats[idx].name,gameStats[idx].count)
+# proc handleStats(path:string):seq[Stat] =
+#   let handle = playerHandles[turnReport.playerBatch.color.ord].toLower
+#   var propIdx = -1
+#   if turnReport.playerBatch.kind == Human:
+#     let prop = if handle.len > 0: handle else: "human"
+#     propIdx = gameStats.mapIt(it.name).find prop
+#     result.add (prop,(if propIdx == -1: 1 else: gameStats[propIdx].count+1))
+#   for idx in 3..gameStats.high:
+#     if idx != propIdx: result.add (gameStats[idx].name,gameStats[idx].count)
 
-proc newGameStats:seq[Stat] =
-  if gameStats.len == 0: 
-    result.add ("turns",turnReport.turnNr)
-    result.add ("games",1)
-    result.add ("computer",(if turnReport.playerBatch.kind == Computer: 1 else: 0))
-    result.add ("human",(if turnReport.playerBatch.kind == Human: 1 else: 0))
-  else:
-    result.add ("turns",gameStats[0].count+turnReport.turnNr)
-    result.add ("games",gameStats[1].count+1)
-    result.add ("computer",
+proc updateGameStats:seq[Stat] =
+  if gameStats.len == 0: @[
+    ("turns",turnReport.turnNr),
+    ("games",1),
+    ("computer",(if turnReport.playerBatch.kind == Computer: 1 else: 0)),
+    ("human",(if turnReport.playerBatch.kind == Human: 1 else: 0)),
+  ]
+  else: @[
+    ("turns",gameStats[0].count+turnReport.turnNr),
+    ("games",gameStats[1].count+1),
+    ("computer",
       gameStats[2].count+(if turnReport.playerBatch.kind == Computer: 1 else: 0)
-    )
-    result.add ("human",
-      gameStats[2].count+(if turnReport.playerBatch.kind == Human: 1 else: 0)
-    )
+    ),
+    ("human",
+      gameStats[3].count+(if turnReport.playerBatch.kind == Human: 1 else: 0)
+    ),
+  ]
 
 proc writeGameStatsTo(path:string) =
   writeFile path,gameStats.mapIt(it.name&" = " & $it.count).join "\n"
@@ -361,10 +363,10 @@ proc writeGamestats* =
   writeSquareVisitsTo visitsFile
   writeCashedCardsTo cashedFile
   if players.anyHuman and players.anyComputer:
-    gameStats = newGameStats()
+    gameStats = updateGameStats()
     writeGameStatsTo gamesFile
-    updateStats()
+    updateStatsBatch()
 
 reportBatches = initReportBatches()
 gameStats = readGameStatsFrom gamesFile
-updateStats()
+updateStatsBatch()

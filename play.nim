@@ -165,6 +165,7 @@ proc playCashPlansTo*(deck:var Deck) =
     turn.player.updateBatch
     playSound "coins-to-table-2"
     if turnPlayer.cash >= cashToWin:
+      writeGamestats()
       playSound "applause-2"
       setMenuTo NewGameMenu
 
@@ -364,7 +365,7 @@ proc leftMouse*(m:KeyEvent) =
 proc endGame =
   if turnPlayer.kind == Human:
     recordTurnReport()
-  writeGamestats()
+  # writeGamestats()
   setupNewGame()
   setMenuTo SetupMenu
 
