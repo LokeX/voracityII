@@ -100,6 +100,7 @@ proc togglePlayerKind(batchNr:int) =
     of None:Human
   players[batchNr].kind = playerKinds[batchNr]
   updateBatch batchNr
+  updateStatsBatch()
   piecesImg.update = true
 
 proc mouseOnCardSlot(player:var Player,deck:var Deck):int =

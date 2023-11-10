@@ -221,6 +221,7 @@ proc keyboard (key:KeyboardEvent) =
         echo "playerHandle ",batchInputNr,": ",playerHandles[batchInputNr]
         batchInputNr = -1
         inputBatch.deleteInput
+        updateStatsBatch()
     of KeyE: autoEndTurn = not autoEndTurn
     of KeyR: 
       case blueDeck.reveal

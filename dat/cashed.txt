@@ -1,25 +1,17 @@
-Polterabend: 2
-Delivery: 1
-Side effects: 1
-Broken bones: 1
-Duty free: 1
-Slum lord: 1
-Outstanding: 1
-Load: 1
-Dead weight: 1
+High society: 1
 Small arms: 1
-Hooters: 1
-Digestion issues: 1
-Body count: 1
 Rock solid claims: 1
-Demolition: 1
-Infiltration: 1
-Knock knock: 1
-Heartless: 1
-Lawfare: 1
-Strong medicine: 1
-Open house: 1
+Jet setter: 1
+Broman escorte: 1
+Razia: 1
+Bodyguard: 1
 Grapevine: 1
-Party drugs: 1
-Express demands: 1
-Et spiritus sancti: 1
+Terrorist: 1
+Acquittal: 1
+Legalese: 1
+Light load: 1
+Ludomania: 1
+Knocked out: 1
+Moonshine: 1
+Strong medicine: 1
+Secret weapon: 1

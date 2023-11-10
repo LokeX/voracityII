@@ -1,0 +1,1 @@
+[{"turnCount":18,"playerKinds":["Human","Computer","Computer","Computer","Computer","Computer"],"aliases":["Grum","","","","",""],"winner":"Grum","cash":610000}]
