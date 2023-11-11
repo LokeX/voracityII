@@ -47,7 +47,7 @@ const
   startCash* = 50_000
   
   (pbx,pby) = (20,20)
-  popUpCard = Rect(x:500,y:275,w:cardWidth,h:cardHeight)
+  popUpCard = Rect(x:500,y:275,w:cardWidth*0.9,h:cardHeight*0.9)
   drawPile = Rect(x:855,y:495,w:110,h:180)
   discardPile = Rect(x:1025,y:495,w:cardWidth*0.441,h:cardHeight*0.441)
 

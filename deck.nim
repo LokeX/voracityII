@@ -26,7 +26,7 @@ type
     fullDeck*,drawPile*,discardPile*:seq[BlueCard]
     popUpSlot*,drawSlot*,discardSlot*:CardSlot
     lastDrawn*:string
-    show:Show
+    show*:Show
     reveal*:Reveal
   CardSlot = tuple[nr:int,name:string,area:Area,rect:Rect]
 

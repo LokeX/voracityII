@@ -46,7 +46,7 @@ var
   pinnedBatchNr = -1
   frames:float
 
-proc paintAdviceText:Image =
+proc paintSubText:Image =
   var 
     spans:seq[Span]
     logoFontYellow = logoFont.copy
@@ -218,7 +218,6 @@ proc keyboard (key:KeyboardEvent) =
           playerKinds[batchInputNr] = Human
         playerHandles[batchInputNr] = inputBatch.input
         updateBatch batchInputNr
-        echo "playerHandle ",batchInputNr,": ",playerHandles[batchInputNr]
         batchInputNr = -1
         inputBatch.deleteInput
         updateStatsBatch()
@@ -277,7 +276,7 @@ var
 
 addImage("logo",paintLogo())
 addImage("barman",paintBarman())
-addImage("advicetext",paintAdviceText())
+addImage("advicetext",paintSubText())
 randomize()
 setVolume 0.05
 addCall call

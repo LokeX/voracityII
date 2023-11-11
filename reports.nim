@@ -16,7 +16,7 @@ type
   KillMatrix = array[PlayerColor,array[PlayerColor,int]]
   PlayedCard* = enum Drawn,Played,Cashed,Discarded
   ReportBatches = array[PlayerColor,Batch]
-  JsonStats = object
+  GameStats = object
     turnCount:int
     playerKinds:array[6,PlayerKind]
     aliases:array[6,string]
@@ -62,7 +62,7 @@ var
   selectedBatch:int
   turnReports:seq[TurnReport]
   turnReport*:TurnReport
-  jsonStats:seq[JsonStats]
+  gameStats:seq[GameStats]
 
 proc victims(killer:PlayerColor):seq[PlayerColor] =
   for report in turnReports:
@@ -77,9 +77,9 @@ proc killMatrix:KillMatrix =
       result[victim][killer] = killer.victims.count victim
 
 proc typesetKillMatrix(width,height:float):Arrangement =
-  let matrix = killMatrix()
+  # let matrix = killMatrix()
   var spans:seq[Span]
-  for rowColor,row in matrix:
+  for rowColor,row in killMatrix():
     var font = matrixFont.copy
     font.paint = playerColors[PlayerColor(rowColor)]
     for column,value in row:
@@ -250,7 +250,7 @@ func getLoneAlias(playerHandles:openArray[string]):string =
   for handle in playerHandles:
     if handle.len > 0: return handle
 
-proc matchingGames(stats:seq[JsonStats]):tuple[alias:string,matches:seq[JsonStats]] =
+proc matchingGames(stats:seq[GameStats]):tuple[alias:string,matches:seq[GameStats]] =
   let 
     humanCount = playerKinds.count Human
     computerCount = playerKinds.count Computer
@@ -262,8 +262,8 @@ proc matchingGames(stats:seq[JsonStats]):tuple[alias:string,matches:seq[JsonStat
     (alias,kindMatches.filterIt(alias in it.aliases))
   else: ("",kindMatches)
 
-proc jsonStatsSpans:seq[Span] =
-  if jsonStats.len > 0 and (let stats = jsonStats.matchingGames(); stats.matches.len > 0):
+proc statsBatchSpans:seq[Span] =
+  if gameStats.len > 0 and (let stats = gameStats.matchingGames(); stats.matches.len > 0):
     let 
       turns = stats.matches.mapIt(it.turnCount).sum
       avgTurns = turns div stats.matches.len
@@ -291,10 +291,9 @@ proc jsonStatsSpans:seq[Span] =
 
 proc drawStats*(b:var Boxy) =
   if statsBatch.spansLength > 0:
-    echo "spans length: ",statsBatch.spansLength
     b.drawDynamicImage statsBatch
 
-proc readReportedVisits:array[1..60,int] =
+func readReportedVisits(turnReports:seq[TurnReport]):array[1..60,int] =
   for square in turnReports.mapIt(it.moves.mapIt(it.toSquare)).flatMap.filterIt(it != 0):
     inc result[square]
 
@@ -304,33 +303,35 @@ proc readVisitsFile(path:string):array[1..60,int] =
     for line in lines path:
       try: result[square] = line.split[^1].parseInt except:discard
       inc square
- 
-proc allSquareVisits(path:string):array[1..60,int] =
-  let
-    reportVisits = readReportedVisits()
-    fileVisits = readVisitsFile path
+
+func allSquareVisits(reportVisits,fileVisits:array[1..60,int]):array[1..60,int] =
   var idx = 1
   for visitCount in result.mitems:
     visitCount = reportVisits[idx] + fileVisits[idx]
     inc idx
-  
+    
 proc writeSquareVisitsTo(path:string) =
   var squareVisits:seq[string]
-  for i,visits in allSquareVisits path:
+  for i,visits in allSquareVisits(turnReports.readReportedVisits,readVisitsFile path):
     squareVisits.add squares[i].name&" Nr."&($i)&": "&($visits)
   writeFile(path,squareVisits.join "\n")
 
 proc reportedCashedCards:CashedCards =
   let titles = turnReports.mapIt(it.cards.cashed.mapIt(it.title)).flatMap
+  echo "cashed cards reported:"
   for title in titles:
     if title notin result.mapIt it.title:
       result.add (title,titles.count title)
+      echo title
 
 proc readCashedCardsFrom(path:string):CashedCards =
   if fileExists path:
+    echo "cashed cards on file:"
     for line in lines path:
-      let lineSplit = line.split
-      try: result.add (lineSplit[0],lineSplit[^1].parseInt)
+      let lineSplit = line.split ':'
+      try: 
+        result.add (lineSplit[0],lineSplit[^1].strip.parseInt)
+        echo result[^1]
       except:discard
 
 proc allCashedCards(path:string):CashedCards =
@@ -345,12 +346,11 @@ proc writeCashedCardsTo(path:string) =
 
 proc winner:string =
   if turnReport.playerBatch.kind == Computer: "computer"
-  else:
-    if playerHandles[turnReport.playerBatch.color.ord].len > 0:
-      playerHandles[turnReport.playerBatch.color.ord]
-    else: "human"
+  elif playerHandles[turnReport.playerBatch.color.ord].len > 0:
+    playerHandles[turnReport.playerBatch.color.ord]
+  else: "human"
 
-proc newJsonGameStats:JsonStats = JsonStats(
+proc newGameStats:GameStats = GameStats(
   turnCount:turnReport.turnNr,
   playerKinds:playerKinds,
   aliases:playerHandles,
@@ -359,24 +359,24 @@ proc newJsonGameStats:JsonStats = JsonStats(
 )
 
 proc updateStatsBatch* =
-  statsBatch.setSpans jsonStatsSpans()
+  statsBatch.setSpans statsBatchSpans()
   statsBatch.update = true
 
-proc writeJsonStatsTo(path:string) =
-  writeFile(path,jsonStats.toJson)
+proc writeGameStatsTo(path:string) =
+  writeFile(path,gameStats.toJson)
 
-proc readJsonStatsFrom(path:string) =
+proc readGameStatsFrom(path:string) =
   if fileExists path:
-    jsonStats = readFile(path).fromJson seq[JsonStats]
+    gameStats = readFile(path).fromJson seq[GameStats]
 
 proc writeGamestats* =
   writeSquareVisitsTo visitsFile
   writeCashedCardsTo cashedFile
   if players.anyHuman and players.anyComputer:
-    jsonStats.add newJsonGameStats()
+    gameStats.add newGameStats()
     updateStatsBatch()
-    writeJsonStatsTo jsonStatsFile
+    writeGameStatsTo jsonStatsFile
 
 reportBatches = initReportBatches()
-readJsonStatsFrom jsonStatsFile
+readGameStatsFrom jsonStatsFile
 updateStatsBatch()

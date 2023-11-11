@@ -172,10 +172,10 @@ func evalBlues*(hypothetical:Hypothetic):seq[BlueCard] =
     result[^1].eval = hypothetical.evalBlue(card)
   result.sort((a,b) => b.eval - a.eval)
 
-func evalBlues(hypothetical:Hypothetic,cards:seq[BlueCard]):seq[BlueCard] =
-  var hypo = hypothetical
-  hypo.cards = cards
-  hypo.evalBlues
+# func evalBlues(hypothetical:Hypothetic,cards:seq[BlueCard]):seq[BlueCard] =
+#   var hypo = hypothetical
+#   hypo.cards = cards
+#   hypo.evalBlues
 
 proc evalBluesThreaded*(hypothetical:Hypothetic): seq[BlueCard] {.gcSafe.} =
   let evals = hypothetical.cards.mapIt(spawn hypothetical.evalBlue it)
@@ -184,8 +184,8 @@ proc evalBluesThreaded*(hypothetical:Hypothetic): seq[BlueCard] {.gcSafe.} =
     result[^1].eval = ^evals[i] #hypothetical.evalBlue(card)
   result.sort((a,b) => b.eval - a.eval)
 
-func player(hypothetical:Hypothetic): Player =
-  Player(pieces:hypothetical.pieces,hand:hypothetical.cards)
+# func player(hypothetical:Hypothetic): Player =
+#   Player(pieces:hypothetical.pieces,hand:hypothetical.cards)
 
 func friendlyFireBest(hypothetical:Hypothetic,move:Move): bool =
   var hypoMove = hypothetical

@@ -3,7 +3,7 @@ import strutils
 import sugar
 import sequtils
 
-var squareVisits =
+let squareVisits =
   readFile("dat\\visits.txt")
   .splitLines
   .mapIt((
