@@ -437,6 +437,10 @@ proc setSpanText*(batch:Batch,text:string,idx:int) =
     batch.text.spans[idx].text = text
     batch.setDimensions
 
+proc getSpanText*(batch:Batch,idx:int):string =
+  if idx < batch.text.spans.len and idx >= 0:
+    result = batch.text.spans[idx].text
+
 proc setShallowPos*(batch:Batch,x,y:int) =
   batch.area.x1 = x
   batch.area.y1 = y

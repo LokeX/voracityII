@@ -385,19 +385,4 @@ proc paintCards*(b:var Boxy,deck:Deck,playerHand:seq[BlueCard]) =
       b.drawImage(card.title,deck.popUpSlot.rect)
       b.drawCardSquares card
 
-proc leftMousePressed*(deck:var Deck) =
-  if mouseOn deck.discardSlot.area:
-    case deck.show:
-    of Hand: deck.show = Discard
-    of Discard: deck.show = Hand
-  elif deck.show == Discard:
-    deck.show = Hand
-
 randomize()
-
-# when isMainModule:
-#   let cards = buildBlues "dat\\blues.txt"
-#   if not dirExists "cards": createDir "cards"
-#   for card in cards:
-#     echo card.title
-#     card.img.writeFile "cards\\"&card.title&".png"

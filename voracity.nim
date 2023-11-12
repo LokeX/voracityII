@@ -16,6 +16,7 @@ import misc
 import random
 import eval
 import strutils
+import colors
 
 const
   logoFontPath = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
@@ -33,17 +34,44 @@ const
     "The way is long, dark and lonely",
     "Let perseverance light your path"
   ]
+  headerInit = BatchInit(
+    kind:TextBatch,
+    name:"header",
+    pos:(1560,5),
+    entries: @[""],
+    font:(logoFontPath,18.0,color(1,1,1)),
+    hAlign:CenterAlign,
+    fixedBounds:(300,25),
+    bgColor:color(0,0,0),
+    opacity:25,
+    border:(5,10,color(1,1,1)),
+  )
+  footerInit = BatchInit(
+    kind:TextBatch,
+    name:"footer",
+    pos:(1560,930),
+    entries: @[""],
+    font:(logoFontPath,18.0,color(1,1,1)),
+    hAlign:CenterAlign,
+    fixedBounds:(300,25),
+    bgColor:color(0,0,0),
+    opacity:25,
+    border:(5,10,color(1,1,1)),
+  )
 
 let
   voracityLogo = readImage "pics\\voracity.png"
   lets_rockLogo = readImage "pics\\lets_rock.png"
   barMan = readImage "pics\\barman.jpg"
   logoFont = setNewFont(logoFontPath,size = 16.0,color(1,1,1))
+  cardsHeader = newBatch headerInit
+  cardsFooter = newBatch footerInit
 
 var 
   batchInputNr = -1
   mouseOnBatchPlayerNr = -1
   pinnedBatchNr = -1
+  discardPinned,mouseOnDiscard:bool
   frames:float
 
 proc paintSubText:Image =
@@ -125,6 +153,49 @@ proc setRevealCards(deck:var Deck,playerKind:PlayerKind) =
       deck.reveal = Back
     else: deck.reveal = Front
 
+template cardsHeaderColorAndText:untyped =
+  if blueDeck.show == Hand:
+    if mouseOnBatchPlayerNr > -1 or pinnedBatchNr > -1:
+      (players[max(mouseOnBatchPlayerNr,pinnedBatchNr)].color,"player's cashed cards")
+    else: (turnPlayer.color," player's hand")
+  else: (Black,"Discard pile")
+
+proc drawCardsHeader(b:var Boxy) =
+  let 
+    (color,text) = cardsHeaderColorAndText
+    txt = if text == "Discard pile": text else: $color&text
+  if txt != cardsHeader.getSpanText 0:
+    cardsHeader.commands:
+      cardsHeader.border.color = playerColors[color]
+    cardsHeader.setSpanText txt,0
+    cardsHeader.update = true
+  b.drawDynamicImage cardsHeader
+
+template showFooter:untyped =
+  mouseOnBatchPlayerNr != -1 or 
+  pinnedBatchNr != -1 or 
+  discardPinned or 
+  mouseOnDiscard
+
+template clickToPin:untyped =
+  (mouseOnBatchPlayerNr != -1 or mouseOnDiscard) and 
+  (pinnedBatchNr == -1 and not discardPinned)
+
+proc drawCardsFooter(b:var Boxy) =
+  if showFooter:
+    let txt = if clickToPin: "Click to pin" else: "Click to unpin"
+    if txt != cardsFooter.getSpanText 0:
+      let (fColor,bColor) = if txt.endsWith "unpin": 
+        (contrastColors[Red],playerColors[Red])
+      else: (contrastColors[Green],playerColors[Green]) 
+      cardsFooter.commands:
+        cardsFooter.text.bgColor = bColor
+        cardsFooter.border.color = bColor
+        cardsFooter.text.spans[0].font.paint = fColor
+      cardsFooter.setSpanText txt,0
+      cardsFooter.update = true
+    b.drawDynamicImage cardsFooter
+
 proc draw(b:var Boxy) =
   frames += 1
   if oldBg != -1: b.drawImage backgrounds[oldBg].name,oldBgRect
@@ -140,6 +211,8 @@ proc draw(b:var Boxy) =
     b.doMoveAnimation
     b.drawCards
     b.drawCursor
+    b.drawCardsHeader
+    b.drawCardsFooter
     if not turn.diceMoved or turnPlayer.kind == Computer: b.drawDice
     if not isRollingDice() and turnPlayer.kind == Human: b.drawSquares
     if turnPlayer.kind == Human and turn.undrawnBlues > 0: 
@@ -189,7 +262,7 @@ proc mouse(m:KeyEvent) =
   if m.rightMousePressed and turn.nr == 0 and mouseOnBatchPlayerNr != -1:
     batchInputNr = mouseOnBatchPlayerNr
   if m.leftMousePressed:
-    blueDeck.leftMousePressed
+    discardPinned = not discardPinned and mouseOn blueDeck.discardSlot.area
     if turn.nr == 0: togglePlayerKind()
     if showMenu and mouseOnMenuSelection():
       menuSelection()
@@ -204,6 +277,10 @@ proc mouse(m:KeyEvent) =
       m.rightMouse
 
 proc mouseMoved = 
+  mouseOnDiscard = mouseOn blueDeck.discardSlot.area
+  if discardPinned or mouseOnDiscard: 
+    blueDeck.show = Discard
+  else: blueDeck.show = Hand
   mouseOnBatchPlayerNr = mouseOnPlayerBatchNr()
   if showMenu and mouseOn mainMenu.area:
     mainMenu.mouseSelect
