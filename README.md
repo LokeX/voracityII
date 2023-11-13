@@ -13,3 +13,9 @@ nimble install boxy
 nimble install pixie
 
 nimble install jsony
+
+If you just want to play:
+
+Download the zip file using the green code button.
+
+Unzip and doubleclick voracity.exe
