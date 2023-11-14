@@ -1,26 +1,90 @@
-Delivery: 2
-Slum lord: 2
-Hooters: 3
-Up yours: 2
-Occupational hazard: 2
-Grapevine: 4
-Advisory board: 2
-Party drugs: 2
-High society: 2
-Body count: 2
-Financing: 3
-Knock knock: 4
-Demolition: 3
-Grand designs: 2
-Outstanding: 3
-Broken bones: 2
-Insurgency: 2
-Cold meds: 2
-Local dealership: 2
-Higher power: 4
-Drug Dealer: 2
-Side effects: 2
-Rentals: 2
-Load: 2
+Polterabend: 6
+Demolition: 6
+Light load: 3
+Foreign aid: 3
+Body count: 1
+Burglary: 3
+High society: 3
+Razia: 2
+Underhanded: 1
+Insurgency: 1
+Dead weight: 2
+Nose job: 3
+Rentals: 3
+Open house: 2
+Duty free: 4
+Broken bones: 1
+Load: 4
+Burial at sea: 1
+Lawfare: 2
+Home brew: 3
+Delivery: 3
+Judicial murder: 1
+Express demands: 2
+Digestion issues: 1
+Flay'em: 3
 Ram theft: 2
-Blood diamants: 5
+Meat: 5
+Advisory board: 2
+Broman escorte: 3
+Grapevine: 3
+Agent: 4
+Hooked: 2
+Deadly cargo: 2
+Strong medicine: 3
+Hooters: 1
+Infiltration: 5
+Lord of War: 1
+Up yours: 3
+Legalese: 4
+Small arms: 2
+Rock solid claims: 3
+Stiffs: 3
+Concuctions: 1
+Small box: 2
+Moonshine: 5
+Local dealership: 2
+Party drugs: 2
+Pimp: 1
+Grand designs: 5
+Blood suckers: 1
+Laundry: 2
+Acquittal: 2
+Higher power: 3
+Sweet hearts: 2
+Sing along song: 3
+Informer: 1
+Bootlegging: 1
+Human resources: 2
+Protection: 3
+Blood diamants: 1
+Redemption: 3
+Ludomania: 3
+Heartless: 2
+Et spiritus sancti: 1
+Health plan: 2
+Brotherhood: 2
+Choire boys: 4
+Projects: 3
+Bystanders: 1
+Occupational hazard: 3
+Cold meds: 1
+Digestive issues: 2
+Knock knock: 1
+Side effects: 1
+Secret weapon: 2
+Outsider: 2
+Safe bet: 2
+Slum lord: 1
+Lipstick on a pig: 2
+Golden chains: 2
+Diamonds are...: 2
+Addictions: 1
+Pure luck: 2
+Borderless: 1
+Chicks in cages: 1
+Recycling: 1
+VIP Lounge: 1
+Mayor: 1
+Jet setter: 1
+Knocked out: 1

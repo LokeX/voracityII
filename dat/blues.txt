@@ -15,7 +15,7 @@ Open house
 {8,22,26}
 125000
 job:
-Digestion issues
+Digestive issues
 {13,25,55}
 125000
 job:

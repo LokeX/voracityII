@@ -124,7 +124,7 @@ template selectedBatchColor:untyped =
   if mouseOnBatchPlayerNr != -1: players[mouseOnBatchPlayerNr].color
   else: players[pinnedBatchNr].color
 
-template batchSelected:bool =
+template batchSelected:untyped =
   mouseOnBatchPlayerNr != -1 or pinnedBatchNr != -1
 
 proc cashedCards:seq[BlueCard] =
@@ -225,7 +225,7 @@ proc draw(b:var Boxy) =
     b.drawImage("barman",Rect(x:1545,y:530,w:220,h:275))
 
 proc really(title:string,answer:string -> void) =
-  let entries:seq[string] = @[
+  let entries = @[
     "Really "&title&"\n",
     "\n",
     "Yes\n",

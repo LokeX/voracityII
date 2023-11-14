@@ -12,5 +12,4 @@ let squareVisits =
   ))
   .sorted (a,b) => b[1] - a[1]
 for (square,visits) in squareVisits: 
-  echo square," ",$visits
-
+  echo square," ",visits

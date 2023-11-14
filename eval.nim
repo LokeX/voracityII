@@ -117,7 +117,6 @@ func blueBonus(hypothetical:Hypothetic,card:BlueCard,square:int):int =
         for square in 0..requiredSquares.high:
           nrOfPieces += min(piecesOn[square],requiredPiecesOn[square])
         result = (card.cash div nrOfPiecesRequired)*nrOfPieces
-        # if nrOfPiecesRequired == nrOfPieces: result *= 2
 
 func blueVals*(hypothetical:Hypothetic,squares:seq[int]):seq[int] =
   result.setLen(squares.len)
@@ -172,20 +171,12 @@ func evalBlues*(hypothetical:Hypothetic):seq[BlueCard] =
     result[^1].eval = hypothetical.evalBlue(card)
   result.sort((a,b) => b.eval - a.eval)
 
-# func evalBlues(hypothetical:Hypothetic,cards:seq[BlueCard]):seq[BlueCard] =
-#   var hypo = hypothetical
-#   hypo.cards = cards
-#   hypo.evalBlues
-
 proc evalBluesThreaded*(hypothetical:Hypothetic): seq[BlueCard] {.gcSafe.} =
   let evals = hypothetical.cards.mapIt(spawn hypothetical.evalBlue it)
   for i,card in hypothetical.cards:
     result.add card
     result[^1].eval = ^evals[i] #hypothetical.evalBlue(card)
   result.sort((a,b) => b.eval - a.eval)
-
-# func player(hypothetical:Hypothetic): Player =
-#   Player(pieces:hypothetical.pieces,hand:hypothetical.cards)
 
 func friendlyFireBest(hypothetical:Hypothetic,move:Move): bool =
   var hypoMove = hypothetical
@@ -210,11 +201,7 @@ func evalMove(hypothetical:Hypothetic,pieceNr,toSquare:int): int =
   var pieces = hypothetical.pieces
   if hypothetical.friendlyFireAdviced (pieceNr,0,pieces[pieceNr],toSquare,0):
     pieces[pieceNr] = 0 else: pieces[pieceNr] = toSquare
-  let
-    # cards = hypothetical.cards.filterIt(it.title notIn hypothetical.player.cashablePlans.cashable.mapIt(it.title))
-    before = (hypothetical.board,pieces,hypothetical.cards.threeBest,hypothetical.cash).evalPos
-    # after = (hypothetical.board,pieces,hypothetical.evalBlues(cards).threeBest,hypothetical.cash).evalPos
-  before#+(before-after)
+  (hypothetical.board,pieces,hypothetical.cards.threeBest,hypothetical.cash).evalPos
 
 func bestMove(hypothetical:Hypothetic,pieceNr,fromSquare,die:int):Move =
   let

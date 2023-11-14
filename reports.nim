@@ -10,6 +10,7 @@ import eval
 import misc
 import os
 import jsony
+import sugar
 
 type 
   CashedCards = seq[tuple[title:string,count:int]]  
@@ -31,7 +32,6 @@ type
     kills:seq[PlayerColor]
 
 const
-  # condensedRegular = "fonts\\AsapCondensed-Regular.ttf"
   robotoRegular* = "fonts\\Roboto-Regular_1.ttf"
   killMatrixFont = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
   reportFont = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
@@ -77,7 +77,6 @@ proc killMatrix:KillMatrix =
       result[victim][killer] = killer.victims.count victim
 
 proc typesetKillMatrix(width,height:float):Arrangement =
-  # let matrix = killMatrix()
   var spans:seq[Span]
   for rowColor,row in killMatrix():
     var font = matrixFont.copy
@@ -305,10 +304,8 @@ proc readVisitsFile(path:string):array[1..60,int] =
       inc square
 
 func allSquareVisits(reportVisits,fileVisits:array[1..60,int]):array[1..60,int] =
-  var idx = 1
-  for visitCount in result.mitems:
-    visitCount = reportVisits[idx] + fileVisits[idx]
-    inc idx
+  for idx in 1..60:
+    result[idx] = reportVisits[idx] + fileVisits[idx]
     
 proc writeSquareVisitsTo(path:string) =
   var squareVisits:seq[string]
@@ -317,7 +314,10 @@ proc writeSquareVisitsTo(path:string) =
   writeFile(path,squareVisits.join "\n")
 
 proc reportedCashedCards:CashedCards =
-  let titles = turnReports.mapIt(it.cards.cashed.mapIt(it.title)).flatMap
+  # let titles = turnReports.mapIt(it.cards.cashed.mapIt(it.title)).flatMap
+  let titles = collect:
+    for report in turnReports:
+      for card in report.cards.cashed: card.title
   echo "cashed cards reported:"
   for title in titles:
     if title notin result.mapIt it.title:
@@ -335,16 +335,20 @@ proc readCashedCardsFrom(path:string):CashedCards =
       except:discard
 
 proc allCashedCards(path:string):CashedCards =
-  let cardsOnFile = readCashedCardsFrom path
+  result = readCashedCardsFrom path
   for card in reportedCashedCards():
-    if (let idx = cardsOnFile.mapIt(it.title).find card.title; idx != -1):
-      result.add (card.title,card.count+cardsOnFile[idx].count)
+    if (let idx = result.mapIt(it.title).find card.title; idx != -1):
+      result[idx].count = card.count+result[idx].count
     else: result.add card
   
 proc writeCashedCardsTo(path:string) =
-  writeFile(path,allCashedCards(path).mapIt(it.title&": "&($it.count)).join "\n")
+  writeFile(path,
+    allCashedCards(path)
+    .mapIt(it.title&": "&($it.count))
+    .join "\n"
+  )
 
-proc winner:string =
+template winner:untyped =
   if turnReport.playerBatch.kind == Computer: "computer"
   elif playerHandles[turnReport.playerBatch.color.ord].len > 0:
     playerHandles[turnReport.playerBatch.color.ord]
@@ -354,7 +358,7 @@ proc newGameStats:GameStats = GameStats(
   turnCount:turnReport.turnNr,
   playerKinds:playerKinds,
   aliases:playerHandles,
-  winner:winner(),
+  winner:winner,
   cash:cashToWin
 )
 

@@ -156,8 +156,8 @@ proc playMassacre =
   if (let bar = turnPlayer.barToMassacre players; bar != noSuchBar):
     for (playerNr,pieceNr) in players.piecesOn bar:
       players[playerNr].pieces[pieceNr] = 0
-      playSound "Deanscream-2"
-      playSound "Gunshot"
+    playSound "Deanscream-2"
+    playSound "Gunshot"
     piecesImg.update = true
 
 proc playCashPlansTo*(deck:var Deck) =
@@ -186,8 +186,8 @@ proc playNews =
   turnPlayer.hand.playTo blueDeck,turnPlayer.hand.high
   for (playerNr,pieceNr) in players.piecesOn news.moveSquares[0]:
     players[playerNr].pieces[pieceNr] = news.moveSquares[1]
-    if news.moveSquares[1] == 0: playSound "electricity"
-    else: playSound "driveBy"
+  if news.moveSquares[1] == 0: playSound "electricity"
+  else: playSound "driveBy"
   playCashPlansTo blueDeck
 
 proc playEvent()
@@ -369,6 +369,7 @@ proc endGame =
   # writeGamestats()
   setupNewGame()
   setMenuTo SetupMenu
+  showMenu = true
 
 proc startNewGame =
   inc turn.nr
@@ -387,6 +388,7 @@ proc nextTurn =
   nextPlayerTurn()
   initTurnReport()
   if anyHuman players: showMenu = false
+  updateTurnReportCards(cashInPlansTo blueDeck, Cashed)
 
 proc nextGameState* =
   if turnPlayer.cash >= cashToWin: 

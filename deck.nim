@@ -277,7 +277,6 @@ proc paintIconsOn(card:BlueCard,img:var Image,squares:BoardSquares) =
     if card.squares.oneInMany.len > 0:
       cardSquares.add card.squares.oneInMany[0]
   of Event,News: cardSquares.add card.moveSquares
-  # of News: cardSquares.add card.moveSquares
   else:discard
   let x_offset = if cardSquares.len == 1: 100.0 else: 55.0
   var (x,y) = (x_offset,120.0)
@@ -299,7 +298,7 @@ proc paintBlue(card:BlueCard,squares:BoardSquares):Image =
 
 proc buildBlues(path:string):tuple[blues:seq[BlueCard],imgs:seq[Image]] =
   result.blues = path.lines.toSeq.parseProtoCards.newBlueCards
-  for blue in result.blues.mitems:
+  for blue in result.blues:
     result.imgs.add blue.paintBlue squares
 
 proc initCardSlots*(deck:var Deck,discardRect = discardPile,
