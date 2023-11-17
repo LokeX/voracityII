@@ -50,7 +50,7 @@ func buildCardSlots(r:Rect,cardsInRow:range[2..8]):seq[CardSlot] =
     result.add (i,"slot"&($i),slot.toArea,slot)
 
 func buildCardSlots(initPosDim:Rect):seq[seq[CardSlot]] =
-  for i in 2..8: result.add buildCardSlots(initPosDim,cardsInRow = i)
+  for cardsInRow in 2..8: result.add buildCardSlots(initPosDim,cardsInRow)
 
 const
   initPosDim = Rect(x:1580.0,y:50.0,w:cardWidth,h:cardHeight)
@@ -73,8 +73,8 @@ func nrOfslots(nrOfCards:int):int =
 
 iterator cardSlots*(cards:seq[BlueCard]):(BlueCard,CardSlot) =
   if cards.len > 0:
-    let slots = cardSlotsX[cards.len.nrOfslots]
     var i = 0
+    let slots = cardSlotsX[cards.len.nrOfslots]
     while i <= cards.high and i <= slots.high:
       yield (cards[i],slots[i])
       inc i
@@ -380,7 +380,7 @@ proc paintCards*(b:var Boxy,deck:Deck,playerHand:seq[BlueCard]) =
       b.drawImage("blueback",slot.rect)
     else: 
       b.drawImage(card.title,slot.rect)
-    if deck.reveal == Front and mouseOn slot.area:
+    if (deck.reveal == Front or deck.show == Discard) and mouseOn slot.area:
       b.drawImage(card.title,deck.popUpSlot.rect)
       b.drawCardSquares card
 

@@ -8,7 +8,7 @@ import sugar
 import threadpool
 
 const
-  highwayVal* = 1000
+  highwayVal* = 2000
   valBar = 5000
   posPercent = [1.0,0.3,0.3,0.3,0.3,0.3,0.3,0.15,0.14,0.12,0.10,0.08,0.05]
 
@@ -128,13 +128,13 @@ func blueVals*(hypothetical:Hypothetic,squares:seq[int]):seq[int] =
 func posPercentages(hypothetical:Hypothetic,squares:seq[int]):seq[float] =
   var freePieces:int
   for i,square in squares:
-    let freePiecesOnSquare = hypothetical.freePiecesOn(square)
+    let freePiecesOnSquare = hypothetical.freePiecesOn square
     if freePiecesOnSquare > 0:
       freePieces += freePiecesOnSquare
     if freePieces == 0:
       result.add posPercent[i]
     else:
-      result.add posPercent[i].pow(freePieces.toFloat)
+      result.add posPercent[i].pow freePieces.toFloat
 
 func evalSquare(hypothetical:Hypothetic,square:int):int =
   let 
@@ -168,15 +168,15 @@ func evalBlue(hypothetical:Hypothetic,card:BlueCard): int =
 func evalBlues*(hypothetical:Hypothetic):seq[BlueCard] =
   for card in hypothetical.cards:
     result.add card
-    result[^1].eval = hypothetical.evalBlue(card)
-  result.sort((a,b) => b.eval - a.eval)
+    result[^1].eval = hypothetical.evalBlue card
+  result.sort (a,b) => b.eval - a.eval
 
-proc evalBluesThreaded*(hypothetical:Hypothetic): seq[BlueCard] {.gcSafe.} =
+proc evalBluesThreaded*(hypothetical:Hypothetic): seq[BlueCard] =
   let evals = hypothetical.cards.mapIt(spawn hypothetical.evalBlue it)
   for i,card in hypothetical.cards:
     result.add card
     result[^1].eval = ^evals[i] #hypothetical.evalBlue(card)
-  result.sort((a,b) => b.eval - a.eval)
+  result.sort (a,b) => b.eval - a.eval
 
 func friendlyFireBest(hypothetical:Hypothetic,move:Move): bool =
   var hypoMove = hypothetical

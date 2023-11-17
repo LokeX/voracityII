@@ -314,7 +314,6 @@ proc writeSquareVisitsTo(path:string) =
   writeFile(path,squareVisits.join "\n")
 
 proc reportedCashedCards:CashedCards =
-  # let titles = turnReports.mapIt(it.cards.cashed.mapIt(it.title)).flatMap
   let titles = collect:
     for report in turnReports:
       for card in report.cards.cashed: card.title

@@ -153,16 +153,13 @@ proc setRevealCards(deck:var Deck,playerKind:PlayerKind) =
       deck.reveal = Back
     else: deck.reveal = Front
 
-template cardsHeaderColorAndText:untyped =
-  if blueDeck.show == Hand:
-    if mouseOnBatchPlayerNr > -1 or pinnedBatchNr > -1:
-      (players[max(mouseOnBatchPlayerNr,pinnedBatchNr)].color,"player's cashed cards")
-    else: (turnPlayer.color," player's hand")
-  else: (Black,"Discard pile")
-
 proc drawCardsHeader(b:var Boxy) =
   let 
-    (color,text) = cardsHeaderColorAndText
+    (color,text) = if blueDeck.show == Hand:
+      if mouseOnBatchPlayerNr > -1 or pinnedBatchNr > -1:
+        (players[max(mouseOnBatchPlayerNr,pinnedBatchNr)].color,"player's cashed cards")
+      else: (turnPlayer.color," player's hand")
+    else: (Black,"Discard pile")
     txt = if text == "Discard pile": text else: $color&text
   if txt != cardsHeader.getSpanText 0:
     cardsHeader.commands:
@@ -267,9 +264,9 @@ proc mouse(m:KeyEvent) =
     if showMenu and mouseOnMenuSelection():
       menuSelection()
     elif turnPlayer.kind == Human:
-      m.leftMouse()
+      m.leftMouse
       if turn.nr > 0 and mouseOnDice() and mayReroll(): 
-        startDiceRoll(humanRoll)
+        startDiceRoll humanRoll
   elif m.rightMousePressed and batchInputNr == -1: 
     if turn.nr > 0 and turnPlayer.kind == Computer: 
       m.aiRightMouse
