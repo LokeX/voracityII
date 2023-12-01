@@ -1,60 +1,60 @@
-Bar Nr.1: 68
-Gas Station Nr.2: 7
+Bar Nr.1: 70
+Gas Station Nr.2: 9
 Bank Nr.3: 40
-Town Hall Nr.4: 261
-Highway Nr.5: 110
-Barracks Nr.6: 239
-Church Nr.7: 288
-Villa Nr.8: 224
-Embassey Nr.9: 176
-Courthouse Nr.10: 249
-Airport Nr.11: 246
-Casino Nr.12: 123
-Jeweler Nr.13: 119
+Town Hall Nr.4: 266
+Highway Nr.5: 113
+Barracks Nr.6: 255
+Church Nr.7: 299
+Villa Nr.8: 229
+Embassey Nr.9: 183
+Courthouse Nr.10: 260
+Airport Nr.11: 254
+Casino Nr.12: 130
+Jeweler Nr.13: 125
 Bank Nr.14: 25
 Gas Station Nr.15: 29
-Bar Nr.16: 409
-Highway Nr.17: 70
-Bar Nr.18: 87
-Disco Nr.19: 221
-Bar Nr.20: 248
-Brothel Nr.21: 353
-Realestate Nr.22: 179
-Shop Nr.23: 36
-Bank Nr.24: 39
-Hospital Nr.25: 181
-Undertaker Nr.26: 148
-Gas Station Nr.27: 18
-Bar Nr.28: 125
-Highway Nr.29: 78
-McLeans Nr.30: 691
-Condo Nr.31: 67
+Bar Nr.16: 420
+Highway Nr.17: 75
+Bar Nr.18: 89
+Disco Nr.19: 227
+Bar Nr.20: 252
+Brothel Nr.21: 359
+Realestate Nr.22: 186
+Shop Nr.23: 37
+Bank Nr.24: 41
+Hospital Nr.25: 183
+Undertaker Nr.26: 156
+Gas Station Nr.27: 19
+Bar Nr.28: 126
+Highway Nr.29: 81
+McLeans Nr.30: 706
+Condo Nr.31: 68
 Condo Nr.32: 52
-Lawyers Nr.33: 285
-Shop Nr.34: 20
-Bar Nr.35: 209
-Prison Nr.36: 131
+Lawyers Nr.33: 295
+Shop Nr.34: 21
+Bar Nr.35: 215
+Prison Nr.36: 133
 Gas Station Nr.37: 7
-Bank Nr.38: 35
-Debt Inc Nr.39: 224
-Bar Nr.40: 309
-Highway Nr.41: 92
+Bank Nr.38: 36
+Debt Inc Nr.39: 228
+Bar Nr.40: 315
+Highway Nr.41: 94
 Shop Nr.42: 45
-Entreprenour Nr.43: 175
+Entreprenour Nr.43: 180
 Shop Nr.44: 37
-Pharmacy Nr.45: 270
-Bar Nr.46: 167
-Gas Station Nr.47: 12
-Brewery Nr.48: 297
-Harbour Nr.49: 219
-Shop Nr.50: 20
-Bar Nr.51: 247
-Bank Nr.52: 38
-Highway Nr.53: 80
-Bar Nr.54: 167
-Import inc Nr.55: 138
-Slum Nr.56: 44
-Alley Nr.57: 265
+Pharmacy Nr.45: 277
+Bar Nr.46: 171
+Gas Station Nr.47: 14
+Brewery Nr.48: 307
+Harbour Nr.49: 227
+Shop Nr.50: 21
+Bar Nr.51: 254
+Bank Nr.52: 40
+Highway Nr.53: 84
+Bar Nr.54: 175
+Import inc Nr.55: 143
+Slum Nr.56: 46
+Alley Nr.57: 278
 Slum Nr.58: 46
-Slum Nr.59: 43
-Police Nr.60: 160
+Slum Nr.59: 48
+Police Nr.60: 168

@@ -382,8 +382,8 @@ proc startNewGame =
 proc nextTurn =
   playSound "page-flip-2"
   updateTurnReportCards(turnPlayer.discardCards blueDeck, Discarded)
-  if turnPlayer.kind == Human:
-    recordTurnReport()
+  # if turnPlayer.kind == Human:
+  recordTurnReport()
   diceRolls.setLen 0
   nextPlayerTurn()
   initTurnReport()

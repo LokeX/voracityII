@@ -10,7 +10,7 @@ type
   Reveal* = enum Front,Back,UserSetFront
   ProtoCard = array[4,string]
   PlanSquares = tuple[required,oneInMany:seq[int]]
-  CardKind* = enum Deed,Plan,Job,Event,News,Talent,Mission
+  CardKind* = enum Deed,Plan,Job,Event,News,Mission
   BlueCard* = object
     title*:string
     case cardKind*:CardKind
@@ -21,7 +21,6 @@ type
     of Event,News:
       moveSquares*:seq[int]
       bgPath:string
-    else:discard
   Deck* = object 
     fullDeck*,drawPile*,discardPile*:seq[BlueCard]
     popUpSlot*,drawSlot*,discardSlot*:CardSlot
@@ -123,7 +122,6 @@ func newBlueCards(protoCards:seq[ProtoCard]): seq[BlueCard] =
     of Plan,Mission,Job,Deed: result.add buildPlanFrom(protoCard,kind)
     of Event: result.add buildEventFrom(protoCard)
     of News: result.add buildNewsFrom(protoCard)
-    else:discard
 
 func required(plan:BlueCard,squares:BoardSquares):seq[string] =
   let 
@@ -191,7 +189,6 @@ proc typesetBoxedText(blue:BlueCard,squares:BoardSquares):(Arrangement,float32) 
     txt.add "Rewards:\n" & ($blue.cash).insertSep('.')&" in cash"
   of Event: txt.add blue.eventText squares
   of News: txt.add blue.newsText squares
-  else:discard
   let 
     font = setNewFont(roboto,13.0,color(0,0,0))
     boxText = font.typeset txt.join "\n"
@@ -247,7 +244,6 @@ proc paintBackgroundImage(card:BlueCard,ctx:Context,borderSize:float):Image =
   of Mission: result.draw(missionbg,translate vec2(borderSize,borderSize))
   of Job: result.draw(jobbg,translate vec2(borderSize,borderSize))
   of Event,News:result.draw(readImage(card.bgPath),translate vec2(borderSize,borderSize))
-  else:discard
 
 proc paintBackground(card:BlueCard,borderSize:float):Image =
   let
@@ -277,7 +273,6 @@ proc paintIconsOn(card:BlueCard,img:var Image,squares:BoardSquares) =
     if card.squares.oneInMany.len > 0:
       cardSquares.add card.squares.oneInMany[0]
   of Event,News: cardSquares.add card.moveSquares
-  else:discard
   let x_offset = if cardSquares.len == 1: 100.0 else: 55.0
   var (x,y) = (x_offset,120.0)
   for idx,squareNr in cardSquares:

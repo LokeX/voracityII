@@ -135,7 +135,7 @@ proc batchSetup(playerNr:int):BatchSetup =
     result.font = roboto
     result.fontSize = 18
     result.padding = (20,20,12,10)
-  result.entries = playerBatchTxt(playerNr)
+  result.entries = playerBatchTxt playerNr
 
 proc newPlayerBatches*:array[6,Batch] =
   var 

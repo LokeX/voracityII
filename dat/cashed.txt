@@ -1,98 +1,101 @@
 Polterabend: 7
 Demolition: 7
-Light load: 5
-Foreign aid: 7
+Light load: 6
+Foreign aid: 8
 Body count: 2
-Burglary: 7
+Burglary: 8
 High society: 6
 Razia: 6
-Underhanded: 2
-Insurgency: 4
-Dead weight: 3
+Underhanded: 3
+Insurgency: 5
+Dead weight: 4
 Nose job: 4
 Rentals: 4
 Open house: 4
 Duty free: 7
 Broken bones: 4
-Load: 7
+Load: 8
 Burial at sea: 5
-Lawfare: 3
-Home brew: 3
-Delivery: 4
+Lawfare: 4
+Home brew: 4
+Delivery: 5
 Judicial murder: 1
 Express demands: 2
 Digestion issues: 1
-Flay'em: 6
-Ram theft: 2
-Meat: 6
+Flay'em: 7
+Ram theft: 3
+Meat: 7
 Advisory board: 2
-Broman escorte: 3
+Broman escorte: 4
 Grapevine: 6
-Agent: 5
-Hooked: 4
-Deadly cargo: 3
-Strong medicine: 4
+Agent: 6
+Hooked: 6
+Deadly cargo: 4
+Strong medicine: 5
 Hooters: 2
-Infiltration: 5
-Lord of War: 2
+Infiltration: 6
+Lord of War: 3
 Up yours: 4
 Legalese: 6
-Small arms: 3
+Small arms: 4
 Rock solid claims: 7
-Stiffs: 5
+Stiffs: 6
 Concuctions: 2
-Small box: 7
+Small box: 8
 Moonshine: 9
 Local dealership: 4
-Party drugs: 4
-Pimp: 1
-Grand designs: 6
+Party drugs: 5
+Pimp: 2
+Grand designs: 7
 Blood suckers: 3
 Laundry: 2
 Acquittal: 4
 Higher power: 4
-Sweet hearts: 2
+Sweet hearts: 3
 Sing along song: 4
-Informer: 3
+Informer: 4
 Bootlegging: 3
-Human resources: 3
+Human resources: 4
 Protection: 5
 Blood diamants: 1
 Redemption: 5
-Ludomania: 4
+Ludomania: 5
 Heartless: 2
-Et spiritus sancti: 2
+Et spiritus sancti: 3
 Health plan: 4
-Brotherhood: 5
+Brotherhood: 6
 Choire boys: 7
-Projects: 5
+Projects: 6
 Bystanders: 3
 Occupational hazard: 5
-Cold meds: 3
+Cold meds: 4
 Digestive issues: 2
 Knock knock: 4
-Side effects: 2
+Side effects: 4
 Secret weapon: 5
-Outsider: 4
+Outsider: 5
 Safe bet: 2
 Slum lord: 2
 Lipstick on a pig: 4
 Golden chains: 4
 Diamonds are...: 5
 Addictions: 2
-Pure luck: 2
+Pure luck: 4
 Borderless: 3
-Chicks in cages: 5
-Recycling: 2
+Chicks in cages: 6
+Recycling: 3
 VIP Lounge: 2
 Mayor: 1
 Jet setter: 1
-Knocked out: 4
+Knocked out: 5
 Trans action: 3
-Financing: 1
+Financing: 3
 Drug Dealer: 2
-Outstanding: 4
+Outstanding: 5
 Bodyguard: 1
-Aiding and abetting: 2
+Aiding and abetting: 3
 Debt to society: 1
 Stove away: 1
+Spy: 2
+White collars: 2
+Rent seeker: 1

@@ -23,7 +23,7 @@ type
     aliases:array[6,string]
     winner:string
     cash:int
-  TurnReport* = object
+  TurnReport = object
     turnNr:int
     playerBatch:tuple[color:PlayerColor,kind:PlayerKind]
     diceRolls*:seq[Dice]
@@ -110,7 +110,7 @@ proc paintKillMatrix:Image =
 var 
   killMatrixPainter = DynamicImage[void](
     name:"killMatrix",
-    area:(300+bx.toInt,300+by.toInt,0,0),
+    area:(250+bx.toInt,250+by.toInt,0,0),
     updateImage:paintKillMatrix,
     update:true
   )

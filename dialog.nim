@@ -22,59 +22,53 @@ var
     border:(0,15,color(1,1,1)),
     shadow:(15,1.5,color(255,255,255,150))
   )
-  menuEntries:seq[string] = @[
-    "Remove piece on:\n",
-    "Townhall nr.4?\n",
-    "\n",
-    "Yes\n",
-    "No",
-  ]
-  menuBatch:Batch
+  dialogEntries:seq[string]
+  dialogBatch:Batch
   returnSelection:proc(s:string)
 
 proc startDialog*(entries:seq[string],selRange:HSlice[int,int],call:proc(s:string)) =
-  menuEntries = entries
+  dialogEntries = entries
   menuBatchInit.entries = entries
   menuBatchInit.selectionRange = selRange
-  menuBatch = newBatch menuBatchInit
+  dialogBatch = newBatch menuBatchInit
   returnSelection = call
   pushCalls()
   excludeInputCallsExcept thisDialog
-  menuBatch.setPos(menuPos.x,scaledHeight)
-  menuBatch.isActive = true
-  menuBatch.update = true
+  dialogBatch.setPos(menuPos.x,scaledHeight)
+  dialogBatch.isActive = true
+  dialogBatch.update = true
 
 proc endDialog(selected:string) =
-  menuBatch.setPos(menuPos.x,scaledHeight)
-  menuBatch.isActive = false
+  dialogBatch.setPos(menuPos.x,scaledHeight)
+  dialogBatch.isActive = false
   popCalls()
   returnSelection selected
 
 proc draw(b:var Boxy) =
-  if menuBatch != nil and menuBatch.isActive:
-    b.drawDynamicImage menuBatch
+  if dialogBatch != nil and dialogBatch.isActive:
+    b.drawDynamicImage dialogBatch
 
 proc keyboard(k:KeyboardEvent) = 
-  if menuBatch.isActive and k.down KeyEnter:
-    endDialog menuEntries[menuBatch.selection].strip
-  else: k.batchKeyb menuBatch
+  if dialogBatch.isActive and k.down KeyEnter:
+    endDialog dialogEntries[dialogBatch.selection].strip
+  else: k.batchKeyb dialogBatch
 
 proc mouse(m:KeyEvent) =
-  if menuBatch.isActive and m.leftMousePressed and menuBatch.mouseOnSelectionArea != -1:
-    endDialog menuEntries[menuBatch.selection].strip
+  if dialogBatch.isActive and m.leftMousePressed and dialogBatch.mouseOnSelectionArea != -1:
+    endDialog dialogEntries[dialogBatch.selection].strip
 
 proc mouseMoved =
-  if menuBatch.isActive and mouseOn menuBatch: 
-    menuBatch.mouseSelect
+  if dialogBatch.isActive and mouseOn dialogBatch: 
+    dialogBatch.mouseSelect
 
 proc cycle =  
-  if menuBatch != nil and (let (_,y) = menuBatch.pos; y != menuPos.y):
+  if dialogBatch != nil and (let (_,y) = dialogBatch.pos; y != menuPos.y):
     if y > menuPos.y:
-      menuBatch.setShallowPos(menuPos.x,y-60)
+      dialogBatch.setShallowPos(menuPos.x,y-60)
     else: 
-      menuBatch.setShallowPos(menuPos.x,y+1)
-      if menuBatch.pos.y == menuPos.y:
-        menuBatch.setPos(menuPos.x,menuPos.y)
+      dialogBatch.setShallowPos(menuPos.x,y+1)
+      if dialogBatch.pos.y == menuPos.y:
+        dialogBatch.setPos(menuPos.x,menuPos.y)
 
 var 
   dialogCall* = Call(

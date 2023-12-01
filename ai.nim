@@ -74,7 +74,7 @@ proc rerollPhase =
 proc postMovePhase =
   moveSelection.fromSquare = -1
   drawCards()
-  recordTurnReport()
+  # recordTurnReport()
   phase = EndTurn
 
 proc endTurn = 
