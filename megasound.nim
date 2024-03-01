@@ -20,4 +20,7 @@ proc playSound*(sound:string) =
 proc setVolume*(vol:float32) =
   listener.gain = vol
 
+proc closeSound* =
+  slappyClose()
+
 proc volume*:float32 = listener.gain

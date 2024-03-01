@@ -1,9 +1,9 @@
-Polterabend: 7
-Demolition: 7
-Light load: 6
+Polterabend: 8
+Demolition: 8
+Light load: 7
 Foreign aid: 8
 Body count: 2
-Burglary: 8
+Burglary: 9
 High society: 6
 Razia: 6
 Underhanded: 3
@@ -24,22 +24,22 @@ Express demands: 2
 Digestion issues: 1
 Flay'em: 7
 Ram theft: 3
-Meat: 7
+Meat: 8
 Advisory board: 2
 Broman escorte: 4
 Grapevine: 6
-Agent: 6
+Agent: 7
 Hooked: 6
-Deadly cargo: 4
-Strong medicine: 5
+Deadly cargo: 5
+Strong medicine: 6
 Hooters: 2
-Infiltration: 6
+Infiltration: 7
 Lord of War: 3
 Up yours: 4
 Legalese: 6
-Small arms: 4
+Small arms: 5
 Rock solid claims: 7
-Stiffs: 6
+Stiffs: 7
 Concuctions: 2
 Small box: 8
 Moonshine: 9
@@ -52,7 +52,7 @@ Laundry: 2
 Acquittal: 4
 Higher power: 4
 Sweet hearts: 3
-Sing along song: 4
+Sing along song: 5
 Informer: 4
 Bootlegging: 3
 Human resources: 4
@@ -62,15 +62,15 @@ Redemption: 5
 Ludomania: 5
 Heartless: 2
 Et spiritus sancti: 3
-Health plan: 4
-Brotherhood: 6
-Choire boys: 7
-Projects: 6
+Health plan: 5
+Brotherhood: 7
+Choire boys: 8
+Projects: 7
 Bystanders: 3
-Occupational hazard: 5
+Occupational hazard: 6
 Cold meds: 4
 Digestive issues: 2
-Knock knock: 4
+Knock knock: 5
 Side effects: 4
 Secret weapon: 5
 Outsider: 5
@@ -79,23 +79,23 @@ Slum lord: 2
 Lipstick on a pig: 4
 Golden chains: 4
 Diamonds are...: 5
-Addictions: 2
+Addictions: 3
 Pure luck: 4
 Borderless: 3
 Chicks in cages: 6
 Recycling: 3
 VIP Lounge: 2
 Mayor: 1
-Jet setter: 1
+Jet setter: 2
 Knocked out: 5
-Trans action: 3
+Trans action: 4
 Financing: 3
-Drug Dealer: 2
+Drug Dealer: 3
 Outstanding: 5
-Bodyguard: 1
+Bodyguard: 2
 Aiding and abetting: 3
 Debt to society: 1
 Stove away: 1
 Spy: 2
 White collars: 2
-Rent seeker: 1
+Rent seeker: 2

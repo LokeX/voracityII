@@ -333,6 +333,7 @@ proc timer =
 proc quitVoracity =
   playerKindsToFile playerKinds
   playerHandlesToFile playerHandles
+  closeSound()
 
 proc timerCall:TimerCall =
   TimerCall(call:timer,lastTime:cpuTime(),secs:0.4)

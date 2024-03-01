@@ -11,6 +11,7 @@
         "c",
         "-r",
         "-d:release",
+        // "--app:gui",
         "--opt:speed",
         "--floatChecks:off",
         "--overflowChecks:off",
