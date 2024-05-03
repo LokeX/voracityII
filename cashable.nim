@@ -24,7 +24,7 @@ func parseCardSquares(str:string,brackets:array[2,char]):seq[int] =
 
 func parseCardKindFrom(kind:string):CardKind =
   try: CardKind(CardKind.mapIt(($it).toLower).find kind[0..kind.high-1].toLower) 
-  except: raise(newException(CatchableError,"Error, parsing CardKind: "&kind))
+  except: raise newException(CatchableError,"Error, parsing CardKind: "&kind)
 
 let 
   protoCards = readFile("dat\\blues.txt").splitLines.parseProtoCards

@@ -91,12 +91,11 @@ func parseProtoCards(lines:sink seq[string]):seq[ProtoCard] =
 
 func parseCardSquares(str:string,brackets:array[2,char]):seq[int] =
   let (f,l) = (str.find(brackets[0]),str.find(brackets[1]))
-  if -1 in [f,l]: result = @[] else:
-    result = str[f+1..l-1].split(',').mapIt it.parseInt
+  if -1 in [f,l]: @[] else: str[f+1..l-1].split(',').mapIt it.parseInt
 
 func parseCardKindFrom(kind:string):CardKind =
   try: CardKind(CardKind.mapIt(($it).toLower).find kind[0..kind.high-1].toLower) 
-  except: raise(newException(CatchableError,"Error, parsing CardKind: "&kind))
+  except: raise newException(CatchableError,"Error, parsing CardKind: "&kind)
 
 func buildPlanFrom(protoCard:sink ProtoCard,kind:CardKind):BlueCard =
   result = BlueCard(title:protoCard[1],cardKind:kind)
@@ -293,8 +292,9 @@ proc paintBlue(card:BlueCard,squares:BoardSquares):Image =
 
 proc buildBlues(path:string):tuple[blues:seq[BlueCard],imgs:seq[Image]] =
   result.blues = path.lines.toSeq.parseProtoCards.newBlueCards
-  for blue in result.blues:
-    result.imgs.add blue.paintBlue squares
+  result.imgs = result.blues.mapIt it.paintBlue squares
+  # for blue in result.blues:
+  #   result.imgs.add blue.paintBlue squares
 
 proc initCardSlots*(deck:var Deck,discardRect = discardPile,
   popUpRect = popUpCard,drawRect = drawPile) =

@@ -13,7 +13,7 @@ template parameter*(param,defaultResult,body:untyped):auto =
 
 proc consoleChoice*[T:enum](menuItems:T):T =
   let choices = menuItems.mapIt ord it
-  var chosen = 4
+  var chosen = -2
   while chosen notIn choices:
     if chosen == -1: echo "Not a choice - try again\n"
     echo "Choose: "
@@ -21,7 +21,7 @@ proc consoleChoice*[T:enum](menuItems:T):T =
     chosen = try: stdin.readLine.parseInt except: -1
   menuItems chosen
 
-template init*[T](t:var T) = t = default typeof T
+template init*(t:untyped) = t = default typeof T
 
 iterator enum_mitems*[T](x:var openArray[T]):(int,var T) =
   var idx = x.low
