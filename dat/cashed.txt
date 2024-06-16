@@ -1,105 +1,106 @@
-Polterabend: 8
-Demolition: 10
-Light load: 8
-Foreign aid: 9
-Body count: 2
-Burglary: 10
-High society: 7
-Razia: 6
+Polterabend: 9
+Demolition: 11
+Light load: 11
+Foreign aid: 14
+Body count: 3
+Burglary: 13
+High society: 10
+Razia: 8
 Underhanded: 4
 Insurgency: 6
-Dead weight: 4
-Nose job: 5
-Rentals: 5
-Open house: 4
-Duty free: 7
-Broken bones: 4
-Load: 10
-Burial at sea: 6
-Lawfare: 5
-Home brew: 5
-Delivery: 7
-Judicial murder: 1
-Express demands: 3
+Dead weight: 6
+Nose job: 6
+Rentals: 11
+Open house: 6
+Duty free: 9
+Broken bones: 8
+Load: 17
+Burial at sea: 7
+Lawfare: 6
+Home brew: 6
+Delivery: 9
+Judicial murder: 2
+Express demands: 5
 Digestion issues: 1
-Flay'em: 7
+Flay'em: 8
 Ram theft: 4
-Meat: 10
-Advisory board: 3
-Broman escorte: 4
-Grapevine: 6
-Agent: 9
-Hooked: 7
-Deadly cargo: 7
+Meat: 12
+Advisory board: 4
+Broman escorte: 5
+Grapevine: 9
+Agent: 10
+Hooked: 9
+Deadly cargo: 9
 Strong medicine: 6
 Hooters: 3
-Infiltration: 8
+Infiltration: 9
 Lord of War: 4
-Up yours: 4
-Legalese: 7
-Small arms: 6
-Rock solid claims: 7
-Stiffs: 8
+Up yours: 7
+Legalese: 9
+Small arms: 7
+Rock solid claims: 11
+Stiffs: 10
 Concuctions: 3
-Small box: 9
-Moonshine: 9
-Local dealership: 4
-Party drugs: 6
-Pimp: 3
-Grand designs: 9
+Small box: 11
+Moonshine: 11
+Local dealership: 7
+Party drugs: 10
+Pimp: 5
+Grand designs: 12
 Blood suckers: 3
 Laundry: 3
 Acquittal: 5
-Higher power: 5
-Sweet hearts: 3
-Sing along song: 8
+Higher power: 6
+Sweet hearts: 4
+Sing along song: 10
 Informer: 5
-Bootlegging: 4
-Human resources: 5
-Protection: 7
-Blood diamants: 2
-Redemption: 7
-Ludomania: 5
+Bootlegging: 5
+Human resources: 7
+Protection: 10
+Blood diamants: 3
+Redemption: 9
+Ludomania: 6
 Heartless: 2
-Et spiritus sancti: 5
+Et spiritus sancti: 7
 Health plan: 5
-Brotherhood: 9
-Choire boys: 9
-Projects: 7
-Bystanders: 3
+Brotherhood: 10
+Choire boys: 11
+Projects: 9
+Bystanders: 6
 Occupational hazard: 6
-Cold meds: 5
+Cold meds: 7
 Digestive issues: 3
-Knock knock: 7
-Side effects: 6
-Secret weapon: 6
-Outsider: 5
+Knock knock: 12
+Side effects: 7
+Secret weapon: 7
+Outsider: 6
 Safe bet: 3
-Slum lord: 4
-Lipstick on a pig: 5
+Slum lord: 5
+Lipstick on a pig: 6
 Golden chains: 4
-Diamonds are...: 6
+Diamonds are...: 8
 Addictions: 3
-Pure luck: 4
-Borderless: 4
-Chicks in cages: 7
-Recycling: 4
-VIP Lounge: 2
+Pure luck: 5
+Borderless: 10
+Chicks in cages: 11
+Recycling: 6
+VIP Lounge: 3
 Mayor: 1
-Jet setter: 2
-Knocked out: 6
+Jet setter: 4
+Knocked out: 8
 Trans action: 4
 Financing: 6
-Drug Dealer: 4
-Outstanding: 7
-Bodyguard: 2
+Drug Dealer: 6
+Outstanding: 11
+Bodyguard: 6
 Aiding and abetting: 4
 Debt to society: 1
 Stove away: 1
 Spy: 2
-White collars: 3
-Rent seeker: 2
-Bail: 1
+White collars: 4
+Rent seeker: 3
+Bail: 3
 Color revolution: 1
 Specimens: 1
 Money Master: 1
+Terrorist: 3

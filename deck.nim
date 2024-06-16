@@ -365,6 +365,8 @@ proc drawCardSquares(b:var Boxy,blue:BlueCard) =
 proc paintCards*(b:var Boxy,deck:Deck,playerHand:seq[BlueCard]) =
   if deck.reveal == Front and deck.lastDrawn.len > 0 and mouseOn deck.drawSlot.area:
     b.drawImage(deck.lastDrawn,deck.popUpSlot.rect)
+    if (let cardNr = deck.fullDeck.mapIt(it.title).find(deck.lastDrawn); cardNr != -1):
+      b.drawCardSquares deck.fullDeck[cardNr]
   if deck.discardPile.len > 0:
     b.drawImage(deck.discardPile[^1].title,deck.discardSlot.rect)
     if mouseOn deck.discardSlot.area:

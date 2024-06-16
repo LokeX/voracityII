@@ -129,7 +129,7 @@ template batchSelected:untyped =
 
 proc cashedCards:seq[BlueCard] =
   result.add selectedBatchColor.reports.mapIt(it.cards.cashed).flatMap
-  if turnPlayer.kind == Human and selectedBatchColor == turnPlayer.color:
+  if selectedBatchColor == turnPlayer.color:
     result.add turnReport.cards.cashed
 
 proc reportAnimationMoves:seq[AnimationMove] =

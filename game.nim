@@ -161,9 +161,9 @@ func removedPieces*(player:Player):int =
   player.pieces.count 0
 
 func indexFromColor*(players:seq[Player],playerColor:PlayerColor):int =
-  result = -1
   for i,player in players:
     if player.color == playerColor: return i
+  result = -1
 
 func knownBluesIn(discardPile,hand:seq[BlueCard]):seq[BlueCard] =
   result.add discardPile

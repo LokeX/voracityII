@@ -6,6 +6,7 @@ import math
 import algorithm
 import sugar
 import threadpool
+# import weave
 
 const
   highwayVal* = 2000
@@ -203,7 +204,7 @@ func evalMove(hypothetical:Hypothetic,pieceNr,toSquare:int):int =
     pieces[pieceNr] = 0 else: pieces[pieceNr] = toSquare
   (hypothetical.board,pieces,hypothetical.cards.threeBest,hypothetical.cash).evalPos
 
-func bestMove(hypothetical:Hypothetic,pieceNr,fromSquare,die:int):Move =
+func bestMove(hypothetical:sink Hypothetic,pieceNr,fromSquare,die:int):Move =
   let
     squares = moveToSquares(fromSquare,die)
     evals = squares.mapIt(hypothetical.evalMove(pieceNr,it))
