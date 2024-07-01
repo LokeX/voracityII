@@ -20,8 +20,8 @@
         // "--infChecks:off",
         // "--objChecks:off",
         // "--excessiveStackTrace:on",
-        "--parallelBuild:6",
-        "--warning:all:off",
+        // "--parallelBuild:6",
+        // "--warning:all:off",
         "voracity.nim"
       ],
       "problemMatcher": [],

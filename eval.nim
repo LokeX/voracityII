@@ -5,8 +5,8 @@ import sequtils
 import math
 import algorithm
 import sugar
-import threadpool
-# import weave
+import taskpools,cpuinfo
+import misc
 
 const
   highwayVal* = 2000
@@ -22,6 +22,12 @@ type
     pieces:array[5,int]
     cards:seq[BlueCard]
     cash:int
+
+template taskPoolsAs(pool,codeBlock:untyped) =
+  var pool = Taskpool.new(num_threads = countProcessors())
+  codeBlock
+  pool.syncAll
+  pool.shutdown
 
 func countBars*(hypothetical:Hypothetic): int = hypothetical.pieces.countIt(it in bars)
 
@@ -173,11 +179,12 @@ func evalBlues*(hypothetical:Hypothetic):seq[BlueCard] =
   result.sort (a,b) => b.eval - a.eval
 
 proc evalBluesThreaded*(hypothetical:Hypothetic):seq[BlueCard] =
-  let evals = hypothetical.cards.mapIt(spawn hypothetical.evalBlue it)
-  for i,card in hypothetical.cards:
-    result.add card
-    result[^1].eval = ^evals[i] #hypothetical.evalBlue(card)
-  result.sort (a,b) => b.eval - a.eval
+  taskPoolsAs tp:
+    let evals = hypothetical.cards.map(it => tp.spawn hypothetical.evalBlue it)
+    for i,card in hypothetical.cards:
+      result.add card
+      result[^1].eval = sync evals[i] #hypothetical.evalBlue(card)
+    result.sort (a,b) => b.eval - a.eval
 
 func friendlyFireBest(hypothetical:Hypothetic,move:Move):bool =
   var hypoMove = hypothetical
@@ -204,30 +211,60 @@ func evalMove(hypothetical:Hypothetic,pieceNr,toSquare:int):int =
     pieces[pieceNr] = 0 else: pieces[pieceNr] = toSquare
   (hypothetical.board,pieces,hypothetical.cards.threeBest,hypothetical.cash).evalPos
 
-func bestMove(hypothetical:sink Hypothetic,pieceNr,fromSquare,die:int):Move =
+func bestMove(hypothetical:Hypothetic,move:Move):Move =
   let
-    squares = moveToSquares(fromSquare,die)
-    evals = squares.mapIt(hypothetical.evalMove(pieceNr,it))
+    squares = moveToSquares(move.fromSquare,move.die)
+    evals = squares.mapIt(hypothetical.evalMove(move.pieceNr,it))
     bestEval = evals.maxIndex
     bestSquare = squares[bestEval]
     eval = evals[bestEval]
-  (pieceNr,die,fromSquare,bestSquare,eval)
+  (move.pieceNr,move.die,move.fromSquare,bestSquare,eval)
+
+func movesWith(hypothetical:Hypothetic,dice:openArray[int]):seq[Move] =
+  for die in dice.deduplicate:
+    for pieceNr,fromSquare in hypothetical.pieces:
+      for toSquare in moveToSquares(fromSquare,die):
+        if fromSquare != 0 or hypothetical.cash >= piecePrice:
+          result.add (pieceNr,die,fromSquare,toSquare,0)
+
+func player(hypothetical:Hypothetic,move:Move):Player =
+  var pieces = hypothetical.pieces
+  pieces[move.pieceNr] = move.toSquare
+  Player(
+    pieces:pieces,
+    hand:hypothetical.cards
+  )
+
+func winningMove*(hypothetical:Hypothetic,dice:openArray[int]):Move =
+  for move in hypothetical.movesWith dice:
+    let cash = hypothetical.player(move).cashablePlans.cashable.mapIt(it.cash).sum
+    if cash+hypothetical.cash >= cashToWin: return move
+  result.pieceNr = -1
+
+func reduce[T](list:openArray[T],fn:proc(a,b:T):T {.noSideEffect.}):T =
+  if list.len > 0:
+    result = list[list.low]
+  if list.len > 1:
+    for idx in list.low+1..list.high:
+      result = fn(result,list[idx])
 
 proc move*(hypothetical:Hypothetic,dice:openArray[int]):Move = 
-  var flowMoves:seq[FlowVar[Move]]
-  for pieceNr,fromSquare in hypothetical.pieces:
-    if fromSquare != 0 or hypothetical.cash >= piecePrice:
-      for die in dice:
-        flowMoves.add spawn hypothetical.bestMove(pieceNr,fromSquare,die)
-  flowMoves.mapIt(^it).sortedByIt(it.eval)[^1]
+  taskPoolsAs tp:
+    result = hypothetical.movesWith(dice)
+      .map(it => tp.spawn hypothetical.bestMove it)
+      .map(it => sync it)
+      .reduce (a,b:Move) => (if a.eval >= b.eval: a else: b)
 
-proc diceMoves(hypothetical:Hypothetic):seq[FlowVar[Move]] =
-  for pieceNr,fromSquare in hypothetical.pieces:
-    if fromSquare != 0 or hypothetical.cash >= piecePrice:
-      for die in 1..6: result.add spawn hypothetical.bestMove(pieceNr,fromSquare,die)
+proc diceMoves(hypothetical:Hypothetic):seq[Move] =
+  taskPoolsAs tp:
+    result = toSeq(1..6)
+      .map(it => hypothetical.movesWith([it,it]))
+      .flatMap
+      .map(it => tp.spawn hypothetical.bestMove it)
+      .map(it => sync it)
 
 proc bestDiceMoves*(hypothetical:Hypothetic):seq[Move] =
-  let moves = hypothetical.diceMoves.mapIt ^it
+  let moves = hypothetical.diceMoves
   for die in 1..6:
     let dieMoves = moves.filterIt it.die == die
     result.add dieMoves[dieMoves.mapIt(it.eval).maxIndex]

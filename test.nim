@@ -43,3 +43,8 @@ var te = [1,2,3]
 
 for i,e in te.enum_mitems:
   echo i
+
+echo "0..0"
+for i in 0..0:
+  echo i
+

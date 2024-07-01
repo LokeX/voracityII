@@ -44,17 +44,24 @@ proc reroll(hypothetical:Hypothetic): bool =
   updateTurnReport diceRoll
   isDouble() and diceRoll[1].ord notIn bestDice[^2..^1]
 
+proc aiMove(hypothetical:Hypothetic,dice:openArray[int]):(bool,Move) =
+  if(
+    let winMove = hypothetical.winningMove dice; 
+    winMove.pieceNr != -1
+  ):(true,winMove) else: (false,hypothetical.move dice)
+
+func betterThan(move:Move,hypothetical:Hypothetic):bool =
+  move.eval.toFloat >= hypothetical.evalPos().toFloat*0.75
+
 proc moveAi =
-  let 
-    move = hypo.move([diceRoll[1].ord,diceRoll[2].ord])
-    currentPosEval = hypo.evalPos()
-  if move.eval.toFloat >= currentPosEval.toFloat*0.75:
+  let (isWinningMove,move) = hypo.aiMove([diceRoll[1].ord,diceRoll[2].ord])
+  if isWinningMove or move.betterThan hypo:
     moveSelection.fromSquare = move.fromSquare
     move move.toSquare
   else:
     echo "ai skips move:"
-    echo "currentPosEval: ",currentPosEval
-    echo "moveEval: ",move.eval
+    # echo "currentPosEval: ",currentPosEval
+    # echo "moveEval: ",move.eval
   phase = PostMove
 
 proc startTurn = 
