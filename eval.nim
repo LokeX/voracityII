@@ -211,14 +211,14 @@ func evalMove(hypothetical:Hypothetic,pieceNr,toSquare:int):int =
     pieces[pieceNr] = 0 else: pieces[pieceNr] = toSquare
   (hypothetical.board,pieces,hypothetical.cards.threeBest,hypothetical.cash).evalPos
 
-func bestMove(hypothetical:Hypothetic,move:Move):Move =
+func bestMoveFrom(hypothetical:Hypothetic,generic:Move):Move =
   let
-    squares = moveToSquares(move.fromSquare,move.die)
-    evals = squares.mapIt(hypothetical.evalMove(move.pieceNr,it))
+    squares = moveToSquares(generic.fromSquare,generic.die)
+    evals = squares.mapIt(hypothetical.evalMove(generic.pieceNr,it))
     bestEval = evals.maxIndex
     bestSquare = squares[bestEval]
     eval = evals[bestEval]
-  (move.pieceNr,move.die,move.fromSquare,bestSquare,eval)
+  (generic.pieceNr,generic.die,generic.fromSquare,bestSquare,eval)
 
 func movesWith(hypothetical:Hypothetic,dice:openArray[int]):seq[Move] =
   for die in dice.deduplicate:
@@ -241,7 +241,7 @@ func winningMove*(hypothetical:Hypothetic,dice:openArray[int]):Move =
     if cash+hypothetical.cash >= cashToWin: return move
   result.pieceNr = -1
 
-func reduce[T](list:openArray[T],fn:proc(a,b:T):T {.noSideEffect.}):T =
+func reduce[T](list:openArray[T],fn:(T,T) -> T):T {.effectsOf:fn.} =
   if list.len > 0:
     result = list[list.low]
   if list.len > 1:
@@ -251,17 +251,17 @@ func reduce[T](list:openArray[T],fn:proc(a,b:T):T {.noSideEffect.}):T =
 proc move*(hypothetical:Hypothetic,dice:openArray[int]):Move = 
   taskPoolsAs tp:
     result = hypothetical.movesWith(dice)
-      .map(it => tp.spawn hypothetical.bestMove it)
-      .map(it => sync it)
-      .reduce (a,b:Move) => (if a.eval >= b.eval: a else: b)
+      .map(genericMove => tp.spawn hypothetical.bestMoveFrom genericMove)
+      .map(move => sync move)
+      .reduce (a,b) => (if a.eval >= b.eval: a else: b)
 
 proc diceMoves(hypothetical:Hypothetic):seq[Move] =
   taskPoolsAs tp:
     result = toSeq(1..6)
-      .map(it => hypothetical.movesWith([it,it]))
+      .map(die => hypothetical.movesWith([die,die]))
       .flatMap
-      .map(it => tp.spawn hypothetical.bestMove it)
-      .map(it => sync it)
+      .map(genericMove => tp.spawn hypothetical.bestMoveFrom genericMove)
+      .map(move => sync move)
 
 proc bestDiceMoves*(hypothetical:Hypothetic):seq[Move] =
   let moves = hypothetical.diceMoves
