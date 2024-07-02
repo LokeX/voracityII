@@ -1,4 +1,4 @@
-import win
+from win import KeyEvent
 import board
 import play
 import game

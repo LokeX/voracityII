@@ -2,11 +2,11 @@ import game
 import board
 import deck
 import sequtils
-import math
-import algorithm
+from math import pow,sum
+from algorithm import sort,sortedByIt
 import sugar
 import taskpools,cpuinfo
-import misc
+from misc import flatMap
 
 const
   highwayVal* = 2000
@@ -234,13 +234,6 @@ func resolveSeedMoves(hypothetical:Hypothetic,moves:seq[Move]):seq[Move] =
 func movesResolvedWith(hypothetical:Hypothetic,dice:openArray[int]):seq[Move] =
   hypothetical.resolveSeedMoves(hypothetical.movesSeededWith dice)
 
-# func movesSeededWith(hypothetical:Hypothetic,dice:openArray[int]):seq[Move] =
-#   for die in dice.deduplicate:
-#     for pieceNr,fromSquare in hypothetical.pieces:
-#       for toSquare in moveToSquares(fromSquare,die):
-#         if fromSquare != 0 or hypothetical.cash >= piecePrice:
-#           result.add (pieceNr,die,fromSquare,toSquare,0)
-
 func player(hypothetical:Hypothetic,move:Move):Player =
   var pieces = hypothetical.pieces
   pieces[move.pieceNr] = move.toSquare
@@ -252,11 +245,12 @@ func player(hypothetical:Hypothetic,move:Move):Player =
 func winningMove*(hypothetical:Hypothetic,dice:openArray[int]):Move =
   for move in hypothetical.movesResolvedWith dice:
     let 
-      cashReward = hypothetical.player(move).cashablePlans.cashable.mapIt(it.cash).sum
+      cashReward = hypothetical.player(move).plans.cashable.mapIt(it.cash).sum
       cashTotal = cashReward+hypothetical.cash-(
         if move.fromSquare == 0: piecePrice else: 0
       )
-    if cashTotal >= cashToWin: return move
+    if cashTotal >= cashToWin: 
+      return move
   result.pieceNr = -1
 
 func reduce[T](list:openArray[T],fn:(T,T) -> T):T {.effectsOf:fn.} =
