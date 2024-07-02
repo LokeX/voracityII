@@ -200,18 +200,30 @@ func hasPieceOn*(player:Player,square:int):bool =
 
 func onBars*(player:Player):seq[int] = bars.filterIt player.hasPieceOn it
 
-func requiredSquaresAndPieces*(plan:BlueCard):tuple[squares,nrOfPieces:seq[int]] =
-  let squares = plan.squares.required.deduplicate
-  (squares,squares.mapIt plan.squares.required.count it)
+func requiredSquaresOk*(player:Player,plan:BlueCard):bool =
+  plan.squares.required.deduplicate
+    .allIt player.pieces.count(it) >= plan.squares.required.count it
+
+# func requiredSquaresAndPieces*(plan:BlueCard):tuple[squares,nrOfPieces:seq[int]] =
+#   let squares = plan.squares.required.deduplicate
+#   (squares,squares.mapIt plan.squares.required.count it)
 
 func isCashable*(player:Player,plan:BlueCard):bool =
-  let 
-    (squares,nrOfPiecesRequired) = plan.requiredSquaresAndPieces
-    nrOfPiecesOnSquares = squares.mapIt player.pieces.count it
-    requiredOk = toSeq(0..squares.high).allIt nrOfPiecesOnSquares[it] >= nrOfPiecesRequired[it]
+  let   
+    squaresRequiredOk = player.requiredSquaresOk plan
     gotOneInMany = player.pieces.anyIt it in plan.squares.oneInMany
     oneInMoreOk = plan.squares.oneInmany.len == 0 or gotOneInMany
-  requiredOk and oneInMoreOk
+  squaresRequiredOk and oneInMoreOk
+
+# func isCashable*(player:Player,plan:BlueCard):bool =
+#   let 
+#     (squaresRequired,nrOfPiecesRequired) = plan.requiredSquaresAndPieces
+#     nrOfPiecesOnSquares = squaresRequired.mapIt player.pieces.count it    
+#     requiredOk = 
+#       toSeq(0..squares.high).allIt nrOfPiecesOnSquares[it] >= nrOfPiecesRequired[it]
+#     gotOneInMany = player.pieces.anyIt it in plan.squares.oneInMany
+#     oneInMoreOk = plan.squares.oneInmany.len == 0 or gotOneInMany
+#   requiredOk and oneInMoreOk
 
 func cashablePlans*(player:Player):tuple[cashable,notCashable:seq[BlueCard]] =
   for plan in player.hand:

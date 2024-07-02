@@ -1,50 +1,35 @@
-from math import PI,pow
-type
-  ShapeKind = enum Circle,Rectangle
-  ShapeProps = tuple[shape:string,area,perimeter:float]
-  CircleShape = concept circle
-    circle.r
-    proc buildShapeProps(circle:CircleShape):ShapeProps
-  RectangleShape = concept rectangle
-    rectangle.w
-    rectangle.h
-    proc buildRectangleProps(rectangle:RectangleShape):ShapeProps    
-  Shape = object
-    case kind:ShapeKind
-    of Circle:r:float
-    of Rectangle:w,h:float
+import sequtils
 
-func buildCircleProps(circle:CircleShape):ShapeProps =
-  ($Circle,PI*circle.r.pow 2,2.0*PI*circle.r)
+func requiredOk*(pieces:openArray[int],squares:openArray[int]):bool =
+  squares.deduplicate
+    .allIt pieces.count(it) >= squares.count it
 
-func buildRectangleProps(rectangle:RectangleShape):ShapeProps =
-  ($Rectangle,rectangle.w*rectangle.h,2.0*rectangle.w+2.0*rectangle.h)
+# func requiredSquaresAndPieces*(plan:BlueCard):tuple[squares,nrOfPieces:seq[int]] =
+#   let squares = plan.squares.required.deduplicate
+#   (squares,squares.mapIt plan.squares.required.count it)
 
-const shapes = [
-  Circle:Shape(kind:Circle,r:10).buildCircleProps,
-  Rectangle:Shape(kind:Rectangle,w:10,h:10).buildRectangleProps,
-]
+let
+  pieces = [1,2,3,4,0]
+  squares = [60,5]
 
-for shape in shapes:
-  for prop,value in shape.fieldPairs: 
-    echo prop,": ",value 
-  echo ""
+echo pieces.requiredOk squares
 
-template area(shape:untyped):untyped = shapes[shape].area
-template perimeter(shape:untyped):untyped = shapes[shape].perimeter
 
-echo Circle.area
-echo Circle.perimeter
-echo Rectangle.area
-echo Rectangle.perimeter
+proc t(pieces:seq[int]) =
+  var p = pieces
+  p[0] = 60
+  echo pieces
+  echo p
 
-import misc
-var te = [1,2,3]
+t @[1,2,3,4,5]
 
-for i,e in te.enum_mitems:
-  echo i
+import eval,game
 
-echo "0..0"
-for i in 0..0:
-  echo i
+var hypo:Hypothetic
 
+hypo.pieces = [2,6,7,60,0]
+hypo.cards = @[blueDeck.fullDeck[blueDeck.fullDeck.mapIt(it.title).find("Bodyguard")]]
+hypo.cash = 440000
+
+echo hypo.cards
+echo hypo.winningMove [4,2]

@@ -220,12 +220,26 @@ func bestMoveFrom(hypothetical:Hypothetic,generic:Move):Move =
     eval = evals[bestEval]
   (generic.pieceNr,generic.die,generic.fromSquare,bestSquare,eval)
 
-func movesWith(hypothetical:Hypothetic,dice:openArray[int]):seq[Move] =
+func movesSeededWith(hypothetical:Hypothetic,dice:openArray[int]):seq[Move] =
   for die in dice.deduplicate:
     for pieceNr,fromSquare in hypothetical.pieces:
-      for toSquare in moveToSquares(fromSquare,die):
-        if fromSquare != 0 or hypothetical.cash >= piecePrice:
-          result.add (pieceNr,die,fromSquare,toSquare,0)
+      result.add (pieceNr,die,fromSquare,0,0)
+
+func resolveSeedMoves(hypothetical:Hypothetic,moves:seq[Move]):seq[Move] =
+  for move in moves:
+    if move.fromSquare != 0 or hypothetical.cash >= piecePrice:
+      for toSquare in moveToSquares(move.fromSquare,move.die):
+        result.add (move.pieceNr,move.die,move.fromSquare,toSquare,0)
+
+func movesResolvedWith(hypothetical:Hypothetic,dice:openArray[int]):seq[Move] =
+  hypothetical.resolveSeedMoves(hypothetical.movesSeededWith dice)
+
+# func movesSeededWith(hypothetical:Hypothetic,dice:openArray[int]):seq[Move] =
+#   for die in dice.deduplicate:
+#     for pieceNr,fromSquare in hypothetical.pieces:
+#       for toSquare in moveToSquares(fromSquare,die):
+#         if fromSquare != 0 or hypothetical.cash >= piecePrice:
+#           result.add (pieceNr,die,fromSquare,toSquare,0)
 
 func player(hypothetical:Hypothetic,move:Move):Player =
   var pieces = hypothetical.pieces
@@ -236,9 +250,13 @@ func player(hypothetical:Hypothetic,move:Move):Player =
   )
 
 func winningMove*(hypothetical:Hypothetic,dice:openArray[int]):Move =
-  for move in hypothetical.movesWith dice:
-    let cash = hypothetical.player(move).cashablePlans.cashable.mapIt(it.cash).sum
-    if cash+hypothetical.cash >= cashToWin: return move
+  for move in hypothetical.movesResolvedWith dice:
+    let 
+      cashReward = hypothetical.player(move).cashablePlans.cashable.mapIt(it.cash).sum
+      cashTotal = cashReward+hypothetical.cash-(
+        if move.fromSquare == 0: piecePrice else: 0
+      )
+    if cashTotal >= cashToWin: return move
   result.pieceNr = -1
 
 func reduce[T](list:openArray[T],fn:(T,T) -> T):T {.effectsOf:fn.} =
@@ -250,15 +268,15 @@ func reduce[T](list:openArray[T],fn:(T,T) -> T):T {.effectsOf:fn.} =
 
 proc move*(hypothetical:Hypothetic,dice:openArray[int]):Move = 
   taskPoolsAs tp:
-    result = hypothetical.movesWith(dice)
+    result = hypothetical.movesSeededWith(dice)
       .map(genericMove => tp.spawn hypothetical.bestMoveFrom genericMove)
-      .map(move => sync move)
+      .map(bestMove => sync bestMove)
       .reduce (a,b) => (if a.eval >= b.eval: a else: b)
 
 proc diceMoves(hypothetical:Hypothetic):seq[Move] =
   taskPoolsAs tp:
     result = toSeq(1..6)
-      .map(die => hypothetical.movesWith([die,die]))
+      .map(die => hypothetical.movesSeededWith([die,die]))
       .flatMap
       .map(genericMove => tp.spawn hypothetical.bestMoveFrom genericMove)
       .map(move => sync move)

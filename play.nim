@@ -165,6 +165,9 @@ proc playCashPlansTo*(deck:var Deck) =
     updateTurnReportCards(cashedPlans,Cashed)
     turn.player.updateBatch
     playSound "coins-to-table-2"
+    echo "Cashed plans:"
+    echo $turnPlayer.color," players pieces",turnPlayer.pieces
+    echo cashedPlans
     if turnPlayer.cash >= cashToWin:
       writeGamestats()
       playSound "applause-2"
@@ -238,11 +241,11 @@ proc togglePlayerKind* =
     togglePlayerKind batchNr
 
 func singlePieceOn*(players:seq[Player],square:int):SinglePiece =
-  result = (-1,-1)
   if players.nrOfPiecesOn(square) == 1:
     for playerNr,player in players:
       for pieceNr,piece in player.pieces:
         if piece == square: return (playerNr,pieceNr)
+  result = (-1,-1)
 
 proc getMove:Move =
   result.die = -1
