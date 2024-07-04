@@ -1,35 +1,42 @@
-import sequtils
+type 
+  Test = object
+    f1:int
+    f2:float
 
-func requiredOk*(pieces:openArray[int],squares:openArray[int]):bool =
-  squares.deduplicate
-    .allIt pieces.count(it) >= squares.count it
+var
+  thp = cast[ptr Test](alloc(sizeof Test))
+  nhp = cast[ptr Test](alloc(sizeof Test))
+thp.f1 = 12
+thp.f2 = 2.1
 
-# func requiredSquaresAndPieces*(plan:BlueCard):tuple[squares,nrOfPieces:seq[int]] =
-#   let squares = plan.squares.required.deduplicate
-#   (squares,squares.mapIt plan.squares.required.count it)
+copyMem(nhp,thp,sizeof Test)
 
-let
-  pieces = [1,2,3,4,0]
-  squares = [60,5]
-
-echo pieces.requiredOk squares
+var
+  hell:seq[pointer]
+  nr = cast[ref Test](nhp.addr)
 
 
-proc t(pieces:seq[int]) =
-  var p = pieces
-  p[0] = 60
-  echo pieces
-  echo p
+proc t(p:ptr Test) =
+  echo p[]
 
-t @[1,2,3,4,5]
+t nhp
 
-import eval,game
+thp.dealloc
+nhp.dealloc
 
-var hypo:Hypothetic
+var
+  y = new Test
+y.f1 = 12 
+y.f2 = 2.0
 
-hypo.pieces = [2,6,7,60,0]
-hypo.cards = @[blueDeck.fullDeck[blueDeck.fullDeck.mapIt(it.title).find("Bodyguard")]]
-hypo.cash = 440000
 
-echo hypo.cards
-echo hypo.winningMove [4,2]
+var
+  x = y[]
+  z = cast[ref Test](x.addr)
+z.f1 = 13
+echo z[]
+echo y[]
+
+
+
+

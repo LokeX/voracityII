@@ -1,60 +1,60 @@
-Bar Nr.1: 96
+Bar Nr.1: 100
 Gas Station Nr.2: 12
-Bank Nr.3: 53
-Town Hall Nr.4: 367
-Highway Nr.5: 150
-Barracks Nr.6: 346
-Church Nr.7: 390
-Villa Nr.8: 306
-Embassey Nr.9: 243
-Courthouse Nr.10: 319
-Airport Nr.11: 330
-Casino Nr.12: 159
-Jeweler Nr.13: 166
-Bank Nr.14: 28
+Bank Nr.3: 56
+Town Hall Nr.4: 384
+Highway Nr.5: 156
+Barracks Nr.6: 363
+Church Nr.7: 405
+Villa Nr.8: 317
+Embassey Nr.9: 249
+Courthouse Nr.10: 334
+Airport Nr.11: 343
+Casino Nr.12: 167
+Jeweler Nr.13: 170
+Bank Nr.14: 30
 Gas Station Nr.15: 36
-Bar Nr.16: 549
-Highway Nr.17: 102
-Bar Nr.18: 117
-Disco Nr.19: 316
-Bar Nr.20: 332
-Brothel Nr.21: 463
-Realestate Nr.22: 235
-Shop Nr.23: 45
-Bank Nr.24: 53
-Hospital Nr.25: 237
-Undertaker Nr.26: 203
-Gas Station Nr.27: 25
-Bar Nr.28: 168
-Highway Nr.29: 106
-McLeans Nr.30: 968
-Condo Nr.31: 83
-Condo Nr.32: 68
-Lawyers Nr.33: 386
-Shop Nr.34: 29
-Bar Nr.35: 281
-Prison Nr.36: 184
+Bar Nr.16: 573
+Highway Nr.17: 107
+Bar Nr.18: 123
+Disco Nr.19: 332
+Bar Nr.20: 345
+Brothel Nr.21: 484
+Realestate Nr.22: 251
+Shop Nr.23: 49
+Bank Nr.24: 58
+Hospital Nr.25: 252
+Undertaker Nr.26: 207
+Gas Station Nr.27: 26
+Bar Nr.28: 174
+Highway Nr.29: 109
+McLeans Nr.30: 1018
+Condo Nr.31: 88
+Condo Nr.32: 70
+Lawyers Nr.33: 404
+Shop Nr.34: 33
+Bar Nr.35: 295
+Prison Nr.36: 194
 Gas Station Nr.37: 8
 Bank Nr.38: 43
-Debt Inc Nr.39: 300
-Bar Nr.40: 420
-Highway Nr.41: 129
-Shop Nr.42: 55
-Entreprenour Nr.43: 228
-Shop Nr.44: 52
-Pharmacy Nr.45: 363
-Bar Nr.46: 235
-Gas Station Nr.47: 17
-Brewery Nr.48: 387
-Harbour Nr.49: 318
-Shop Nr.50: 27
-Bar Nr.51: 339
-Bank Nr.52: 51
-Highway Nr.53: 115
-Bar Nr.54: 225
-Import inc Nr.55: 198
-Slum Nr.56: 70
-Alley Nr.57: 366
-Slum Nr.58: 64
-Slum Nr.59: 68
-Police Nr.60: 233
+Debt Inc Nr.39: 322
+Bar Nr.40: 446
+Highway Nr.41: 134
+Shop Nr.42: 58
+Entreprenour Nr.43: 241
+Shop Nr.44: 55
+Pharmacy Nr.45: 380
+Bar Nr.46: 243
+Gas Station Nr.47: 18
+Brewery Nr.48: 410
+Harbour Nr.49: 331
+Shop Nr.50: 28
+Bar Nr.51: 355
+Bank Nr.52: 52
+Highway Nr.53: 121
+Bar Nr.54: 231
+Import inc Nr.55: 208
+Slum Nr.56: 71
+Alley Nr.57: 374
+Slum Nr.58: 68
+Slum Nr.59: 72
+Police Nr.60: 242

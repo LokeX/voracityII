@@ -111,7 +111,7 @@ proc mouseOnCardSlot(player:var Player,deck:var Deck):int =
 proc canMovePieceFrom*(player:Player,square:int):bool =
   player.hasPieceOn(square) and
   (not turn.diceMoved or square in highways or 
-  (square == 0 and player.cash >= 5000))
+  (square == 0 and player.cash >= piecePrice))
 
 proc select(square:int) =
   if turnPlayer.canMovePieceFrom square:

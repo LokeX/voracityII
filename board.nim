@@ -28,7 +28,7 @@ type
 
 const
   diceRollRects = (Rect(x:1450,y:60,w:50,h:50),Rect(x:1450,y:120,w:50,h:50))
-  diceRollDims*:array[1..2,Dims] = [
+  diceRollDims:array[1..2,Dims] = [
     (diceRollRects[0].toArea,diceRollRects[0]),
     (diceRollRects[1].toArea,diceRollRects[1])
   ]
@@ -100,7 +100,7 @@ proc endDiceRoll* = dieRollFrame = maxRollFrames
 
 proc mayReroll*:bool = isDouble() and not isRollingDice()
 
-template adjustToSquareNr*(adjustSquare:untyped):untyped =
+func adjustToSquareNr*(adjustSquare:int):int =
   if adjustSquare > 60: adjustSquare - 60 else: adjustSquare
 
 func canKillPieceOn*(square:int):bool =
@@ -131,8 +131,10 @@ func moveToSquares*(fromSquare:int,dice:Dice):seq[int] =
   result.deduplicate
 
 func noDiceUsedToMove*(fromSquare,toSquare:int):bool =
-  (fromSquare == 0 or fromSquare in highways) and
-  (tosquare in highways or toSquare in gasStations)
+  (fromSquare == 0 and (toSquare in highways or toSquare in gasStations)) or
+  (fromSquare in highways and toSquare in gasStations)
+  # (fromSquare == 0 or fromSquare in highways) and
+  # (tosquare in highways or toSquare in gasStations)
 
 func dieUsed*(fromSquare,toSquare:int,dice:Dice):int =
   if toSquare in moveToSquares(fromSquare,dice[1].ord):
