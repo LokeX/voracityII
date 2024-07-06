@@ -3,6 +3,13 @@ import strutils
 import sugar
 import os
 
+func reduce*[T](list:openArray[T],fn:(T,T) -> T):T {.effectsOf:fn.} =
+  if list.len > 0:
+    result = list[list.low]
+  if list.len > 1:
+    for idx in list.low+1..list.high:
+      result = fn(result,list[idx])
+
 template parameter*(param,defaultResult,body:untyped):auto =
   block:
     var result {.inject.} = defaultResult

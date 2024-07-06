@@ -1,42 +1,29 @@
-type 
-  Test = object
-    f1:int
-    f2:float
+# playing with pointers
+proc write[T](p:pointer,i:int,val:T) =
+  cast[ptr T](cast[int](p)+(sizeof(T)*i))[] = val
 
-var
-  thp = cast[ptr Test](alloc(sizeof Test))
-  nhp = cast[ptr Test](alloc(sizeof Test))
-thp.f1 = 12
-thp.f2 = 2.1
+func to[T:typedesc](p:pointer,i:int,y:T):ptr y =
+  cast[ptr y](cast[int](p)+(sizeof(y)*i))
 
-copyMem(nhp,thp,sizeof Test)
+func too[U](p:openArray[U],i:int):ptr U =
+  cast[ptr U](cast[int](p.addr)+(sizeof(U)*i))
 
-var
-  hell:seq[pointer]
-  nr = cast[ref Test](nhp.addr)
+var 
+  t = [1,2,4]
+  p = t.addr
+  # o = cast[ptr int](cast[int](p)+(sizeof(int)*2))
+# o[] = 3
 
+p.write(2,3)
+p.to(0,int)[] = 0
+t.too(1)[] = 1
+echo t
 
-proc t(p:ptr Test) =
-  echo p[]
+proc pr(rt:typedesc):proc:rt = 
+  proc:rt = default rt
 
-t nhp
+let ty = pr(typeof t)
 
-thp.dealloc
-nhp.dealloc
-
-var
-  y = new Test
-y.f1 = 12 
-y.f2 = 2.0
-
-
-var
-  x = y[]
-  z = cast[ref Test](x.addr)
-z.f1 = 13
-echo z[]
-echo y[]
-
-
-
+echo $(typeof ty())
+# let b = pr cast[typedesc]("int")
 

@@ -6,7 +6,7 @@ from math import pow,sum
 from algorithm import sort,sortedByIt
 import sugar
 import taskpools,cpuinfo
-from misc import flatMap
+from misc import flatMap,reduce
 
 const
   highwayVal* = 2000
@@ -252,13 +252,6 @@ func winningMove*(hypothetical:Hypothetic,dice:openArray[int]):Move =
     if cashTotal >= cashToWin: 
       return move
   result.pieceNr = -1
-
-func reduce[T](list:openArray[T],fn:(T,T) -> T):T {.effectsOf:fn.} =
-  if list.len > 0:
-    result = list[list.low]
-  if list.len > 1:
-    for idx in list.low+1..list.high:
-      result = fn(result,list[idx])
 
 proc move*(hypothetical:Hypothetic,dice:openArray[int]):Move = 
   taskPoolsAs tp:

@@ -1,5 +1,6 @@
 import strutils
 import sequtils
+import algorithm
 import misc
 
 type
@@ -34,7 +35,6 @@ let
     .flatMap
   squareCount = toSeq(1..60).mapit (it,squares.count it)
   squareNames = readFile("dat\\board.txt").splitLines
-
-for (squareNr,count) in squareCount.filterIt it[1] > 0:
+for (squareNr,count) in squareCount.filterIt(it[1] > 0).sortedByIt(it[1]).reversed:
   echo squareNames[squareNr-1]," Nr. ",squareNr,": ",count
 

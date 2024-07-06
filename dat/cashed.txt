@@ -7,67 +7,67 @@ Burglary: 18
 High society: 17
 Razia: 13
 Underhanded: 12
-Insurgency: 9
+Insurgency: 11
 Dead weight: 9
-Nose job: 7
-Rentals: 18
-Open house: 7
-Duty free: 14
-Broken bones: 13
-Load: 21
+Nose job: 8
+Rentals: 19
+Open house: 8
+Duty free: 15
+Broken bones: 14
+Load: 23
 Burial at sea: 12
-Lawfare: 11
+Lawfare: 13
 Home brew: 10
-Delivery: 13
+Delivery: 14
 Judicial murder: 3
 Express demands: 9
 Digestion issues: 1
 Flay'em: 17
-Ram theft: 9
-Meat: 15
+Ram theft: 10
+Meat: 17
 Advisory board: 11
 Broman escorte: 5
 Grapevine: 18
-Agent: 12
-Hooked: 14
-Deadly cargo: 12
-Strong medicine: 10
+Agent: 13
+Hooked: 15
+Deadly cargo: 13
+Strong medicine: 11
 Hooters: 9
-Infiltration: 13
-Lord of War: 5
+Infiltration: 14
+Lord of War: 6
 Up yours: 12
-Legalese: 14
-Small arms: 15
+Legalese: 16
+Small arms: 16
 Rock solid claims: 17
 Stiffs: 12
 Concuctions: 9
 Small box: 18
-Moonshine: 17
-Local dealership: 15
+Moonshine: 19
+Local dealership: 17
 Party drugs: 17
 Pimp: 6
-Grand designs: 16
-Blood suckers: 7
-Laundry: 5
+Grand designs: 18
+Blood suckers: 8
+Laundry: 6
 Acquittal: 7
 Higher power: 12
 Sweet hearts: 6
 Sing along song: 17
 Informer: 10
-Bootlegging: 11
-Human resources: 12
+Bootlegging: 12
+Human resources: 13
 Protection: 16
-Blood diamants: 6
+Blood diamants: 7
 Redemption: 13
 Ludomania: 8
 Heartless: 4
 Et spiritus sancti: 11
-Health plan: 10
-Brotherhood: 17
+Health plan: 11
+Brotherhood: 18
 Choire boys: 19
-Projects: 16
-Bystanders: 10
-Occupational hazard: 11
+Projects: 17
+Bystanders: 11
+Occupational hazard: 12
 Cold meds: 16
 Digestive issues: 3
 Knock knock: 18
@@ -79,29 +79,29 @@ Slum lord: 12
 Lipstick on a pig: 9
 Golden chains: 8
 Diamonds are...: 14
-Addictions: 4
-Pure luck: 7
+Addictions: 5
+Pure luck: 8
 Borderless: 17
-Chicks in cages: 15
+Chicks in cages: 16
 Recycling: 8
 VIP Lounge: 6
 Mayor: 4
-Jet setter: 8
-Knocked out: 15
+Jet setter: 9
+Knocked out: 16
 Trans action: 4
 Financing: 12
-Drug Dealer: 10
-Outstanding: 17
-Bodyguard: 9
+Drug Dealer: 11
+Outstanding: 18
+Bodyguard: 11
 Aiding and abetting: 7
 Debt to society: 5
 Stove away: 2
 Spy: 3
 White collars: 6
 Rent seeker: 8
-Bail: 8
+Bail: 9
 Color revolution: 5
 Specimens: 7
 Money Master: 2
-Terrorist: 5
+Terrorist: 6
 Gangbanger: 1
