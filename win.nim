@@ -1,6 +1,5 @@
 import boxy, opengl 
 import windy
-import os
 import times
 
 export boxy 
@@ -116,13 +115,10 @@ func keyReleased*(event:KeyEvent):bool = event.keyState.released
 
 func keyPressed*(event:KeyEvent):bool = event.keyState.down
 
-func down*(event:KeyboardEvent,b:Button):bool = 
+func pressedIs*(event:KeyboardEvent,b:Button):bool = 
   event.keyState.down and event.button == b
 
 func isKey*(b1:Button,b2:Button):bool = b1 == b2
-
-func pressedIs*(k:KeyboardEvent, button:Button):bool = 
-  k.keyPressed and k.button == button
 
 func hasRune*(k:KeyboardEvent):bool = k.rune.toUTF8 != "¤"
 

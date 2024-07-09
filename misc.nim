@@ -11,22 +11,21 @@ func reduce*[T](list:openArray[T],fn:(T,T) -> T):T {.effectsOf:fn.} =
       result = fn(result,list[idx])
 
 template parameter*(param,defaultResult,body:untyped):auto =
-  block:
-    var result {.inject.} = defaultResult
-    for param in commandLineParams():
-      body
-      if result != defaultResult: break
-    result
+  var result {.inject.} = defaultResult
+  for param in commandLineParams():
+    body
+    if result != defaultResult: 
+      break
+  result
 
-proc consoleChoice*[T:enum](menuItems:T):T =
-  let choices = menuItems.mapIt ord it
+proc consoleChoice*(choices:openArray[string]):int =
   var chosen = -2
-  while chosen notIn choices:
+  while chosen < choices.low or chosen > choices.high:
     if chosen == -1: echo "Not a choice - try again\n"
     echo "Choose: "
-    for choice in choices: echo $choice,") ",$menuItems choice
+    for i,choice in choices: echo i,") ",choice
     chosen = try: stdin.readLine.parseInt except: -1
-  menuItems chosen
+  chosen
 
 template init*(t:untyped) = t = default typeof T
 
@@ -92,4 +91,8 @@ when isMainModule:
   let help = parameter(param,false):
     if param.toLower == "help": result = true
   echo help
+  type Menu = enum Choice1, Choice2, Choice3
+  let choice = Menu.mapIt($it).consoleChoice
+  echo "choice: ",Menu(choice)
+
 

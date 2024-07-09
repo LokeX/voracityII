@@ -49,7 +49,7 @@ proc draw(b:var Boxy) =
     b.drawDynamicImage dialogBatch
 
 proc keyboard(k:KeyboardEvent) = 
-  if dialogBatch.isActive and k.down KeyEnter:
+  if dialogBatch.isActive and k.pressedIs KeyEnter:
     endDialog dialogEntries[dialogBatch.selection].strip
   else: k.batchKeyb dialogBatch
 

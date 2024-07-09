@@ -1,48 +1,48 @@
 Polterabend: 17
-Demolition: 14
-Light load: 16
-Foreign aid: 22
+Demolition: 16
+Light load: 17
+Foreign aid: 23
 Body count: 6
 Burglary: 18
 High society: 17
 Razia: 13
 Underhanded: 12
-Insurgency: 11
+Insurgency: 12
 Dead weight: 9
 Nose job: 8
 Rentals: 19
 Open house: 8
 Duty free: 15
 Broken bones: 14
-Load: 23
+Load: 25
 Burial at sea: 12
-Lawfare: 13
+Lawfare: 14
 Home brew: 10
-Delivery: 14
-Judicial murder: 3
+Delivery: 15
+Judicial murder: 4
 Express demands: 9
 Digestion issues: 1
 Flay'em: 17
 Ram theft: 10
-Meat: 17
-Advisory board: 11
+Meat: 18
+Advisory board: 12
 Broman escorte: 5
-Grapevine: 18
+Grapevine: 19
 Agent: 13
 Hooked: 15
 Deadly cargo: 13
-Strong medicine: 11
+Strong medicine: 12
 Hooters: 9
 Infiltration: 14
-Lord of War: 6
+Lord of War: 8
 Up yours: 12
-Legalese: 16
+Legalese: 17
 Small arms: 16
 Rock solid claims: 17
 Stiffs: 12
 Concuctions: 9
-Small box: 18
-Moonshine: 19
+Small box: 19
+Moonshine: 20
 Local dealership: 17
 Party drugs: 17
 Pimp: 6
@@ -53,29 +53,29 @@ Acquittal: 7
 Higher power: 12
 Sweet hearts: 6
 Sing along song: 17
-Informer: 10
+Informer: 11
 Bootlegging: 12
 Human resources: 13
-Protection: 16
+Protection: 17
 Blood diamants: 7
-Redemption: 13
+Redemption: 14
 Ludomania: 8
 Heartless: 4
 Et spiritus sancti: 11
 Health plan: 11
-Brotherhood: 18
-Choire boys: 19
+Brotherhood: 19
+Choire boys: 21
 Projects: 17
 Bystanders: 11
 Occupational hazard: 12
 Cold meds: 16
 Digestive issues: 3
-Knock knock: 18
+Knock knock: 19
 Side effects: 11
-Secret weapon: 12
-Outsider: 8
+Secret weapon: 14
+Outsider: 9
 Safe bet: 6
-Slum lord: 12
+Slum lord: 13
 Lipstick on a pig: 9
 Golden chains: 8
 Diamonds are...: 14
@@ -86,8 +86,8 @@ Chicks in cages: 16
 Recycling: 8
 VIP Lounge: 6
 Mayor: 4
-Jet setter: 9
-Knocked out: 16
+Jet setter: 10
+Knocked out: 17
 Trans action: 4
 Financing: 12
 Drug Dealer: 11
@@ -98,9 +98,9 @@ Debt to society: 5
 Stove away: 2
 Spy: 3
 White collars: 6
-Rent seeker: 8
+Rent seeker: 10
 Bail: 9
-Color revolution: 5
+Color revolution: 7
 Specimens: 7
 Money Master: 2
 Terrorist: 6

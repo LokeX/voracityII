@@ -24,3 +24,4 @@ proc closeSound* =
   slappyClose()
 
 proc volume*:float32 = listener.gain
+

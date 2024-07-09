@@ -73,6 +73,7 @@ var
   pinnedBatchNr = -1
   discardPinned,mouseOnDiscard:bool
   frames:float
+  vol = 0.05
 
 proc paintSubText:Image =
   var 
@@ -286,6 +287,13 @@ proc keyboard (key:KeyboardEvent) =
   if batchInputNr != -1: key.batchKeyb inputBatch
   if key.keyPressed: 
     case key.button
+    of NumpadAdd,NumpadSubtract:
+      vol += (
+        if key.button.isKey NumpadAdd: 
+          if vol < 0.95: 0.05 else: 0
+        elif vol < 0.05: 0 else: -0.05
+      )
+      setVolume vol
     of KeyEnter:
       if batchInputNr != -1: 
         if inputBatch.input.len > 0:
@@ -302,7 +310,7 @@ proc keyboard (key:KeyboardEvent) =
       of Back,Front: blueDeck.reveal = UserSetFront
     of KeyS:
       if volume() == 0:
-        setVolume 0.05
+        setVolume vol
       else: setVolume 0
     else:discard
   if key.button == ButtonUnknown and not isRollingDice():
@@ -353,7 +361,8 @@ addImage("logo",paintLogo())
 addImage("barman",paintBarman())
 addImage("advicetext",paintSubText())
 randomize()
-setVolume 0.05
+# vol = 0.05
+setVolume vol
 addCall call
 addCall dialogCall # we add dialog second - or it will be drawn beneath the board
 window.onCloseRequest = quitVoracity
