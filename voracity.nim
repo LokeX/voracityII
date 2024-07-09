@@ -71,6 +71,7 @@ var
   batchInputNr = -1
   mouseOnBatchPlayerNr = -1
   pinnedBatchNr = -1
+  altPressed = false
   discardPinned,mouseOnDiscard:bool
   frames:float
   vol = 0.05
@@ -140,11 +141,16 @@ proc reportAnimationMoves:seq[AnimationMove] =
     .reports[^1].moves
     .mapIt (it.fromSquare,it.toSquare)
 
+template drawSelectedPlayersHand:untyped =
+  altPressed and pinnedBatchNr == -1 and turnPlayer.cash >= cashToWin
+
 proc drawCards(b:var Boxy) =
   if batchSelected and selectedBatchColor.reports.len > 0:
     let storedRevealSetting = blueDeck.reveal
     blueDeck.reveal = Front
-    b.paintCards blueDeck,cashedCards()
+    if drawSelectedPlayersHand:
+      b.paintCards blueDeck,players[mouseOnBatchPlayerNr].hand
+    else: b.paintCards blueDeck,cashedCards()
     blueDeck.reveal = storedRevealSetting   
   else: b.paintCards blueDeck,turnPlayer.hand
 
@@ -157,8 +163,11 @@ proc setRevealCards(deck:var Deck,playerKind:PlayerKind) =
 proc drawCardsHeader(b:var Boxy) =
   let 
     (color,text) = if blueDeck.show == Hand:
-      if mouseOnBatchPlayerNr > -1 or pinnedBatchNr > -1:
-        (players[max(mouseOnBatchPlayerNr,pinnedBatchNr)].color,"player's cashed cards")
+      if batchSelected:
+        if drawSelectedPlayersHand:
+          (players[mouseOnBatchPlayerNr].color,"player's hand")
+        else:
+          (players[max(mouseOnBatchPlayerNr,pinnedBatchNr)].color,"player's cashed cards")
       else: (turnPlayer.color," player's hand")
     else: (Black,"Discard pile")
     txt = if text == "Discard pile": text else: $color&text
@@ -284,6 +293,8 @@ proc mouseMoved =
     mainMenu.mouseSelect
 
 proc keyboard (key:KeyboardEvent) =
+  altPressed = key.pressed.alt
+  # echo altPressed
   if batchInputNr != -1: key.batchKeyb inputBatch
   if key.keyPressed: 
     case key.button

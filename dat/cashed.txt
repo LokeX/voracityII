@@ -1,107 +1,107 @@
-Polterabend: 17
-Demolition: 16
-Light load: 17
-Foreign aid: 23
+Polterabend: 19
+Demolition: 17
+Light load: 18
+Foreign aid: 24
 Body count: 6
 Burglary: 18
-High society: 17
+High society: 18
 Razia: 13
 Underhanded: 12
-Insurgency: 12
+Insurgency: 13
 Dead weight: 9
-Nose job: 8
-Rentals: 19
+Nose job: 10
+Rentals: 20
 Open house: 8
 Duty free: 15
-Broken bones: 14
-Load: 25
+Broken bones: 15
+Load: 27
 Burial at sea: 12
-Lawfare: 14
+Lawfare: 15
 Home brew: 10
-Delivery: 15
-Judicial murder: 4
+Delivery: 18
+Judicial murder: 5
 Express demands: 9
 Digestion issues: 1
-Flay'em: 17
-Ram theft: 10
-Meat: 18
-Advisory board: 12
+Flay'em: 18
+Ram theft: 11
+Meat: 19
+Advisory board: 13
 Broman escorte: 5
-Grapevine: 19
-Agent: 13
-Hooked: 15
+Grapevine: 20
+Agent: 14
+Hooked: 16
 Deadly cargo: 13
-Strong medicine: 12
+Strong medicine: 14
 Hooters: 9
 Infiltration: 14
 Lord of War: 8
 Up yours: 12
-Legalese: 17
+Legalese: 20
 Small arms: 16
-Rock solid claims: 17
+Rock solid claims: 20
 Stiffs: 12
 Concuctions: 9
-Small box: 19
-Moonshine: 20
+Small box: 21
+Moonshine: 21
 Local dealership: 17
-Party drugs: 17
-Pimp: 6
-Grand designs: 18
+Party drugs: 18
+Pimp: 7
+Grand designs: 20
 Blood suckers: 8
 Laundry: 6
 Acquittal: 7
-Higher power: 12
-Sweet hearts: 6
-Sing along song: 17
+Higher power: 15
+Sweet hearts: 7
+Sing along song: 19
 Informer: 11
 Bootlegging: 12
-Human resources: 13
-Protection: 17
+Human resources: 14
+Protection: 18
 Blood diamants: 7
-Redemption: 14
-Ludomania: 8
+Redemption: 15
+Ludomania: 9
 Heartless: 4
-Et spiritus sancti: 11
+Et spiritus sancti: 12
 Health plan: 11
-Brotherhood: 19
-Choire boys: 21
-Projects: 17
+Brotherhood: 20
+Choire boys: 22
+Projects: 18
 Bystanders: 11
 Occupational hazard: 12
-Cold meds: 16
+Cold meds: 17
 Digestive issues: 3
-Knock knock: 19
-Side effects: 11
-Secret weapon: 14
-Outsider: 9
-Safe bet: 6
-Slum lord: 13
-Lipstick on a pig: 9
-Golden chains: 8
-Diamonds are...: 14
+Knock knock: 21
+Side effects: 12
+Secret weapon: 16
+Outsider: 11
+Safe bet: 7
+Slum lord: 14
+Lipstick on a pig: 11
+Golden chains: 9
+Diamonds are...: 15
 Addictions: 5
 Pure luck: 8
-Borderless: 17
-Chicks in cages: 16
+Borderless: 19
+Chicks in cages: 18
 Recycling: 8
-VIP Lounge: 6
+VIP Lounge: 8
 Mayor: 4
 Jet setter: 10
-Knocked out: 17
+Knocked out: 18
 Trans action: 4
-Financing: 12
-Drug Dealer: 11
-Outstanding: 18
-Bodyguard: 11
+Financing: 13
+Drug Dealer: 12
+Outstanding: 20
+Bodyguard: 12
 Aiding and abetting: 7
 Debt to society: 5
-Stove away: 2
+Stove away: 3
 Spy: 3
 White collars: 6
-Rent seeker: 10
-Bail: 9
+Rent seeker: 11
+Bail: 10
 Color revolution: 7
-Specimens: 7
+Specimens: 8
 Money Master: 2
 Terrorist: 6
 Gangbanger: 1

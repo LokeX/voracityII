@@ -221,11 +221,12 @@ func isMouseKey(button:Button):bool =
 
 proc callBack(button:Button) =
   for call in calls:
-    if button.isMouseKey:
-      if call.mouse != nil and call.active: 
-        call.mouse(newKeyEvent(button))
-    elif call.keyboard != nil and call.active: 
-      call.keyboard(newKeyboardEvent(button,"¤".toRunes[0]))
+    if call.active:
+      if button.isMouseKey:
+        if call.mouse != nil: 
+          call.mouse(newKeyEvent(button))
+      elif call.keyboard != nil: 
+        call.keyboard(newKeyboardEvent(button,"¤".toRunes[0]))
 
 window.onButtonRelease = proc(button:Button) = button.callBack
 
