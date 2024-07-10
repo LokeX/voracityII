@@ -216,7 +216,6 @@ proc draw(b:var Boxy) =
   if turn.nr > 0:
     if mouseOn squares[0].dims.area: b.drawKillMatrix
     b.doMoveAnimation
-    b.drawCards
     b.drawCursor
     b.drawCardsHeader
     b.drawCardsFooter
@@ -226,6 +225,7 @@ proc draw(b:var Boxy) =
       b.drawDynamicImage nrOfUndrawnBluesPainter
     if mouseOnBatchPlayerNr != -1 and gotReport mouseOnBatchColor:
       b.drawReport mouseOnBatchColor
+    b.drawCards
   else: 
     b.drawImage("logo",vec2(1475,60))
     b.drawImage("advicetext",vec2(1525,450))
@@ -288,7 +288,11 @@ proc mouseMoved =
   if discardPinned or mouseOnDiscard: 
     blueDeck.show = Discard
   else: blueDeck.show = Hand
-  mouseOnBatchPlayerNr = mouseOnPlayerBatchNr()
+  let batchNr = mouseOnPlayerBatchNr()
+  if altPressed: 
+    if batchNr != -1: mouseOnBatchPlayerNr = batchNr
+  else: mouseOnBatchPlayerNr = batchNr
+  # mouseOnBatchPlayerNr = mouseOnPlayerBatchNr()
   if showMenu and mouseOn mainMenu.area:
     mainMenu.mouseSelect
 

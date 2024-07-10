@@ -2,37 +2,37 @@ Polterabend: 19
 Demolition: 17
 Light load: 18
 Foreign aid: 24
-Body count: 6
+Body count: 7
 Burglary: 18
-High society: 18
+High society: 19
 Razia: 13
 Underhanded: 12
 Insurgency: 13
-Dead weight: 9
-Nose job: 10
+Dead weight: 11
+Nose job: 11
 Rentals: 20
 Open house: 8
-Duty free: 15
+Duty free: 16
 Broken bones: 15
-Load: 27
+Load: 28
 Burial at sea: 12
 Lawfare: 15
 Home brew: 10
-Delivery: 18
+Delivery: 20
 Judicial murder: 5
 Express demands: 9
 Digestion issues: 1
 Flay'em: 18
-Ram theft: 11
+Ram theft: 12
 Meat: 19
-Advisory board: 13
+Advisory board: 14
 Broman escorte: 5
 Grapevine: 20
-Agent: 14
+Agent: 15
 Hooked: 16
 Deadly cargo: 13
 Strong medicine: 14
-Hooters: 9
+Hooters: 10
 Infiltration: 14
 Lord of War: 8
 Up yours: 12
@@ -41,41 +41,41 @@ Small arms: 16
 Rock solid claims: 20
 Stiffs: 12
 Concuctions: 9
-Small box: 21
+Small box: 22
 Moonshine: 21
 Local dealership: 17
-Party drugs: 18
+Party drugs: 19
 Pimp: 7
 Grand designs: 20
-Blood suckers: 8
+Blood suckers: 9
 Laundry: 6
 Acquittal: 7
 Higher power: 15
 Sweet hearts: 7
-Sing along song: 19
+Sing along song: 20
 Informer: 11
 Bootlegging: 12
 Human resources: 14
 Protection: 18
 Blood diamants: 7
-Redemption: 15
+Redemption: 16
 Ludomania: 9
 Heartless: 4
 Et spiritus sancti: 12
-Health plan: 11
+Health plan: 12
 Brotherhood: 20
 Choire boys: 22
 Projects: 18
 Bystanders: 11
-Occupational hazard: 12
+Occupational hazard: 13
 Cold meds: 17
 Digestive issues: 3
-Knock knock: 21
+Knock knock: 22
 Side effects: 12
 Secret weapon: 16
 Outsider: 11
 Safe bet: 7
-Slum lord: 14
+Slum lord: 15
 Lipstick on a pig: 11
 Golden chains: 9
 Diamonds are...: 15
@@ -84,15 +84,15 @@ Pure luck: 8
 Borderless: 19
 Chicks in cages: 18
 Recycling: 8
-VIP Lounge: 8
+VIP Lounge: 9
 Mayor: 4
 Jet setter: 10
-Knocked out: 18
+Knocked out: 19
 Trans action: 4
 Financing: 13
 Drug Dealer: 12
-Outstanding: 20
-Bodyguard: 12
+Outstanding: 21
+Bodyguard: 13
 Aiding and abetting: 7
 Debt to society: 5
 Stove away: 3
@@ -103,5 +103,5 @@ Bail: 10
 Color revolution: 7
 Specimens: 8
 Money Master: 2
-Terrorist: 6
+Terrorist: 7
 Gangbanger: 1

@@ -77,33 +77,42 @@ proc killMatrix:KillMatrix =
       result[victim][killer] = killer.victims.count victim
 
 proc typesetKillMatrix(width,height:float):Arrangement =
-  var spans:seq[Span]
-  for rowColor,row in killMatrix():
-    var font = matrixFont.copy
-    font.paint = playerColors[PlayerColor(rowColor)]
-    for column,value in row:
+  var 
+    spans:seq[Span]
+    font:Font
+    playerKills:array[PlayerColor,tuple[font:Font,kills:int]]
+  for player,row in killMatrix():
+    font = matrixFont.copy
+    font.paint = playerColors[PlayerColor(player)]
+    playerKills[player].font = font
+    for playerColumn,value in row:
       spans.add newSpan(($value).align(8),font)
-      if column == row.high: spans[^1].text.add "\n"
+      playerKills[playerColumn].kills += value
+      if playerColumn == row.high: 
+        spans.add newSpan(($row.sum).align(8)&"\n",font) 
+  spans.add playerKills.mapIt(newSpan(($it.kills).align(8),it.font))
+  spans.add newSpan("\U2211".align 8,font)
   spans.typeset(bounds = vec2(width,height))
 
 proc paintMatrixShadow(img:Image):Image =
-  var ctx = newImage(225,205).newContext
+  var ctx = newImage(img.width+5,img.height+5).newContext
   ctx.fillStyle = color(0,0,0,100)
-  ctx.fillRect(Rect(x:5,y:5,w:220,h:200))
+  ctx.fillRect(Rect(x:5,y:5,w:img.width.toFloat,h:img.height.toFloat))
   ctx.image.draw(img,translate vec2(0,0))
   ctx.image
 
 proc paintKillMatrix:Image =
-  result = newImage(220,200)
+  let (width,height) = (250,210)
+  result = newImage(width,height)
   result.fill color(0,100,100)
   var 
     ctx = result.newContext
     xPos:int
   for color in playerColors:
     ctx.fillStyle = color
-    ctx.fillRect(Rect(x:(20+(xPos*32)).toFloat,y:10,w:20,h:20))
+    ctx.fillRect(Rect(x:(20+(xPos*32)).toFloat,y:15,w:20,h:20))
     inc xPos
-  ctx.image.fillText(typesetKillMatrix(200,100),translate vec2(0,50))
+  ctx.image.fillText(typesetKillMatrix(width.toFloat,height.toFloat/2),translate vec2(0,50))
   result = ctx.image.paintMatrixShadow
   result.applyOpacity 25
 
