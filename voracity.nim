@@ -187,7 +187,7 @@ template showFooter:untyped =
   discardPinned or 
   mouseOnDiscard or
   fullDeckPinned or
-  mouseOnDrawSlot
+  (mouseOnDrawSlot and turn.nr == 0)
 
 template clickToPin:untyped =
   (mouseOnBatchPlayerNr != -1 or mouseOnDiscard or mouseOnDrawSlot) and 
@@ -267,6 +267,10 @@ proc menuSelection =
     else: confirmEndGame()
 
 proc mouse(m:KeyEvent) =
+  if m.leftMousePressed or m.rightMousePressed:
+    discardPinned = not discardPinned and mouseOndiscard
+    if turn.nr == 0:
+      fullDeckPinned = not fullDeckPinned and mouseOnDrawSlot
   if mouseOnBatchPlayerNr != -1:
     if turn.nr > 0: pinnedBatchNr = mouseOnBatchPlayerNr
   else: 
@@ -276,8 +280,6 @@ proc mouse(m:KeyEvent) =
   if m.rightMousePressed and turn.nr == 0 and mouseOnBatchPlayerNr != -1:
     batchInputNr = mouseOnBatchPlayerNr
   if m.leftMousePressed:
-    discardPinned = not discardPinned and mouseOn blueDeck.discardSlot.area
-    fullDeckPinned = not fullDeckPinned and mouseOn blueDeck.drawSlot.area
     if turn.nr == 0: togglePlayerKind()
     if showMenu and mouseOnMenuSelection():
       menuSelection()
