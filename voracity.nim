@@ -73,6 +73,7 @@ var
   pinnedBatchNr = -1
   altPressed = false
   discardPinned,mouseOnDiscard:bool
+  fullDeckPinned,mouseOnDrawSlot:bool
   frames:float
   vol = 0.05
 
@@ -145,7 +146,9 @@ template drawSelectedPlayersHand:untyped =
   altPressed and pinnedBatchNr == -1 and turnPlayer.cash >= cashToWin
 
 proc drawCards(b:var Boxy) =
-  if batchSelected and selectedBatchColor.reports.len > 0:
+  if turn.nr == 0 and mouseOnDrawSlot or fullDeckPinned:
+    b.paintCards blueDeck,blueDeck.fullDeck
+  elif batchSelected and selectedBatchColor.reports.len > 0:
     let storedRevealSetting = blueDeck.reveal
     blueDeck.reveal = Front
     if drawSelectedPlayersHand:
@@ -182,11 +185,13 @@ template showFooter:untyped =
   mouseOnBatchPlayerNr != -1 or 
   pinnedBatchNr != -1 or 
   discardPinned or 
-  mouseOnDiscard
+  mouseOnDiscard or
+  fullDeckPinned or
+  mouseOnDrawSlot
 
 template clickToPin:untyped =
-  (mouseOnBatchPlayerNr != -1 or mouseOnDiscard) and 
-  (pinnedBatchNr == -1 and not discardPinned)
+  (mouseOnBatchPlayerNr != -1 or mouseOnDiscard or mouseOnDrawSlot) and 
+  (pinnedBatchNr == -1 and not discardPinned and not fullDeckPinned)
 
 proc drawCardsFooter(b:var Boxy) =
   if showFooter:
@@ -225,11 +230,13 @@ proc draw(b:var Boxy) =
       b.drawDynamicImage nrOfUndrawnBluesPainter
     if mouseOnBatchPlayerNr != -1 and gotReport mouseOnBatchColor:
       b.drawReport mouseOnBatchColor
-    b.drawCards
-  else: 
+  elif not mouseOndrawSlot and not fullDeckPinned: 
     b.drawImage("logo",vec2(1475,60))
     b.drawImage("advicetext",vec2(1525,450))
     b.drawImage("barman",Rect(x:1545,y:530,w:220,h:275))
+  else:
+    b.drawCardsFooter
+  b.drawCards
 
 proc really(title:string,answer:string -> void) =
   let entries = @[
@@ -270,6 +277,7 @@ proc mouse(m:KeyEvent) =
     batchInputNr = mouseOnBatchPlayerNr
   if m.leftMousePressed:
     discardPinned = not discardPinned and mouseOn blueDeck.discardSlot.area
+    fullDeckPinned = not fullDeckPinned and mouseOn blueDeck.drawSlot.area
     if turn.nr == 0: togglePlayerKind()
     if showMenu and mouseOnMenuSelection():
       menuSelection()
@@ -285,7 +293,8 @@ proc mouse(m:KeyEvent) =
 
 proc mouseMoved = 
   mouseOnDiscard = mouseOn blueDeck.discardSlot.area
-  if discardPinned or mouseOnDiscard: 
+  mouseOnDrawSlot = mouseOn blueDeck.drawSlot.area
+  if not fullDeckPinned and (discardPinned or mouseOnDiscard): 
     blueDeck.show = Discard
   else: blueDeck.show = Hand
   let batchNr = mouseOnPlayerBatchNr()

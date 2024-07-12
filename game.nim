@@ -78,7 +78,7 @@ const
 
 var 
   inputBatch* = newBatch inputBatchInit
-  blueDeck* = newDeck "dat\\blues.txt"
+  blueDeck* = newDeck "decks\\blues.txt"
   playerKinds*:array[6,PlayerKind]
   playerBatches*:array[6,Batch]
   playerHandles*:array[6,string]

@@ -13,7 +13,6 @@ type
     rect*:Rect
     isActive*:bool = true
   DynamicImage*[T] = ref object of AreaHandle
-    image*:Image
     when T is void:
       updateImage*:proc:Image
     else:
@@ -160,40 +159,34 @@ func toArea*(x,y,w,h:float):Area = (x.toInt,y.toInt,(x+w).toInt,(y+h).toInt)
 func toArea*(rect:Rect):Area =
   (rect.x.toInt,rect.y.toInt,(rect.x+rect.w).toInt,(rect.y+rect.h).toInt)
 
-func toRect*(area:Area):Rect = 
-  Rect(
-    x:area.x1.toFloat,
-    y:area.y1.toFloat,
-    w:(area.x2-area.x1).toFloat,
-    h:(area.y2-area.y1).toFloat
-  )
+func toRect*(area:Area):Rect = Rect(
+  x:area.x1.toFloat,
+  y:area.y1.toFloat,
+  w:(area.x2-area.x1).toFloat,
+  h:(area.y2-area.y1).toFloat
+)
 
-func rectangle*(rx,ry,rw,rh:int):Rect = 
-  Rect(
-    x:rx.toFloat,
-    y:ry.toFloat,
-    w:rw.toFloat,
-    h:rh.toFloat
-  )
+func rectangle*(rx,ry,rw,rh:int):Rect = Rect(
+  x:rx.toFloat,
+  y:ry.toFloat,
+  w:rw.toFloat,
+  h:rh.toFloat
+)
 
-proc updateImageArea*[T](dynImg:DynamicImage[T]) =
-  when T is void:
-    dynImg.image = dynImg.updateImage()
-  else:
-    dynImg.image = dynImg.updateImage(dynImg.context)
-  dynImg.area.x2 = dynImg.area.x1+dynImg.image.width
-  dynImg.area.y2 = dynImg.area.y1+dynImg.image.height
+proc updateImageArea*[T](dynImg:DynamicImage[T],wh:IVec2) =
+  dynImg.area.x2 = dynImg.area.x1+wh[0]
+  dynImg.area.y2 = dynImg.area.y1+wh[1]
   dynImg.rect = dynImg.area.toRect
 
-proc updateDynamicImage*[T](b:var Boxy,dynImg:DynamicImage[T]) =
-  if dynImg.updateImage != nil: 
-    updateImageArea dynImg
-    b.removeImage(dynImg.name)
-    b.addImage(dynImg.name,dynImg.image)
-    dynImg.update = false
-
 proc drawDynamicImage*[T](b:var Boxy,dynImg:DynamicImage[T]) =
-  if dynImg.update: b.updateDynamicImage dynImg
+  if dynImg.update: 
+    b.removeImage(dynImg.name)
+    when T is void:
+      b.addImage(dynImg.name,dynImg.updateImage())
+    else:
+      b.addImage(dynImg.name,dynImg.updateImage(dynImg.context))
+    updateImageArea(dynImg,b.getImageSize dynImg.name)
+    dynImg.update = false
   b.drawImage(dynImg.name,dynImg.rect)
 
 proc keyState(b:Button):KeyState =
