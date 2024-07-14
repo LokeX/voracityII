@@ -269,7 +269,7 @@ Infiltration
 plan:
 Judicial murder
 {10,10}
-60000
+100000
 plan:
 Strong medicine
 {45,57}
