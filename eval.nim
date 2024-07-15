@@ -205,7 +205,7 @@ func friendlyFireAdviced*(hypothetical:Hypothetic,move:Move):bool =
 func threeBest(cards:seq[BlueCard]):seq[BlueCard] =
   if cards.len > 3: cards[0..2] else: cards
 
-func evalMove(hypothetical:Hypothetic,pieceNr,toSquare:int):int =
+func evalMove*(hypothetical:Hypothetic,pieceNr,toSquare:int):int =
   var pieces = hypothetical.pieces
   if hypothetical.friendlyFireAdviced (pieceNr,0,pieces[pieceNr],toSquare,0):
     pieces[pieceNr] = 0 else: pieces[pieceNr] = toSquare
@@ -275,7 +275,7 @@ proc bestDiceMoves*(hypothetical:Hypothetic):seq[Move] =
     result.add dieMoves[dieMoves.mapIt(it.eval).maxIndex]
   result.sortedByIt it.eval
 
-proc hypotheticalInit*(player:Player):Hypothetic =
+func hypotheticalInit*(player:Player):Hypothetic =
   var board:EvalBoard
   (baseEvalBoard(
     (board,
@@ -289,4 +289,21 @@ proc hypotheticalInit*(player:Player):Hypothetic =
 
 proc sortBlues*(player:Player):seq[BlueCard] =
   player.hypotheticalInit.evalBluesThreaded
+
+func pieceNrsOnBars(player:Player):seq[int] =
+  for nr,square in player.pieces.deduplicate:
+    if square in bars: result.add nr
+
+func eventMovesEval*(player:Player,event:BlueCard):seq[Move] =
+  let hypothetical = player.hypotheticalInit
+  for pieceNr in player.pieceNrsOnBars:
+    for toSquare in event.moveSquares:
+      result.add (
+        pieceNr,
+        -1,
+        hypothetical.pieces[pieceNr],
+        toSquare,
+        hypothetical.evalMove(pieceNr,toSquare)
+      )
+  result.sort (a,b) => b.eval-a.eval
 

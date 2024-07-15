@@ -108,14 +108,13 @@ proc mouseOnCardSlot(player:var Player,deck:var Deck):int =
   for (_,slot) in player.hand.cardSlots:
     if mouseOn slot.area: return slot.nr
 
-proc canMovePieceFrom*(player:Player,square:int):bool =
-  player.hasPieceOn(square) and
-  (not turn.diceMoved or square in highways or 
-  (square == 0 and player.cash >= piecePrice))
+proc movesFrom(player:Player,square:int):seq[int] =
+  if turn.diceMoved: moveToSquares square
+  else: moveToSquares(square,diceRoll)
 
 proc select(square:int) =
-  if turnPlayer.canMovePieceFrom square:
-    moveSelection = (-1,square,-1,moveToSquares(square,diceRoll),false)
+  if turnPlayer.hasPieceOn square:
+    moveSelection = (-1,square,-1,turnPlayer.movesFrom(square),false)
     moveToSquaresPainter.context = moveSelection.toSquares
     moveToSquaresPainter.update = true
     piecesImg.update = true
@@ -175,13 +174,12 @@ proc playCashPlansTo*(deck:var Deck) =
 
 proc move*(square:int)
 proc barMove(moveEvent:BlueCard):bool =
-  let barsWithPieces = bars.filterIt it in turnPlayer.pieces
-  if (barsWithPieces.len > 0):
-    let chosenBar = barsWithPieces[rand 0..barsWithPieces.high]
+  let eventMoves = turnPlayer.eventMovesEval moveEvent
+  if eventMoves.len > 0:
     moveSelection.event = true
-    moveSelection.fromSquare = chosenBar
-    moveSelection.toSquare = moveEvent.moveSquares[rand 0..moveEvent.moveSquares.high]
-  barsWithPieces.len > 0
+    moveSelection.fromSquare = eventMoves[0].fromSquare
+    moveSelection.toSquare = eventMoves[0].toSquare
+    return true
 
 proc playNews =
   piecesImg.update = true
@@ -254,12 +252,21 @@ proc getMove:Move =
   result.toSquare = moveSelection.toSquare
   result.pieceNr = turnPlayer.pieceOnSquare moveSelection.fromSquare
 
+proc diceMoved(fromSquare,toSquare:int):bool =
+  if fromSquare == 0:
+    tosquare notin gasStations and toSquare notin highways
+  elif fromSquare in highways:
+    toSquare notin gasStations
+  else: true
+
 proc move =
   var move = getMove()
+  echo "diceMoved = ",turn.diceMoved
   if not turn.diceMoved and not moveSelection.event:
-    turn.diceMoved = not noDiceUsedToMove(
+    turn.diceMoved = diceMoved(
       moveSelection.fromSquare,moveSelection.toSquare
     )
+    echo "diceMoved = ",turn.diceMoved
     if turn.diceMoved:
       move.die = dieUsed(moveSelection.fromSquare,moveSelection.toSquare,diceRoll)
   elif moveSelection.event: moveSelection.event = false

@@ -77,8 +77,6 @@ var
   altPressed:bool
   pinnedCards:Pinned
   reveal:bool
-  # discardPinned,mouseOnDiscard:bool
-  # fullDeckPinned,mouseOnDrawSlot:bool
   frames:float
   vol = 0.05
  
@@ -167,35 +165,22 @@ proc showCards(b:var Boxy) =
     cards = turnPlayer.hand
     show = if turnPlayer.kind == Human or reveal: Front else: Back
   b.paintCards(blueDeck,cards,show)
-  
-# proc showCards(b:var Boxy) =
-#   if turn.nr == 0 and mouseOnDrawSlot or fullDeckPinned:
-#     b.paintCards blueDeck,blueDeck.fullDeck
-#   elif batchSelected and selectedBatchColor.reports.len > 0:
-#     let storedRevealSetting = blueDeck.reveal
-#     blueDeck.reveal = Front
-#     if drawSelectedPlayersHand:
-#       b.paintCards blueDeck,players[mouseOnBatchPlayerNr].hand
-#     else: b.paintCards blueDeck,cashedCards()
-#     blueDeck.reveal = storedRevealSetting   
-#   else: b.paintCards blueDeck,turnPlayer.hand
 
-# proc setRevealCards(deck:var Deck,playerKind:PlayerKind) =
-#   if deck.reveal != UserSetFront: 
-#     if playerKind == Computer:
-#       deck.reveal = Back
-#     else: deck.reveal = Front
+template headerColorAndText:untyped =
+  if pinnedCards != Discard and not mouseOn blueDeck.discardSlot.area:
+    if batchSelected:
+      if drawSelectedPlayersHand:
+        (players[mouseOnBatchPlayerNr].color,"player's hand")
+      else: (
+        players[max(mouseOnBatchPlayerNr,pinnedBatchNr)].color,
+        "player's cashed cards"
+      )
+    else: (turnPlayer.color," player's hand")
+  else: (Black,"Discard pile")
 
 proc drawCardsHeader(b:var Boxy) =
   let 
-    (color,text) = if pinnedCards != Discard and not mouseOn blueDeck.discardSlot.area:
-      if batchSelected:
-        if drawSelectedPlayersHand:
-          (players[mouseOnBatchPlayerNr].color,"player's hand")
-        else:
-          (players[max(mouseOnBatchPlayerNr,pinnedBatchNr)].color,"player's cashed cards")
-      else: (turnPlayer.color," player's hand")
-    else: (Black,"Discard pile")
+    (color,text) = headerColorAndText
     txt = if text == "Discard pile": text else: $color&text
   if txt != cardsHeader.getSpanText 0:
     cardsHeader.commands:
@@ -292,12 +277,6 @@ proc menuSelection =
     else: confirmEndGame()
 
 proc mouse(m:KeyEvent) =
-  # if m.leftMousePressed:
-
-  # if m.leftMousePressed or m.rightMousePressed:
-  #   discardPinned = not discardPinned and mouseOndiscard
-  #   if turn.nr == 0:
-  #     fullDeckPinned = not fullDeckPinned and mouseOnDrawSlot
   if mouseOnBatchPlayerNr != -1:
     if turn.nr > 0: pinnedBatchNr = mouseOnBatchPlayerNr
   else: 
@@ -327,22 +306,16 @@ proc mouse(m:KeyEvent) =
       m.rightMouse
 
 proc mouseMoved = 
-  # mouseOnDiscard = mouseOn blueDeck.discardSlot.area
-  # mouseOnDrawSlot = mouseOn blueDeck.drawSlot.area
-  # if not fullDeckPinned and (discardPinned or mouseOnDiscard): 
-  #   blueDeck.show = Discard
-  # else: blueDeck.show = Hand
+  # moveSelection.hoverSquare = mouseOnSquare()
   let batchNr = mouseOnPlayerBatchNr()
   if altPressed: 
     if batchNr != -1: mouseOnBatchPlayerNr = batchNr
   else: mouseOnBatchPlayerNr = batchNr
-  # mouseOnBatchPlayerNr = mouseOnPlayerBatchNr()
   if showMenu and mouseOn mainMenu.area:
     mainMenu.mouseSelect
 
 proc keyboard (key:KeyboardEvent) =
   altPressed = key.pressed.alt
-  # echo altPressed
   if batchInputNr != -1: key.batchKeyb inputBatch
   if key.keyPressed: 
     case key.button
@@ -364,9 +337,6 @@ proc keyboard (key:KeyboardEvent) =
         updateStatsBatch()
     of KeyE: autoEndTurn = not autoEndTurn
     of KeyR: reveal = not reveal
-      # case blueDeck.reveal
-      # of UserSetFront: blueDeck.reveal = Back
-      # of Back,Front: blueDeck.reveal = UserSetFront
     of KeyS:
       if volume() == 0:
         setVolume vol
@@ -376,7 +346,6 @@ proc keyboard (key:KeyboardEvent) =
     editDiceRoll key.rune.toUTF8
 
 proc cycle = 
-  # blueDeck.setRevealCards turnPlayer.kind
   if bgRect.w < scaledWidth.toFloat:
     if bgRect.w+90 < scaledWidth.toFloat:
       bgRect.w += 90

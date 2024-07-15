@@ -6,7 +6,6 @@ import board
 import misc
 
 type
-  # Show* = enum Hand,Discard
   Reveal* = enum Front,Back
   ProtoCard = array[4,string]
   PlanSquares = tuple[required,oneInMany:seq[int]]
@@ -25,8 +24,6 @@ type
     fullDeck*,drawPile*,discardPile*:seq[BlueCard]
     popUpSlot*,drawSlot*,discardSlot*:CardSlot
     lastDrawn*:string
-    # show*:Show
-    # reveal*:Reveal
   CardSlot = tuple[nr:int,name:string,area:Area,rect:Rect]
 
 const
