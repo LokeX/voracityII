@@ -1,4 +1,4 @@
-import win
+import win except splitWhitespace,strip
 import game
 import megasound
 import colors
@@ -12,15 +12,18 @@ import menu
 import reports
 import random
 import strutils
+import sugar
 
 type
   SinglePiece = tuple[playerNr,pieceNr:int]
+  EventMoveFmt = tuple[fromSquare,toSquare:string]
 
 const
   (humanRoll*,computerRoll*) = (0,80)
 
 var
   singlePiece*:SinglePiece
+  dialogEventMoves*:seq[Move]
 
 proc drawCursor*(b:var Boxy) =
   if turn.nr > 0 and showCursor:
@@ -173,13 +176,52 @@ proc playCashPlansTo*(deck:var Deck) =
       setMenuTo NewGameMenu
 
 proc move*(square:int)
-proc barMove(moveEvent:BlueCard):bool =
-  let eventMoves = turnPlayer.eventMovesEval moveEvent
-  if eventMoves.len > 0:
+proc eventMoveFmt(move:Move):EventMoveFmt =
+  ("from:"&squares[move.fromSquare].name&" Nr. "&($squares[move.fromSquare].nr)&"\n",
+   "to:"&squares[move.toSquare].name&" Nr. "&($squares[move.toSquare].nr)&"\n")
+
+proc endEventMoveSelection(selection:string) =
+  if (let toSquare = selection.splitWhitespace[^1].parseInt; toSquare != -1):
+    moveSelection.toSquare = toSquare
     moveSelection.event = true
-    moveSelection.fromSquare = eventMoves[0].fromSquare
-    moveSelection.toSquare = eventMoves[0].toSquare
+    move moveSelection.toSquare
+
+proc entries(moves:seq[Move],f:EventMoveFmt -> string):seq[string] =
+  var ms = moves.mapIt(it.eventMoveFmt).mapIt(f it).deduplicate
+  stripLineEnd ms[^1]
+  ms
+
+proc selectEventMoveTo(selection:string) =
+  let 
+    entries = dialogEventMoves.entries move => move.toSquare
+    fromSquare = selection.splitWhitespace[^1].parseInt
+  if (fromSquare != -1):
+    moveSelection.fromSquare = fromSquare
+  if entries.len > 1:
+    startDialog(entries,0..entries.high,endEventMoveSelection)
+  elif entries.len == 1: 
+    moveSelection.toSquare = dialogEventMoves[0].toSquare
+    moveSelection.event = true
+    move moveSelection.toSquare
+
+proc selectEventMoveFrom =
+  showMenu = false
+  let entries = dialogEventMoves.entries move => move.fromSquare
+  if entries.len > 1:
+    startDialog(entries,0..entries.high,selectEventMoveTo)
+  elif entries.len == 1: 
+    moveSelection.fromSquare = dialogEventMoves[0].fromSquare
+    selectEventMoveTo entries[0]
+
+proc barMove(moveEvent:BlueCard):bool =
+  dialogEventMoves = turnPlayer.eventMovesEval moveEvent
+  echo dialogEventMoves.mapIt(it.eventMoveFmt).mapIt(it.fromSquare&"\n"&it.toSquare).join("\n")
+  if dialogEventMoves.len == 1 or turnPlayer.kind == Computer:
+    moveSelection.event = true
+    moveSelection.fromSquare = dialogEventMoves[0].fromSquare
+    moveSelection.toSquare = dialogEventMoves[0].toSquare
     return true
+  else: selectEventMoveFrom()
 
 proc playNews =
   piecesImg.update = true
@@ -261,12 +303,10 @@ proc diceMoved(fromSquare,toSquare:int):bool =
 
 proc move =
   var move = getMove()
-  echo "diceMoved = ",turn.diceMoved
   if not turn.diceMoved and not moveSelection.event:
     turn.diceMoved = diceMoved(
       moveSelection.fromSquare,moveSelection.toSquare
     )
-    echo "diceMoved = ",turn.diceMoved
     if turn.diceMoved:
       move.die = dieUsed(moveSelection.fromSquare,moveSelection.toSquare,diceRoll)
   elif moveSelection.event: moveSelection.event = false
@@ -342,6 +382,7 @@ proc startKillDialog(square:int) =
       "Yes\n",
       "No",
     ]
+  # dialogEventMoves.setLen 0
   showMenu = false
   startDialog(entries,4..5,killPieceAndMove)
 

@@ -291,7 +291,7 @@ proc sortBlues*(player:Player):seq[BlueCard] =
   player.hypotheticalInit.evalBluesThreaded
 
 func pieceNrsOnBars(player:Player):seq[int] =
-  for nr,square in player.pieces.deduplicate:
+  for nr,square in player.pieces:
     if square in bars: result.add nr
 
 func eventMovesEval*(player:Player,event:BlueCard):seq[Move] =
