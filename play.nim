@@ -23,7 +23,7 @@ const
 
 var
   singlePiece*:SinglePiece
-  dialogEventMoves*:seq[Move]
+  dialogBarMoves*:seq[Move]
 
 proc drawCursor*(b:var Boxy) =
   if turn.nr > 0 and showCursor:
@@ -154,8 +154,7 @@ proc barToMassacre(player:Player,players:seq[Player]):int =
   else: -1
 
 proc playMassacre =
-  const noSuchBar = -1
-  if (let bar = turnPlayer.barToMassacre players; bar != noSuchBar):
+  if (let bar = turnPlayer.barToMassacre players; bar != -1):
     for (playerNr,pieceNr) in players.piecesOn bar:
       players[playerNr].pieces[pieceNr] = 0
     playSound "Deanscream-2"
@@ -180,48 +179,48 @@ proc eventMoveFmt(move:Move):EventMoveFmt =
   ("from:"&squares[move.fromSquare].name&" Nr. "&($squares[move.fromSquare].nr)&"\n",
    "to:"&squares[move.toSquare].name&" Nr. "&($squares[move.toSquare].nr)&"\n")
 
-proc endEventMoveSelection(selection:string) =
+proc dialogEntries(moves:seq[Move],f:EventMoveFmt -> string):seq[string] =
+  var ms = moves.mapIt(it.eventMoveFmt).mapIt(f it).deduplicate
+  stripLineEnd ms[^1]
+  ms
+
+proc endBarMoveSelection(selection:string) =
   if (let toSquare = selection.splitWhitespace[^1].parseInt; toSquare != -1):
     moveSelection.toSquare = toSquare
     moveSelection.event = true
     move moveSelection.toSquare
 
-proc entries(moves:seq[Move],f:EventMoveFmt -> string):seq[string] =
-  var ms = moves.mapIt(it.eventMoveFmt).mapIt(f it).deduplicate
-  stripLineEnd ms[^1]
-  ms
-
-proc selectEventMoveTo(selection:string) =
+proc selectBarMoveDest(selection:string) =
   let 
-    entries = dialogEventMoves.entries move => move.toSquare
+    entries = dialogBarMoves.dialogEntries move => move.toSquare
     fromSquare = selection.splitWhitespace[^1].parseInt
-  if (fromSquare != -1):
+  if fromSquare != -1:
     moveSelection.fromSquare = fromSquare
   if entries.len > 1:
-    startDialog(entries,0..entries.high,endEventMoveSelection)
+    startDialog(entries,0..entries.high,endBarMoveSelection)
   elif entries.len == 1: 
-    moveSelection.toSquare = dialogEventMoves[0].toSquare
+    moveSelection.toSquare = dialogBarMoves[0].toSquare
     moveSelection.event = true
     move moveSelection.toSquare
 
-proc selectEventMoveFrom =
+proc selectBar =
   showMenu = false
-  let entries = dialogEventMoves.entries move => move.fromSquare
+  let entries = dialogBarMoves.dialogEntries move => move.fromSquare
   if entries.len > 1:
-    startDialog(entries,0..entries.high,selectEventMoveTo)
+    startDialog(entries,0..entries.high,selectBarMoveDest)
   elif entries.len == 1: 
-    moveSelection.fromSquare = dialogEventMoves[0].fromSquare
-    selectEventMoveTo entries[0]
+    moveSelection.fromSquare = dialogBarMoves[0].fromSquare
+    selectBarMoveDest entries[0]
 
 proc barMove(moveEvent:BlueCard):bool =
-  dialogEventMoves = turnPlayer.eventMovesEval moveEvent
-  echo dialogEventMoves.mapIt(it.eventMoveFmt).mapIt(it.fromSquare&"\n"&it.toSquare).join("\n")
-  if dialogEventMoves.len == 1 or turnPlayer.kind == Computer:
+  dialogBarMoves = turnPlayer.eventMovesEval moveEvent
+  echo dialogBarMoves.mapIt(it.eventMoveFmt).mapIt(it.fromSquare&"\n"&it.toSquare).join("\n")
+  if dialogBarMoves.len == 1 or turnPlayer.kind == Computer:
     moveSelection.event = true
-    moveSelection.fromSquare = dialogEventMoves[0].fromSquare
-    moveSelection.toSquare = dialogEventMoves[0].toSquare
+    moveSelection.fromSquare = dialogBarMoves[0].fromSquare
+    moveSelection.toSquare = dialogBarMoves[0].toSquare
     return true
-  else: selectEventMoveFrom()
+  else: selectBar()
 
 proc playNews =
   piecesImg.update = true
@@ -294,7 +293,7 @@ proc getMove:Move =
   result.toSquare = moveSelection.toSquare
   result.pieceNr = turnPlayer.pieceOnSquare moveSelection.fromSquare
 
-proc diceMoved(fromSquare,toSquare:int):bool =
+func diceMoved(fromSquare,toSquare:int):bool =
   if fromSquare == 0:
     tosquare notin gasStations and toSquare notin highways
   elif fromSquare in highways:
@@ -382,7 +381,7 @@ proc startKillDialog(square:int) =
       "Yes\n",
       "No",
     ]
-  # dialogEventMoves.setLen 0
+  # dialogBarMoves.setLen 0
   showMenu = false
   startDialog(entries,4..5,killPieceAndMove)
 

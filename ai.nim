@@ -27,6 +27,7 @@ proc aiTurn*(): bool =
   not isRollingDice()
 
 proc drawCards =
+  playCashPlansTo blueDeck
   while turn.undrawnBlues > 0:
     drawCardFrom blueDeck
     playCashPlansTo blueDeck

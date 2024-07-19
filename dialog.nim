@@ -27,7 +27,7 @@ var
   dialogBatch:Batch
   returnSelection:proc(s:string)
   square = -1
- 
+
 proc startDialog*(entries:seq[string],selRange:HSlice[int,int],call:proc(s:string)) =
   dialogEntries = entries
   menuBatchInit.entries = entries
