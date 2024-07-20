@@ -4,7 +4,7 @@ type
   CardKind = enum Deed,Plan,Job,Event,News,Mission
 
 const 
-  fileName = "dat\\blues.txt"
+  fileName = "decks\\blues.txt"
 
 var 
   counts:array[CardKind,int]

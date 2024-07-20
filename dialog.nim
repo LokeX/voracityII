@@ -29,6 +29,7 @@ var
   square = -1
 
 proc startDialog*(entries:seq[string],selRange:HSlice[int,int],call:proc(s:string)) =
+  square = -1
   dialogEntries = entries
   menuBatchInit.entries = entries
   menuBatchInit.selectionRange = selRange
@@ -41,6 +42,7 @@ proc startDialog*(entries:seq[string],selRange:HSlice[int,int],call:proc(s:strin
   dialogBatch.update = true
 
 proc endDialog(selected:string) =
+  square = -1
   dialogBatch.setPos(menuPos.x,scaledHeight)
   dialogBatch.isActive = false
   popCalls()
@@ -49,9 +51,8 @@ proc endDialog(selected:string) =
 proc draw(b:var Boxy) =
   if dialogBatch != nil and dialogBatch.isActive:
     b.drawDynamicImage dialogBatch
-    if moveToSquaresPainter.update and square != -1:
-      moveToSquaresPainter.context = @[square]
-    b.drawDynamicImage moveToSquaresPainter
+    if square != -1:
+      b.drawDynamicImage moveToSquaresPainter
 
 proc keyboard(k:KeyboardEvent) = 
   if dialogBatch.isActive and k.pressedIs KeyEnter:
@@ -63,17 +64,17 @@ proc mouse(m:KeyEvent) =
     endDialog dialogEntries[dialogBatch.selection].strip
 
 proc mouseMoved =
-  if dialogBatch.isActive:
+  if dialogBatch.isActive and mouseOn dialogBatch:
+    dialogBatch.mouseSelect
     let tempSquare = try: 
       dialogEntries[dialogBatch.selection]
       .splitWhitespace[^1]
       .parseInt 
     except: -1
-    if tempSquare != -1 and tempsquare != square:
+    if tempSquare notin [-1,square]:
       square = tempSquare
+      moveToSquaresPainter.context = @[square]
       moveToSquaresPainter.update = true
-  if dialogBatch.isActive and mouseOn dialogBatch: 
-    dialogBatch.mouseSelect
 
 proc cycle =  
   if dialogBatch != nil and (let (_,y) = dialogBatch.pos; y != menuPos.y):

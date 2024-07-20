@@ -28,7 +28,7 @@ func parseCardKindFrom(kind:string):CardKind =
   except: raise newException(CatchableError,"Error, parsing CardKind: "&kind)
 
 let 
-  protoCards = readFile("dat\\blues.txt").splitLines.parseProtoCards
+  protoCards = readFile("decks\\blues.txt").splitLines.parseProtoCards
   squares = zip(protoCards.mapIt it[2],protoCards.mapIt parseCardKindFrom it[0])
     .filterIt(it[1] notin [News,Event])
     .mapIt(it[0].parseCardSquares ['{','}'])
