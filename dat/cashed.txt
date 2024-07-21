@@ -1,107 +1,107 @@
-Polterabend: 39
-Demolition: 31
-Light load: 29
-Foreign aid: 39
-Body count: 13
-Burglary: 34
-High society: 30
-Razia: 19
-Underhanded: 25
-Insurgency: 22
-Dead weight: 18
-Nose job: 18
-Rentals: 33
-Open house: 15
-Duty free: 25
-Broken bones: 25
-Load: 43
+Polterabend: 46
+Demolition: 34
+Light load: 37
+Foreign aid: 45
+Body count: 15
+Burglary: 39
+High society: 34
+Razia: 21
+Underhanded: 29
+Insurgency: 25
+Dead weight: 21
+Nose job: 19
+Rentals: 37
+Open house: 17
+Duty free: 28
+Broken bones: 26
+Load: 51
 Burial at sea: 26
-Lawfare: 30
-Home brew: 26
-Delivery: 34
+Lawfare: 34
+Home brew: 29
+Delivery: 40
 Judicial murder: 11
-Express demands: 22
+Express demands: 24
 Digestion issues: 1
-Flay'em: 24
+Flay'em: 30
 Ram theft: 16
-Meat: 37
-Advisory board: 28
-Broman escorte: 6
-Grapevine: 33
-Agent: 27
-Hooked: 29
-Deadly cargo: 34
-Strong medicine: 26
-Hooters: 26
-Infiltration: 26
-Lord of War: 15
-Up yours: 25
-Legalese: 41
-Small arms: 26
-Rock solid claims: 33
-Stiffs: 18
-Concuctions: 18
-Small box: 27
-Moonshine: 36
-Local dealership: 25
-Party drugs: 37
-Pimp: 14
-Grand designs: 34
-Blood suckers: 13
-Laundry: 15
-Acquittal: 12
-Higher power: 28
-Sweet hearts: 19
-Sing along song: 30
-Informer: 14
-Bootlegging: 27
-Human resources: 21
-Protection: 33
-Blood diamants: 12
-Redemption: 28
-Ludomania: 13
+Meat: 41
+Advisory board: 33
+Broman escorte: 8
+Grapevine: 38
+Agent: 31
+Hooked: 34
+Deadly cargo: 39
+Strong medicine: 29
+Hooters: 27
+Infiltration: 27
+Lord of War: 16
+Up yours: 33
+Legalese: 46
+Small arms: 30
+Rock solid claims: 39
+Stiffs: 19
+Concuctions: 20
+Small box: 35
+Moonshine: 39
+Local dealership: 26
+Party drugs: 43
+Pimp: 16
+Grand designs: 42
+Blood suckers: 15
+Laundry: 16
+Acquittal: 18
+Higher power: 30
+Sweet hearts: 20
+Sing along song: 32
+Informer: 15
+Bootlegging: 33
+Human resources: 23
+Protection: 38
+Blood diamants: 14
+Redemption: 30
+Ludomania: 20
 Heartless: 6
-Et spiritus sancti: 30
-Health plan: 21
-Brotherhood: 38
-Choire boys: 42
-Projects: 30
-Bystanders: 17
-Occupational hazard: 26
-Cold meds: 33
-Digestive issues: 10
-Knock knock: 41
-Side effects: 20
-Secret weapon: 25
-Outsider: 16
-Safe bet: 21
-Slum lord: 25
-Lipstick on a pig: 21
+Et spiritus sancti: 35
+Health plan: 22
+Brotherhood: 44
+Choire boys: 49
+Projects: 33
+Bystanders: 20
+Occupational hazard: 27
+Cold meds: 36
+Digestive issues: 12
+Knock knock: 49
+Side effects: 21
+Secret weapon: 29
+Outsider: 18
+Safe bet: 26
+Slum lord: 28
+Lipstick on a pig: 24
 Golden chains: 18
-Diamonds are...: 24
-Addictions: 9
-Pure luck: 12
-Borderless: 31
-Chicks in cages: 29
-Recycling: 16
-VIP Lounge: 18
-Mayor: 6
-Jet setter: 14
-Knocked out: 30
-Trans action: 8
-Financing: 22
-Drug Dealer: 21
-Outstanding: 35
-Bodyguard: 17
-Aiding and abetting: 18
-Debt to society: 10
-Stove away: 11
-Spy: 10
-White collars: 12
+Diamonds are...: 27
+Addictions: 12
+Pure luck: 15
+Borderless: 34
+Chicks in cages: 33
+Recycling: 21
+VIP Lounge: 21
+Mayor: 7
+Jet setter: 18
+Knocked out: 34
+Trans action: 10
+Financing: 24
+Drug Dealer: 23
+Outstanding: 39
+Bodyguard: 19
+Aiding and abetting: 22
+Debt to society: 14
+Stove away: 12
+Spy: 11
+White collars: 13
 Rent seeker: 17
-Bail: 22
-Color revolution: 15
-Specimens: 14
-Money Master: 6
-Terrorist: 13
-Gangbanger: 1
+Bail: 26
+Color revolution: 19
+Specimens: 17
+Money Master: 7
+Terrorist: 15
+Gangbanger: 2

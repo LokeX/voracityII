@@ -223,13 +223,13 @@ func bestMoveFrom(hypothetical:Hypothetic,generic:Move):Move =
 func movesSeededWith(hypothetical:Hypothetic,dice:openArray[int]):seq[Move] =
   for die in dice.deduplicate:
     for pieceNr,fromSquare in hypothetical.pieces:
-      result.add (pieceNr,die,fromSquare,0,0)
+      if fromSquare != 0 or hypothetical.cash >= piecePrice:
+        result.add (pieceNr,die,fromSquare,0,0)
 
 func resolveSeedMoves(hypothetical:Hypothetic,moves:seq[Move]):seq[Move] =
   for move in moves:
-    if move.fromSquare != 0 or hypothetical.cash >= piecePrice:
-      for toSquare in moveToSquares(move.fromSquare,move.die):
-        result.add (move.pieceNr,move.die,move.fromSquare,toSquare,0)
+    for toSquare in moveToSquares(move.fromSquare,move.die):
+      result.add (move.pieceNr,move.die,move.fromSquare,toSquare,0)
 
 func movesResolvedWith(hypothetical:Hypothetic,dice:openArray[int]):seq[Move] =
   hypothetical.resolveSeedMoves(hypothetical.movesSeededWith dice)

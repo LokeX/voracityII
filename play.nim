@@ -381,7 +381,6 @@ proc startKillDialog(square:int) =
       "Yes\n",
       "No",
     ]
-  # dialogBarMoves.setLen 0
   showMenu = false
   startDialog(entries,4..5,killPieceAndMove)
 
@@ -416,7 +415,6 @@ proc leftMouse*(m:KeyEvent) =
 proc endGame =
   if turnPlayer.kind == Human:
     recordTurnReport()
-  # writeGamestats()
   setupNewGame()
   setMenuTo SetupMenu
   showMenu = true
@@ -432,7 +430,6 @@ proc startNewGame =
 proc nextTurn =
   playSound "page-flip-2"
   updateTurnReportCards(turnPlayer.discardCards blueDeck, Discarded)
-  # if turnPlayer.kind == Human:
   recordTurnReport()
   diceRolls.setLen 0
   nextPlayerTurn()
