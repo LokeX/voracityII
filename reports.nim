@@ -9,7 +9,6 @@ import board
 import eval
 import misc
 import os
-import jsony
 import sugar
 
 type 
@@ -17,11 +16,12 @@ type
   KillMatrix = array[PlayerColor,array[PlayerColor,int]]
   PlayedCard* = enum Drawn,Played,Cashed,Discarded
   ReportBatches = array[PlayerColor,Batch]
-  GameStats = object
+  Alias = array[8,char]
+  GameStats[T,U] = object
     turnCount:int
-    playerKinds:array[6,PlayerKind]
-    aliases:array[6,string]
-    winner:string
+    playerKinds:array[6,U]
+    aliases:array[6,T]
+    winner:T
     cash:int
   TurnReport = object
     turnNr:int
@@ -37,7 +37,7 @@ const
   reportFont = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
   visitsFile = "dat\\visits.txt"
   cashedFile = "dat\\cashed.txt"
-  jsonStatsFile = "dat\\jsonstats.txt"
+  statsFile = "dat\\stats.dat"
   (rbx,rby) = (450,280)
 
   statsBatchInit = BatchInit(
@@ -62,7 +62,7 @@ var
   selectedBatch:int
   turnReports:seq[TurnReport]
   turnReport*:TurnReport
-  gameStats:seq[GameStats]
+  gameStats:seq[GameStats[string,PlayerKind]]
 
 proc victims(killer:PlayerColor):seq[PlayerColor] =
   for report in turnReports:
@@ -258,7 +258,9 @@ func getLoneAlias(playerHandles:openArray[string]):string =
   for handle in playerHandles:
     if handle.len > 0: return handle
 
-proc matchingGames(stats:seq[GameStats]):tuple[alias:string,matches:seq[GameStats]] =
+proc matchingGames(
+  stats:seq[GameStats[string,PlayerKind]]
+):tuple[alias:string,matches:seq[GameStats[string,PlayerKind]]] =
   let 
     humanCount = playerKinds.count Human
     computerCount = playerKinds.count Computer
@@ -266,12 +268,16 @@ proc matchingGames(stats:seq[GameStats]):tuple[alias:string,matches:seq[GameStat
       it.playerKinds.count(Human) == humanCount and 
       it.playerKinds.count(Computer) == computerCount
     )
+  echo kindMatches
   if humanCount == 1 and (let alias = playerHandles.getLoneAlias(); alias.len > 0): 
     (alias,kindMatches.filterIt(alias in it.aliases))
   else: ("",kindMatches)
 
 proc statsBatchSpans:seq[Span] =
-  if gameStats.len > 0 and (let stats = gameStats.matchingGames(); stats.matches.len > 0):
+  let stats = gameStats.matchingGames()
+  echo stats.alias
+  echo stats.matches
+  if gameStats.len > 0 and stats.matches.len > 0:
     let 
       turns = stats.matches.mapIt(it.turnCount).sum
       avgTurns = turns div stats.matches.len
@@ -362,24 +368,72 @@ template winner:untyped =
     playerHandles[turnReport.playerBatch.color.ord]
   else: "human"
 
-proc newGameStats:GameStats = GameStats(
-  turnCount:turnReport.turnNr,
-  playerKinds:playerKinds,
-  aliases:playerHandles,
-  winner:winner,
-  cash:cashToWin
-)
+proc newGameStats:GameStats[string,PlayerKind] = 
+  GameStats[string,PlayerKind](
+    turnCount:turnReport.turnNr,
+    playerKinds:playerKinds,
+    aliases:playerHandles,
+    winner:winner,
+    cash:cashToWin
+  )
 
 proc updateStatsBatch* =
   statsBatch.setSpans statsBatchSpans()
   statsBatch.update = true
 
+func aliasToChars(alias:string):Alias =
+  for i,ch in alias:
+    if i < result.len: 
+      result[i] = ch
+      if i == alias.high and i < result.high:
+        result[i+1] = '\n'
+    else: return
+
+func kindToOrd(kinds:array[6,PlayerKind]):array[6,int] =
+  for i,kind in kinds:
+    result[i] = kind.ord
+
+func toChars(aliases:array[6,string]):array[6,Alias] =
+  for i,alias in aliases:
+    result[i] = alias.aliasToChars
+
+proc toFileStats(stats:GameStats[string,PlayerKind]):GameStats[Alias,int] =
+  GameStats[Alias,int](
+    turnCount:stats.turnCount,
+    cash:stats.cash,
+    playerKinds:stats.playerKinds.kindToOrd,
+    aliases:stats.aliases.toChars,
+    winner:stats.winner.aliasToChars
+  )
+
+func aliasToString(alias:Alias):string =
+  for ch in alias: 
+    if ch != '\n': result.add ch
+    else: return
+
+func ordToKind(ks:array[6,int]):array[6,PlayerKind] =
+  for i,kind in ks: 
+    result[i] = PlayerKind(kind)
+
+func toStrings(aliases:array[6,Alias]):array[6,string] =
+  for i,alias in aliases:
+    result[i] = alias.aliasToString
+
+proc toGameStats(stats:GameStats[Alias,int]):GameStats[string,PlayerKind] =
+  GameStats[string,PlayerKind](
+    turnCount:stats.turnCount,
+    cash:stats.cash,
+    playerKinds:stats.playerKinds.ordToKind,
+    aliases:stats.aliases.toStrings,
+    winner:stats.winner.aliasToString
+  )
+
 proc writeGameStatsTo(path:string) =
-  writeFile(path,gameStats.toJson)
+  seqToFile(gameStats.mapIt it.toFileStats,path)
 
 proc readGameStatsFrom(path:string) =
   if fileExists path:
-    gameStats = readFile(path).fromJson seq[GameStats]
+    gameStats = fileToSeq(path,GameStats[Alias,int]).mapIt it.toGameStats
 
 proc writeGamestats* =
   writeSquareVisitsTo visitsFile
@@ -387,8 +441,8 @@ proc writeGamestats* =
   if players.anyHuman and players.anyComputer:
     gameStats.add newGameStats()
     updateStatsBatch()
-    writeGameStatsTo jsonStatsFile
+    writeGameStatsTo statsFile #jsonStatsFile
 
 reportBatches = initReportBatches()
-readGameStatsFrom jsonStatsFile
+readGameStatsFrom statsFile #jsonStatsFile
 updateStatsBatch()

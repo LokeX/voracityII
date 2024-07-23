@@ -5,8 +5,9 @@ import sequtils
 from math import pow,sum
 from algorithm import sort,sortedByIt
 import sugar
-import taskpools,cpuinfo
-from misc import flatMap,reduce
+import taskpools
+# from misc import flatMap,reduce,taskPoolsAs
+import misc
 
 const
   highwayVal* = 2000
@@ -23,11 +24,11 @@ type
     cards:seq[BlueCard]
     cash:int
 
-template taskPoolsAs(pool,codeBlock:untyped) =
-  var pool = Taskpool.new(num_threads = countProcessors())
-  codeBlock
-  pool.syncAll
-  pool.shutdown
+# template taskPoolsAs(pool,codeBlock:untyped) =
+#   var pool = Taskpool.new(num_threads = countProcessors())
+#   codeBlock
+#   pool.syncAll
+#   pool.shutdown
 
 func countBars*(hypothetical:Hypothetic): int = hypothetical.pieces.countIt(it in bars)
 
@@ -125,7 +126,7 @@ func blueBonus(hypothetical:Hypothetic,card:BlueCard,square:int):int =
           nrOfPieces += min(piecesOn[square],requiredPiecesOn[square])
         result = (card.cash div nrOfPiecesRequired)*nrOfPieces
 
-func blueVals*(hypothetical:Hypothetic,squares:seq[int]):seq[int] =
+func blueVals(hypothetical:Hypothetic,squares:seq[int]):seq[int] =
   result.setLen(squares.len)
   if hypothetical.cards.len > 0:
     for i,square in squares:

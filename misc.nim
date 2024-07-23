@@ -2,6 +2,34 @@ import sequtils
 import strutils
 import sugar
 import os
+import taskpools,cpuinfo
+export spawn
+
+template taskPoolsAs*(pool,codeBlock:untyped) =
+  var pool = Taskpool.new(num_threads = countProcessors())
+  codeBlock
+  pool.syncAll
+  pool.shutdown
+
+proc seqToFile*[T](list:seq[T],path:string) =
+  let file = open(path,fmWrite)
+  for l in list:
+    discard file.writeBuffer(l.addr,sizeof T)
+  file.close
+
+iterator readType*(path:string,T:typedesc):T =
+  let file = open(path,fmread)
+  while not file.endOfFile:
+    var ft = default T
+    discard file.readBuffer(ft.addr,sizeof T)
+    yield ft
+  file.close
+
+proc fileToSeq*[T](path:string,s:var seq[T]) =
+  s = readType(path,T).toSeq
+
+proc fileToSeq*(path:string,T:typedesc):seq[T] =
+  readType(path,T).toSeq
 
 func reduce*[T](list:openArray[T],fn:(T,T) -> T):T {.effectsOf:fn.} =
   if list.len > 0:
@@ -27,7 +55,7 @@ proc consoleChoice*(choices:openArray[string]):int =
     chosen = try: stdin.readLine.parseInt except: -1
   chosen
 
-template init*(t:untyped) = t = default typeof T
+template init*(t:untyped) = t = default typeof t
 
 iterator enum_mitems*[T](x:var openArray[T]):(int,var T) =
   var idx = x.low
