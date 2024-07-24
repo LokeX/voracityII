@@ -17,6 +17,7 @@ import random
 import eval
 import strutils
 import colors
+import os
 
 const
   logoFontPath = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
@@ -366,9 +367,24 @@ proc timer =
   # echo frames*2.5
   frames = 0
 
+proc settingsToFile =
+  let setFile = open("dat\\settings.cfg",fmWrite)
+  discard setFile.writeBuffer(autoEndTurn.addr,sizeof autoEndTurn)
+  discard setFile.writeBuffer(reveal.addr,sizeof reveal)
+  discard setFile.writeBuffer(vol.addr,sizeof vol)
+  setFile.close
+
+proc settingsFromFile =
+  let setFile = open("dat\\settings.cfg",fmRead)
+  discard setFile.readBuffer(autoEndTurn.addr,sizeof autoEndTurn)
+  discard setFile.readBuffer(reveal.addr,sizeof reveal)
+  discard setFile.readBuffer(vol.addr,sizeof vol)
+  setFile.close
+
 proc quitVoracity =
   playerKindsToFile playerKinds
   playerHandlesToFile playerHandles
+  settingsToFile()
   closeSound()
 
 proc timerCall:TimerCall =
@@ -390,6 +406,10 @@ addImage("barman",paintBarman())
 addImage("advicetext",paintSubText())
 randomize()
 # vol = 0.05
+if fileExists("dat\\settings.cfg"):
+  settingsFromFile()
+else:
+  settingsToFile()
 setVolume vol
 addCall call
 addCall dialogCall # we add dialog second - or it will be drawn beneath the board

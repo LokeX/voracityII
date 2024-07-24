@@ -1,40 +1,40 @@
-Polterabend: 61
+Polterabend: 63
 Demolition: 42
-Light load: 49
-Foreign aid: 56
+Light load: 50
+Foreign aid: 57
 Body count: 18
-Burglary: 51
-High society: 48
+Burglary: 52
+High society: 49
 Razia: 25
-Underhanded: 34
-Insurgency: 31
+Underhanded: 35
+Insurgency: 32
 Dead weight: 30
 Nose job: 27
 Rentals: 39
 Open house: 26
 Duty free: 33
 Broken bones: 32
-Load: 61
+Load: 62
 Burial at sea: 32
 Lawfare: 44
 Home brew: 35
-Delivery: 48
+Delivery: 49
 Judicial murder: 16
-Express demands: 31
+Express demands: 32
 Digestion issues: 1
 Flay'em: 42
 Ram theft: 17
-Meat: 45
+Meat: 46
 Advisory board: 41
 Broman escorte: 12
-Grapevine: 48
+Grapevine: 49
 Agent: 38
-Hooked: 47
-Deadly cargo: 46
-Strong medicine: 37
-Hooters: 36
+Hooked: 48
+Deadly cargo: 47
+Strong medicine: 38
+Hooters: 37
 Infiltration: 31
-Lord of War: 20
+Lord of War: 21
 Up yours: 39
 Legalese: 58
 Small arms: 38
@@ -44,13 +44,13 @@ Concuctions: 27
 Small box: 42
 Moonshine: 52
 Local dealership: 30
-Party drugs: 48
+Party drugs: 49
 Pimp: 18
-Grand designs: 51
+Grand designs: 52
 Blood suckers: 22
-Laundry: 23
-Acquittal: 23
-Higher power: 37
+Laundry: 24
+Acquittal: 24
+Higher power: 38
 Sweet hearts: 25
 Sing along song: 40
 Informer: 16
@@ -58,28 +58,28 @@ Bootlegging: 41
 Human resources: 30
 Protection: 44
 Blood diamants: 16
-Redemption: 36
+Redemption: 37
 Ludomania: 26
 Heartless: 8
-Et spiritus sancti: 46
+Et spiritus sancti: 48
 Health plan: 26
 Brotherhood: 49
-Choire boys: 63
+Choire boys: 64
 Projects: 44
-Bystanders: 25
+Bystanders: 26
 Occupational hazard: 30
 Cold meds: 47
 Digestive issues: 14
-Knock knock: 60
+Knock knock: 62
 Side effects: 32
 Secret weapon: 41
 Outsider: 25
-Safe bet: 33
+Safe bet: 34
 Slum lord: 33
 Lipstick on a pig: 28
 Golden chains: 21
 Diamonds are...: 28
-Addictions: 16
+Addictions: 17
 Pure luck: 21
 Borderless: 46
 Chicks in cages: 44
@@ -87,18 +87,18 @@ Recycling: 25
 VIP Lounge: 23
 Mayor: 9
 Jet setter: 20
-Knocked out: 45
+Knocked out: 46
 Trans action: 12
 Financing: 29
-Drug Dealer: 28
+Drug Dealer: 30
 Outstanding: 49
-Bodyguard: 26
-Aiding and abetting: 28
+Bodyguard: 28
+Aiding and abetting: 29
 Debt to society: 21
 Stove away: 20
 Spy: 13
 White collars: 16
-Rent seeker: 21
+Rent seeker: 22
 Bail: 33
 Color revolution: 24
 Specimens: 22
