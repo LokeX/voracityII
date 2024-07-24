@@ -31,6 +31,12 @@ proc fileToSeq*[T](path:string,s:var seq[T]) =
 proc fileToSeq*(path:string,T:typedesc):seq[T] =
   readType(path,T).toSeq
 
+template writeIt*(file,data:untyped) =
+  discard file.writeBuffer(data.addr,sizeof data)
+
+template readIt*(file,data:untyped) =
+  discard file.readBuffer(data.addr,sizeof data)
+
 func reduce*[T](list:openArray[T],fn:(T,T) -> T):T {.effectsOf:fn.} =
   if list.len > 0:
     result = list[list.low]

@@ -268,15 +268,12 @@ proc matchingGames(
       it.playerKinds.count(Human) == humanCount and 
       it.playerKinds.count(Computer) == computerCount
     )
-  echo kindMatches
   if humanCount == 1 and (let alias = playerHandles.getLoneAlias(); alias.len > 0): 
     (alias,kindMatches.filterIt(alias in it.aliases))
   else: ("",kindMatches)
 
 proc statsBatchSpans:seq[Span] =
   let stats = gameStats.matchingGames()
-  echo stats.alias
-  echo stats.matches
   if gameStats.len > 0 and stats.matches.len > 0:
     let 
       turns = stats.matches.mapIt(it.turnCount).sum

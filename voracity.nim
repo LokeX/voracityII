@@ -20,6 +20,7 @@ import colors
 import os
 
 const
+  settingsFile = "dat\\settings.cfg"
   logoFontPath = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
   logoText = [
     "Created by",
@@ -368,18 +369,18 @@ proc timer =
   frames = 0
 
 proc settingsToFile =
-  let setFile = open("dat\\settings.cfg",fmWrite)
-  discard setFile.writeBuffer(autoEndTurn.addr,sizeof autoEndTurn)
-  discard setFile.writeBuffer(reveal.addr,sizeof reveal)
-  discard setFile.writeBuffer(vol.addr,sizeof vol)
-  setFile.close
+  let f = open(settingsFile,fmWrite)
+  f.writeIt autoEndTurn
+  f.writeIt reveal
+  f.writeIt vol
+  f.close
 
 proc settingsFromFile =
-  let setFile = open("dat\\settings.cfg",fmRead)
-  discard setFile.readBuffer(autoEndTurn.addr,sizeof autoEndTurn)
-  discard setFile.readBuffer(reveal.addr,sizeof reveal)
-  discard setFile.readBuffer(vol.addr,sizeof vol)
-  setFile.close
+  let f = open(settingsFile,fmRead)
+  f.readIt autoEndTurn
+  f.readIt reveal
+  f.readIt vol
+  f.close
 
 proc quitVoracity =
   playerKindsToFile playerKinds
@@ -406,10 +407,9 @@ addImage("barman",paintBarman())
 addImage("advicetext",paintSubText())
 randomize()
 # vol = 0.05
-if fileExists("dat\\settings.cfg"):
+if fileExists(settingsFile): 
   settingsFromFile()
-else:
-  settingsToFile()
+else: settingsToFile()
 setVolume vol
 addCall call
 addCall dialogCall # we add dialog second - or it will be drawn beneath the board
