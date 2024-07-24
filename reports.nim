@@ -332,20 +332,15 @@ proc reportedCashedCards:CashedCards =
   let titles = collect:
     for report in turnReports:
       for card in report.cards.cashed: card.title
-  echo "cashed cards reported:"
   for title in titles:
     if title notin result.mapIt it.title:
       result.add (title,titles.count title)
-      echo title
 
 proc readCashedCardsFrom(path:string):CashedCards =
   if fileExists path:
-    echo "cashed cards on file:"
     for line in lines path:
       let lineSplit = line.split ':'
-      try: 
-        result.add (lineSplit[0],lineSplit[^1].strip.parseInt)
-        echo result[^1]
+      try: result.add (lineSplit[0],lineSplit[^1].strip.parseInt)
       except:discard
 
 proc allCashedCards(path:string):CashedCards =

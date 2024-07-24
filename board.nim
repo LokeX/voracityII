@@ -130,11 +130,12 @@ func moveToSquares*(fromSquare:int,dice:Dice):seq[int] =
       result.add moveToSquares(fromSquare,die.ord)
   result.deduplicate
 
-func noDiceUsedToMove*(fromSquare,toSquare:int):bool =
-  (fromSquare == 0 and (toSquare in highways or toSquare in gasStations)) or
-  (fromSquare in highways and toSquare in gasStations)
-  # (fromSquare == 0 or fromSquare in highways) and
-  # (tosquare in highways or toSquare in gasStations)
+func diceMoved*(fromSquare,toSquare:int):bool =
+  if fromSquare == 0:
+    tosquare notin gasStations and toSquare notin highways
+  elif fromSquare in highways:
+    toSquare notin gasStations
+  else: true
 
 func dieUsed*(fromSquare,toSquare:int,dice:Dice):int =
   if toSquare in moveToSquares(fromSquare,dice[1].ord):

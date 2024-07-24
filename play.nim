@@ -293,13 +293,6 @@ proc getMove:Move =
   result.toSquare = moveSelection.toSquare
   result.pieceNr = turnPlayer.pieceOnSquare moveSelection.fromSquare
 
-func diceMoved(fromSquare,toSquare:int):bool =
-  if fromSquare == 0:
-    tosquare notin gasStations and toSquare notin highways
-  elif fromSquare in highways:
-    toSquare notin gasStations
-  else: true
-
 proc move =
   var move = getMove()
   if not turn.diceMoved and not moveSelection.event:

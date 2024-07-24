@@ -93,6 +93,7 @@ proc endTurn =
 proc endTurnPhase =
   if autoEndTurn and turnPlayer.cash < cashToWin:
     endTurn()
+  else: showMenu = true
 
 proc aiTakeTurn*() =
   case phase
@@ -109,5 +110,5 @@ proc aiRightMouse*(m:KeyEvent) =
   if phase == EndTurn: 
     if showMenu: 
       endTurn()
-  showMenu = not showMenu
+      # showMenu = not showMenu
  
