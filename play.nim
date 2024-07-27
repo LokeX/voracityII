@@ -215,12 +215,13 @@ proc selectBar =
 proc barMove(moveEvent:BlueCard):bool =
   dialogBarMoves = turnPlayer.eventMovesEval moveEvent
   echo dialogBarMoves.mapIt(it.eventMoveFmt).mapIt(it.fromSquare&"\n"&it.toSquare).join("\n")
-  if dialogBarMoves.len == 1 or turnPlayer.kind == Computer:
-    moveSelection.event = true
-    moveSelection.fromSquare = dialogBarMoves[0].fromSquare
-    moveSelection.toSquare = dialogBarMoves[0].toSquare
-    return true
-  else: selectBar()
+  if dialogBarMoves.len > 0:
+    if dialogBarMoves.len == 1 or turnPlayer.kind == Computer:
+      moveSelection.event = true
+      moveSelection.fromSquare = dialogBarMoves[0].fromSquare
+      moveSelection.toSquare = dialogBarMoves[0].toSquare
+      return true
+    else: selectBar()
 
 proc playNews =
   piecesImg.update = true

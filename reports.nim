@@ -286,19 +286,19 @@ proc statsBatchSpans:seq[Span] =
       humanPercent = ((humanWins.toFloat/stats.matches.len.toFloat)*100)
         .formatFloat(ffDecimal,2)
     result = @[
-        newSpan("Games: ",robotoPurple),
-        newSpan($(stats.matches.len),robotoYellow),
-        newSpan("  |  Turns: ",robotoPurple),
-        newSpan($turns,robotoYellow),
-        newSpan("  |  Avg turns: ",robotoPurple),
-        newSpan($avgTurns&"\n",robotoYellow),
-        newSpan(handle&" wins: ",robotoPurple),
-        newSpan($humanWins&"  |  ",robotoYellow),
-        newSpan(humanPercent&"%\n",robotoYellow),
-        newSpan("Computer wins: ",robotoPurple),
-        newSpan($computerWins&"  |  ",robotoYellow),
-        newSpan(computerPercent&"%",robotoYellow),
-      ]
+      newSpan("Games: ",robotoPurple),
+      newSpan($(stats.matches.len),robotoYellow),
+      newSpan("  |  Turns: ",robotoPurple),
+      newSpan($turns,robotoYellow),
+      newSpan("  |  Avg turns: ",robotoPurple),
+      newSpan($avgTurns&"\n",robotoYellow),
+      newSpan(handle&" wins: ",robotoPurple),
+      newSpan($humanWins&"  |  ",robotoYellow),
+      newSpan(humanPercent&"%\n",robotoYellow),
+      newSpan("Computer wins: ",robotoPurple),
+      newSpan($computerWins&"  |  ",robotoYellow),
+      newSpan(computerPercent&"%",robotoYellow),
+    ]
 
 proc drawStats*(b:var Boxy) =
   if statsBatch.spansLength > 0:

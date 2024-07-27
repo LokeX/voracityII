@@ -160,7 +160,7 @@ proc showCards(b:var Boxy) =
   elif pinnedCards == Discard or mouseOn blueDeck.discardSlot.area:
     cards = blueDeck.discardPile
   elif batchSelected and selectedBatchColor.reports.len > 0:
-    if altPressed and pinnedBatchNr == -1 and turnPlayer.cash >= cashToWin:
+    if drawSelectedPlayersHand:
       cards = players[mouseOnBatchPlayerNr].hand
     else: cards = cashedCards()
   else: 
@@ -172,7 +172,7 @@ template headerColorAndText:untyped =
   if pinnedCards != Discard and not mouseOn blueDeck.discardSlot.area:
     if batchSelected:
       if drawSelectedPlayersHand:
-        (players[mouseOnBatchPlayerNr].color,"player's hand")
+        (players[mouseOnBatchPlayerNr].color," player's hand")
       else: (
         players[max(mouseOnBatchPlayerNr,pinnedBatchNr)].color,
         "player's cashed cards"

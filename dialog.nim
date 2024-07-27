@@ -51,8 +51,8 @@ proc endDialog(selected:string) =
 proc draw(b:var Boxy) =
   if dialogBatch != nil and dialogBatch.isActive:
     b.drawDynamicImage dialogBatch
-    if square != -1:
-      b.drawDynamicImage moveToSquaresPainter
+    # if square != -1:
+    #   b.drawDynamicImage moveToSquaresPainter
 
 proc keyboard(k:KeyboardEvent) = 
   if dialogBatch.isActive and k.pressedIs KeyEnter:
