@@ -4,6 +4,8 @@ Voracity 2.0 is the latest iteration of the digital version of Voracity the boar
 
 It's written entirely in Nim.
 
+----------------------------------------------------
+
 Dependencies:
 
 nimble install windy
@@ -12,9 +14,9 @@ nimble install boxy
 
 nimble install pixie
 
-nimble install jsony
+---------------------------------------------------
 
-If you just want to play:
+If you're on Windows and just want to play:
 
 Download the zip file using the green code button.
 
