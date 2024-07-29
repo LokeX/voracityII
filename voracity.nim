@@ -150,46 +150,44 @@ proc reportAnimationMoves:seq[AnimationMove] =
 template drawSelectedPlayersHand:untyped =
   altPressed and pinnedBatchNr == -1 and turnPlayer.cash >= cashToWin
 
+proc paintCardsHeader(b:var Boxy,color:PlayerColor,header:string) =
+  if header != cardsHeader.getSpanText 0:
+    cardsHeader.commands:
+      cardsHeader.border.color = playerColors[color]
+    cardsHeader.setSpanText header,0
+    cardsHeader.update = true
+  b.drawDynamicImage cardsHeader
+
 proc showCards(b:var Boxy) =
   var
     cards:seq[BlueCard]
     show:Reveal = Front
+    header = ""
+    color = Black
   if turn.nr == 0:
     if pinnedCards == Deck or mouseOn blueDeck.drawSlot.area:
       cards = blueDeck.fullDeck
+      header = "Full deck"
   elif pinnedCards == Discard or mouseOn blueDeck.discardSlot.area:
     cards = blueDeck.discardPile
+    header = "Discard pile"
   elif batchSelected and selectedBatchColor.reports.len > 0:
     if drawSelectedPlayersHand:
       cards = players[mouseOnBatchPlayerNr].hand
-    else: cards = cashedCards()
+      color = players[mouseOnBatchPlayerNr].color
+      header = $color&" player's hand"
+    else: 
+      cards = cashedCards()
+      color = players[max(mouseOnBatchPlayerNr,pinnedBatchNr)].color
+      header = $color&"player's cashed cards"
   else: 
     cards = turnPlayer.hand
     show = if turnPlayer.kind == Human or reveal: Front else: Back
+    color = turnPlayer.color
+    header = $color&" player's hand"
   b.paintCards(blueDeck,cards,show)
-
-template headerColorAndText:untyped =
-  if pinnedCards != Discard and not mouseOn blueDeck.discardSlot.area:
-    if batchSelected:
-      if drawSelectedPlayersHand:
-        (players[mouseOnBatchPlayerNr].color," player's hand")
-      else: (
-        players[max(mouseOnBatchPlayerNr,pinnedBatchNr)].color,
-        "player's cashed cards"
-      )
-    else: (turnPlayer.color," player's hand")
-  else: (Black,"Discard pile")
-
-proc drawCardsHeader(b:var Boxy) =
-  let 
-    (color,text) = headerColorAndText
-    txt = if text == "Discard pile": text else: $color&text
-  if txt != cardsHeader.getSpanText 0:
-    cardsHeader.commands:
-      cardsHeader.border.color = playerColors[color]
-    cardsHeader.setSpanText txt,0
-    cardsHeader.update = true
-  b.drawDynamicImage cardsHeader
+  if header.len > 0:
+    b.paintCardsHeader(color,header)
 
 template showFooter:untyped =
   mouseOnBatchPlayerNr != -1 or 
@@ -234,7 +232,7 @@ proc draw(b:var Boxy) =
     if mouseOn squares[0].dims.area: b.drawKillMatrix
     b.doMoveAnimation
     b.drawCursor
-    b.drawCardsHeader
+    # b.drawCardsHeader
     b.drawCardsFooter
     if not turn.diceMoved or turnPlayer.kind == Computer: b.drawDice
     if not isRollingDice() and turnPlayer.kind == Human: b.drawSquares
