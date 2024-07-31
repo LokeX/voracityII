@@ -1,7 +1,7 @@
 import batch
 import strutils
 import win except strip,splitWhitespace
-from board import moveToSquaresPainter
+from board import moveToSquaresPainter,moveSelection
 
 const
   thisDialog = "dialog"
@@ -61,23 +61,31 @@ proc keyboard(k:KeyboardEvent) =
 
 proc mouse(m:KeyEvent) =
   if dialogBatch.isActive and m.leftMousePressed and dialogBatch.mouseOnSelectionArea != -1:
+    dialogBatch.mouseSelect
     endDialog dialogEntries[dialogBatch.selection].strip
 
 proc mouseMoved =
   if dialogBatch.isActive and mouseOn dialogBatch:
     dialogBatch.mouseSelect
-    let tempSquare = try: 
+    let selectedSquare = try: 
       dialogEntries[dialogBatch.selection]
       .splitWhitespace[^1]
       .parseInt 
     except: -1
-    if tempSquare notin [-1,square]:
-      square = tempSquare
+    echo "dialogSelection = ",dialogEntries[dialogBatch.selection]
+    echo "selectedSquare = ",selectedSquare
+    echo "square = ",square
+    if selectedSquare notin [-1,square]:
+      echo "updating"
+      square = selectedSquare
       moveToSquaresPainter.context = @[square]
       moveToSquaresPainter.update = true
+      if dialogEntries[dialogBatch.selection].startsWith "from":
+        moveSelection.fromSquare = square #yeah, it's a hack
 
 proc cycle =  
-  if dialogBatch != nil and (let (_,y) = dialogBatch.pos; y != menuPos.y):
+  if dialogBatch != nil and dialogBatch.isActive and 
+    (let (_,y) = dialogBatch.pos; y != menuPos.y):
     if y > menuPos.y:
       dialogBatch.setShallowPos(menuPos.x,y-60)
     else: 

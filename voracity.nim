@@ -20,6 +20,7 @@ import colors
 import os
 
 const
+  showVolTime = 2.4
   settingsFile = "dat\\settings.cfg"
   logoFontPath = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
   logoText = [
@@ -81,7 +82,8 @@ var
   reveal:bool
   frames:float
   vol = 0.05
- 
+  showVolume:float
+
 proc paintSubText:Image =
   var 
     spans:seq[Span]
@@ -125,6 +127,13 @@ proc paintBarman:Image =
   ctx.image.blur 2
   ctx.drawImage(barman,vec2(0,0))
   ctx.image.applyOpacity 25
+
+proc paintVolume:Image =
+  var ctx = newImage(110,20).newContext
+  ctx.image.fill color(255,255,255)
+  ctx.fillStyle = color(1,1,1)
+  ctx.fillRect(5,5,vol*100,10)
+  ctx.image
 
 template mouseOnBatchColor:untyped = players[mouseOnBatchPlayerNr].color
 
@@ -228,11 +237,11 @@ proc draw(b:var Boxy) =
   b.drawStats
   if showMenu: b.drawDynamicImage mainMenu
   if batchInputNr != -1: b.drawBatch inputBatch
+  if showVolume > 0: b.drawImage("volume",vec2(750,15))
   if turn.nr > 0:
     if mouseOn squares[0].dims.area: b.drawKillMatrix
     b.doMoveAnimation
     b.drawCursor
-    # b.drawCardsHeader
     b.drawCardsFooter
     if not turn.diceMoved or turnPlayer.kind == Computer: b.drawDice
     if not isRollingDice() and turnPlayer.kind == Human: b.drawSquares
@@ -326,6 +335,9 @@ proc keyboard (key:KeyboardEvent) =
         elif vol < 0.05: 0 else: -0.05
       )
       setVolume vol
+      removeImg("volume")
+      addImage("volume",paintVolume())
+      showVolume = showVolTime
     of KeyEnter:
       if batchInputNr != -1: 
         if inputBatch.input.len > 0:
@@ -356,6 +368,7 @@ proc cycle =
     aiTakeTurn()
 
 proc timer = 
+  if showVolume > 0: showVolume -= 0.4
   showCursor = not showCursor
   if turnPlayer.kind == Human and turnReport.diceRolls.len < diceRolls.len:
     updateTurnReport diceRolls[^1]
@@ -403,6 +416,7 @@ var
 addImage("logo",paintLogo())
 addImage("barman",paintBarman())
 addImage("advicetext",paintSubText())
+addImage("volume",paintVolume())
 randomize()
 # vol = 0.05
 if fileExists(settingsFile): 
