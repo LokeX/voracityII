@@ -1,6 +1,6 @@
 mission:
-Gangbanger
-{30,36,57,60}
+Color revolutionary
+{4,9,19,21}
 250000
 mission:
 Jet setter
@@ -107,8 +107,8 @@ Side effects
 {26,33,45}
 125000
 job:
-Color revolution
-{4,9,19}
+Gangbangers
+{4,21,57}
 125000
 job:
 Higher power

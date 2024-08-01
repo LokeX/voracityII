@@ -1,107 +1,71 @@
-Polterabend: 89
-Demolition: 61
-Light load: 66
-Foreign aid: 80
-Body count: 21
-Burglary: 63
-High society: 65
-Razia: 30
-Underhanded: 47
-Insurgency: 40
-Dead weight: 43
-Nose job: 41
-Rentals: 49
-Open house: 30
-Duty free: 46
-Broken bones: 45
-Load: 85
-Burial at sea: 44
-Lawfare: 56
-Home brew: 43
-Delivery: 63
-Judicial murder: 25
-Express demands: 43
-Digestion issues: 1
-Flay'em: 54
-Ram theft: 24
-Meat: 53
-Advisory board: 58
-Broman escorte: 17
-Grapevine: 62
-Agent: 47
-Hooked: 59
-Deadly cargo: 58
-Strong medicine: 51
-Hooters: 48
-Infiltration: 42
-Lord of War: 34
-Up yours: 45
-Legalese: 70
-Small arms: 52
-Rock solid claims: 62
-Stiffs: 37
-Concuctions: 34
-Small box: 59
-Moonshine: 71
-Local dealership: 37
-Party drugs: 61
-Pimp: 26
-Grand designs: 70
-Blood suckers: 29
-Laundry: 31
-Acquittal: 35
-Higher power: 49
-Sweet hearts: 33
-Sing along song: 48
-Informer: 23
-Bootlegging: 57
-Human resources: 47
-Protection: 52
-Blood diamants: 23
-Redemption: 55
-Ludomania: 36
-Heartless: 10
-Et spiritus sancti: 63
-Health plan: 32
-Brotherhood: 56
-Choire boys: 75
-Projects: 54
-Bystanders: 33
-Occupational hazard: 46
-Cold meds: 69
-Digestive issues: 17
-Knock knock: 69
-Side effects: 44
-Secret weapon: 47
-Outsider: 35
-Safe bet: 42
-Slum lord: 46
-Lipstick on a pig: 37
-Golden chains: 27
-Diamonds are...: 36
-Addictions: 21
-Pure luck: 27
-Borderless: 61
-Chicks in cages: 63
-Recycling: 37
-VIP Lounge: 32
-Mayor: 13
-Jet setter: 21
-Knocked out: 66
-Trans action: 18
-Financing: 42
-Drug Dealer: 42
-Outstanding: 63
-Bodyguard: 41
-Aiding and abetting: 34
-Debt to society: 32
-Stove away: 29
-Spy: 17
-White collars: 22
-Rent seeker: 32
-Bail: 43
-Color revolution: 33
-Specimens: 30
-Money Master: 9
-Terrorist: 25
-Gangbanger: 3
+Slum lord: 2
+Polterabend: 2
+Nose job: 3
+Foreign aid: 2
+Bootlegging: 2
+Human resources: 2
+Et spiritus sancti: 6
+Strong medicine: 4
+Concuctions: 3
+Lipstick on a pig: 1
+Mayor: 1
+Outstanding: 2
+Body count: 1
+Legalese: 3
+Rentals: 2
+Side effects: 1
+Light load: 2
+Burglary: 2
+Jet setter: 3
+Aiding and abetting: 1
+Sing along song: 1
+Moonshine: 2
+Projects: 2
+Safe bet: 1
+Local dealership: 1
+Home brew: 1
+Trans action: 2
+Borderless: 1
+Cold meds: 2
+Knocked out: 2
+Party drugs: 2
+High society: 3
+Hooked: 2
+Underhanded: 3
+Redemption: 3
+Hooters: 1
+Money Master: 1
+Judicial murder: 1
+Protection: 1
+Sweet hearts: 2
+Meat: 3
+Informer: 1
+Color revolutionary: 1
+Specimens: 1
+VIP Lounge: 1
+Open house: 1
+Drug Dealer: 1
+Ram theft: 1
+Bail: 1
+Lord of War: 1
+Small arms: 2
+Grapevine: 2
+Delivery: 2
+Gangbangers: 1
+Chicks in cages: 2
+Golden chains: 1
+Burial at sea: 1
+Agent: 1
+Pure luck: 1
+Choire boys: 1
+Lawfare: 1
+Brotherhood: 1
+Occupational hazard: 1
+Rock solid claims: 1
+Broman escorte: 1
+Grand designs: 1
+Addictions: 1
+Stove away: 1
+Financing: 1
+Rent seeker: 1
+Bodyguard: 1

@@ -24,6 +24,7 @@ const
 var
   singlePiece*:SinglePiece
   dialogBarMoves*:seq[Move]
+  updateKeybar*:bool
 
 proc drawCursor*(b:var Boxy) =
   if turn.nr > 0 and showCursor:
@@ -173,6 +174,7 @@ proc playCashPlansTo*(deck:var Deck) =
       writeGamestats()
       playSound "applause-2"
       setMenuTo NewGameMenu
+      updateKeybar = true
 
 proc move*(square:int)
 proc eventMoveFmt(move:Move):EventMoveFmt =

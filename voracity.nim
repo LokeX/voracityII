@@ -83,6 +83,58 @@ var
   frames:float
   vol = 0.05
   showVolume:float
+  showPanel = true
+
+proc paintKeybar:Image =
+  let 
+    ctx = newImage(1200,30).newContext
+    white = setNewFont(logoFontPath,18,color(1,1,1))
+    yellow = setNewFont(logoFontPath,18,color(1,1,0))
+    green = setNewFont(logoFontPath,18,color(0,1,0))
+  ctx.image.fill color(0,0,0)
+  let spans = [
+    newSpan("Keys:  ",green),
+    newSpan("P",yellow),
+    newSpan("anel (this):  ",white),
+    newSpan("on",(if showPanel: yellow else: white)),
+    newSpan("/",white),
+    newSpan("off",(if showPanel: white else: yellow)),
+    newSpan("  |  ",green),
+    newSpan("S",yellow),
+    newSpan("ound:  ",white),
+    newSpan("on",(if volume() == 0: white else: yellow)),
+    newSpan("/",white),
+    newSpan("off",(if volume() == 0: yellow else: white)),
+    newSpan("  |  ",green),
+    newSpan("A",yellow),
+    newSpan("uto end turn (Computer):  ",white),
+    newSpan("on",(if autoEndTurn: yellow else: white)),
+    newSpan("/",white),
+    newSpan("off",(if autoEndTurn: white else: yellow)),
+    newSpan("  |  ",green),
+    newSpan("+/- ",yellow),
+    newSpan("(NumPad):  Adjust volume",white),
+    newSpan("  |  ",green),
+    newSpan("Right-click-mouse:  ",yellow),
+    newSpan((
+      if turn.nr == 0: 
+        "Start Game" 
+      elif not showMenu:
+        "Show Menu"
+      elif turnPlayer.cash >= cashToWin: 
+        "New Game"
+      else: "End Turn"
+    ),white),
+  ]
+  ctx.image.fillText(spans.typeset(vec2(1150,20)),translate vec2(10,2))
+  ctx.image
+
+let keybarPainter = DynamicImage[void](
+  name:"keybar",
+  updateImage:paintKeybar,
+  area:(225,935,0,0),
+  update:true
+)
 
 proc paintSubText:Image =
   var 
@@ -235,6 +287,11 @@ proc draw(b:var Boxy) =
   b.drawDynamicImage piecesImg
   b.drawPlayerBatches
   b.drawStats
+  if showPanel: 
+    if updateKeybar:
+      keybarPainter.update = true
+      updateKeybar = false
+    b.drawDynamicImage keybarPainter
   if showMenu: b.drawDynamicImage mainMenu
   if batchInputNr != -1: b.drawBatch inputBatch
   if showVolume > 0: b.drawImage("volume",vec2(750,15))
@@ -313,6 +370,7 @@ proc mouse(m:KeyEvent) =
       m.aiRightMouse
     else:
       m.rightMouse
+    keybarPainter.update = true
 
 proc mouseMoved = 
   # moveSelection.hoverSquare = mouseOnSquare()
@@ -332,7 +390,7 @@ proc keyboard (key:KeyboardEvent) =
       vol += (
         if key.button.isKey NumpadAdd: 
           if vol < 0.95: 0.05 else: 0
-        elif vol < 0.05: 0 else: -0.05
+        elif vol <= 0.05: 0 else: -0.05
       )
       setVolume vol
       removeImg("volume")
@@ -347,9 +405,13 @@ proc keyboard (key:KeyboardEvent) =
         batchInputNr = -1
         inputBatch.deleteInput
         updateStatsBatch()
-    of KeyE: autoEndTurn = not autoEndTurn
+    of KeyA: 
+      keybarPainter.update = true
+      autoEndTurn = not autoEndTurn
+    of KeyP: showPanel = not showPanel
     of KeyR: reveal = not reveal
     of KeyS:
+      keybarPainter.update = true
       if volume() == 0:
         setVolume vol
       else: setVolume 0
@@ -384,6 +446,7 @@ proc settingsToFile =
   f.writeIt autoEndTurn
   f.writeIt reveal
   f.writeIt vol
+  f.writeIt showPanel
   f.close
 
 proc settingsFromFile =
@@ -391,6 +454,7 @@ proc settingsFromFile =
   f.readIt autoEndTurn
   f.readIt reveal
   f.readIt vol
+  f.readIt showPanel
   f.close
 
 proc quitVoracity =
@@ -417,6 +481,7 @@ addImage("logo",paintLogo())
 addImage("barman",paintBarman())
 addImage("advicetext",paintSubText())
 addImage("volume",paintVolume())
+# addImage("keybar",paintKeybar())
 randomize()
 # vol = 0.05
 if fileExists(settingsFile): 
