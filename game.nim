@@ -205,31 +205,23 @@ func requiredSquaresOk*(player:Player,plan:BlueCard):bool =
     .allIt player.pieces.count(it) >= plan.squares.required.count it
 
 func oneInManySquaresOk*(player:Player,plan:BlueCard):bool =
-  # let gotOneInMany = player.pieces.anyIt it in plan.squares.oneInMany
   plan.squares.oneInmany.len == 0 or 
   player.pieces.anyIt it in plan.squares.oneInMany
 
 func isCashable*(player:Player,plan:BlueCard):bool =
   (player.requiredSquaresOk plan) and (player.oneInManySquaresOk plan)
 
-# func isCashable*(player:Player,plan:BlueCard):bool =
-#   let   
-#     squaresRequiredOk = player.requiredSquaresOk plan
-#     gotOneInMany = player.pieces.anyIt it in plan.squares.oneInMany
-#     oneInMoreOk = plan.squares.oneInmany.len == 0 or gotOneInMany
-#   squaresRequiredOk and oneInMoreOk
-
 func plans*(player:Player):tuple[cashable,notCashable:seq[BlueCard]] =
   for plan in player.hand:
     if player.isCashable plan: result.cashable.add plan
     else: result.notCashable.add plan
 
-func needsProtectionOn*(player:Player,fromSquare,toSquare:int):bool =
-  var hypoPlayer = player
-  try: hypoPlayer.pieces[hypoPlayer.pieces.find fromSquare] = toSquare
-  except: raise newException(CatchableError,"no piece on: "&($fromSquare))
-  hypoPlayer.plans.notCashable
-    .anyIt(toSquare in it.squares.required or toSquare in it.squares.oneInMany)
+# func needsProtectionOn*(player:Player,fromSquare,toSquare:int):bool =
+#   var hypoPlayer = player
+#   try: hypoPlayer.pieces[hypoPlayer.pieces.find fromSquare] = toSquare
+#   except: raise newException(CatchableError,"no piece on: "&($fromSquare))
+#   hypoPlayer.plans.notCashable
+#     .anyIt(toSquare in it.squares.required or toSquare in it.squares.oneInMany)
 
 proc discardCards*(player:var Player,deck:var Deck):seq[BlueCard] =
   while player.hand.len > 3:

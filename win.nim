@@ -46,7 +46,8 @@ let
     "",
     ivec2(800,600),
     WindowStyle.DecoratedResizable, 
-    visible = false
+    visible = false,
+    # vsync = false
   )
   scr = getScreens()[0]
   scrWidth* = (int32)scr.right
@@ -173,19 +174,21 @@ func rectangle*(rx,ry,rw,rh:int):Rect = Rect(
   h:rh.toFloat
 )
 
-proc updateImageArea*[T](dynImg:DynamicImage[T],wh:IVec2) =
-  dynImg.area.x2 = dynImg.area.x1+wh[0]
-  dynImg.area.y2 = dynImg.area.y1+wh[1]
-  dynImg.rect = dynImg.area.toRect
+# proc updateImageArea*[T](dynImg:DynamicImage[T],wh:IVec2) =
+#   dynImg.area.x2 = dynImg.area.x1+wh[0]
+#   dynImg.area.y2 = dynImg.area.y1+wh[1]
+#   dynImg.rect = dynImg.area.toRect
 
 proc drawDynamicImage*[T](b:var Boxy,dynImg:DynamicImage[T]) =
   if dynImg.update: 
     b.removeImage(dynImg.name)
-    when T is void:
-      b.addImage(dynImg.name,dynImg.updateImage())
-    else:
-      b.addImage(dynImg.name,dynImg.updateImage(dynImg.context))
-    updateImageArea(dynImg,b.getImageSize dynImg.name)
+    when T is void: b.addImage(dynImg.name,dynImg.updateImage())
+    else: b.addImage(dynImg.name,dynImg.updateImage(dynImg.context))
+    let wh = b.getImageSize dynImg.name
+    dynImg.area.x2 = dynImg.area.x1+wh[0]
+    dynImg.area.y2 = dynImg.area.y1+wh[1]
+    dynImg.rect = dynImg.area.toRect
+    # updateImageArea(dynImg,b.getImageSize dynImg.name)
     dynImg.update = false
   b.drawImage(dynImg.name,dynImg.rect)
 

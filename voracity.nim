@@ -91,7 +91,7 @@ proc paintKeybar:Image =
     white = setNewFont(logoFontPath,18,color(1,1,1))
     yellow = setNewFont(logoFontPath,18,color(1,1,0))
     green = setNewFont(logoFontPath,18,color(0,1,0))
-  ctx.image.fill color(0,0,0)
+  ctx.image.fill color(0,0,0,75)
   let spans = [
     newSpan("Keys:  ",green),
     newSpan("P",yellow),
@@ -170,14 +170,14 @@ proc paintLogo:Image =
 
 proc paintBarman:Image =
   let 
-    (w,h) = (barMan.width,barMan.height)
+    (w,h) = ((int)(barMan.width.toFloat*0.9),barMan.height)
     shadow = 5
   result = newImage(w+shadow,h+shadow)
   var ctx = result.newContext
   ctx.fillStyle = color(0,0,0,100)
-  ctx.fillRect(Rect(x:shadow.toFloat,y:shadow.toFloat,w:w.toFloat,h:h.toFloat))
+  ctx.fillRect(Rect(x:shadow.toFloat,y:shadow.toFloat,w:w.toFloat*0.9,h:h.toFloat))
   ctx.image.blur 2
-  ctx.drawImage(barman,vec2(0,0))
+  ctx.drawImage(barman,Rect(x:0,y:0,w:w.toFloat*0.9,h:h.toFloat))
   ctx.image.applyOpacity 25
 
 proc paintVolume:Image =
@@ -309,7 +309,7 @@ proc draw(b:var Boxy) =
   elif pinnedCards != Deck and not mouseOn blueDeck.drawSlot.area: 
     b.drawImage("logo",vec2(1475,60))
     b.drawImage("advicetext",vec2(1525,450))
-    b.drawImage("barman",Rect(x:1545,y:530,w:220,h:275))
+    b.drawImage("barman",Rect(x:1555,y:530,w:220,h:275))
   else:
     b.drawCardsFooter
   b.showCards
@@ -332,6 +332,10 @@ proc confirmEndGame = really("end this game?",
   (answer:string) => (if answer == "Yes": setupNewGame())
 )
 
+proc confirmResetStats = really("reset stats?",
+  (answer:string) => (if answer == "Yes": resetMatchingStats())
+)
+
 proc menuSelection =
   if mouseOnMenuSelection("Quit Voracity"):
     confirmQuit()
@@ -349,6 +353,7 @@ proc mouse(m:KeyEvent) =
     pinnedBatchNr = -1
     batchInputNr = -1
     inputBatch.deleteInput
+  if mouseOnStatsBatch: confirmResetStats()
   if m.rightMousePressed and turn.nr == 0 and mouseOnBatchPlayerNr != -1:
     batchInputNr = mouseOnBatchPlayerNr
   if m.leftMousePressed or m.rightMousePressed:
@@ -373,7 +378,6 @@ proc mouse(m:KeyEvent) =
     keybarPainter.update = true
 
 proc mouseMoved = 
-  # moveSelection.hoverSquare = mouseOnSquare()
   let batchNr = mouseOnPlayerBatchNr()
   if altPressed: 
     if batchNr != -1: mouseOnBatchPlayerNr = batchNr
@@ -481,9 +485,7 @@ addImage("logo",paintLogo())
 addImage("barman",paintBarman())
 addImage("advicetext",paintSubText())
 addImage("volume",paintVolume())
-# addImage("keybar",paintKeybar())
 randomize()
-# vol = 0.05
 if fileExists(settingsFile): 
   settingsFromFile()
 else: settingsToFile()

@@ -175,6 +175,7 @@ proc playCashPlansTo*(deck:var Deck) =
       playSound "applause-2"
       setMenuTo NewGameMenu
       updateKeybar = true
+      showMenu = true
 
 proc move*(square:int)
 proc eventMoveFmt(move:Move):EventMoveFmt =
@@ -337,6 +338,17 @@ proc killPieceAndMove*(confirmedKill:string) =
     playSound "Deanscream-2"
   animateMove()
 
+func hostileFireEval(player:Player,pieceNr,toSquare:int):int =
+  var hypoPlayer = player
+  hypoPlayer.pieces[pieceNr] = toSquare
+  hypoPlayer.hand = hypoPlayer.plans.notCashable
+  hypoPlayer.hypotheticalInit.evalPos
+
+func hostileFireAdviced*(player:Player,fromSquare,toSquare:int):bool =
+  let pieceNr = player.pieces.find(fromSquare)
+  pieceNr != -1 and 
+  player.hostileFireEval(pieceNr,toSquare) < player.hostileFireEval(pieceNr,0)
+
 proc shouldKillEnemyOn(killer:Player,toSquare:int): bool =
   if killer.hasPieceOn(toSquare) or 
     killer.cash-(killer.removedPieces*piecePrice) <= startCash div 2: 
@@ -344,8 +356,8 @@ proc shouldKillEnemyOn(killer:Player,toSquare:int): bool =
   else:
     let 
       randKill = rand(1..100) <= 5
-      needsProtection = killer.needsProtectionOn(moveSelection.fromSquare,toSquare)
-      agroKill = rand(1..100) <= killer.agro and not needsProtection
+      hostileFireAdviced = killer.hostileFireAdviced(moveSelection.fromSquare,toSquare)
+      agroKill = rand(1..100) <= killer.agro and hostileFireAdviced
       planChance = players[singlePiece.playerNr].cashChanceOn(toSquare,blueDeck)
       barKill = toSquare in bars and (
         killer.nrOfPiecesOnBars > 1 or players.len < 3

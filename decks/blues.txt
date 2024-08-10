@@ -108,7 +108,7 @@ Side effects
 125000
 job:
 Gangbangers
-{4,21,57}
+{4,21,60}
 125000
 job:
 Higher power

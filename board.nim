@@ -84,8 +84,8 @@ proc drawDice*(b:var Boxy) =
     b.rotateDie(1)
     b.rotateDie(2)
     inc dieRollFrame
-    if dieRollFrame == maxRollFrames:
-      diceRolls.add diceRoll
+    if dieRollFrame == maxRollFrames: 
+      diceRolls.add diceRoll #please: don't do as I do
 
 proc isRollingDice*: bool = dieRollFrame < maxRollFrames
 

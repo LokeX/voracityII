@@ -43,7 +43,7 @@ const
   statsBatchInit = BatchInit(
     kind:TextBatch,
     name:"stats",
-    pos:(450,550),
+    pos:(475,550),
     padding:(20,20,10,10),
     font:(robotoRegular,20.0,color(1,1,1)),
     bgColor:color(0,0,0),
@@ -244,50 +244,71 @@ proc drawReport*(b:var Boxy,playerColor:PlayerColor) =
     animate reportBatches[playerColor]
   b.drawDynamicImage reportBatches[playerColor]
 
-let (robotoPurple,robotoYellow) = block:
+let (robotoPurple,robotoYellow,robotoGreen,robotoWhite) = block:
   var rob = roboto.copy
   rob.lineHeight = 24
   var 
     robotoYellow = rob.copy
     robotoPurple = rob.copy
+    robotoGreen = rob.copy
+    robotoWhite = rob.copy
   robotoPurple.paint = color(25,0,25)
   robotoYellow.paint = color(25,25,0)
-  (robotoPurple,robotoYellow)
+  robotoGreen.paint = color(0,25,0)
+  robotoWhite.paint = color(25,25,25)
+  (robotoPurple,robotoYellow,robotoGreen,robotoWhite)
 
-func getLoneAlias(playerHandles:openArray[string]):string =
-  for handle in playerHandles:
-    if handle.len > 0: return handle
+func getLoneAlias(aliases:openArray[string]):string =
+  for alias in aliases:
+    if alias.len > 0: return alias
 
-proc matchingGames(
-  stats:seq[GameStats[string,PlayerKind]]
-):tuple[alias:string,matches:seq[GameStats[string,PlayerKind]]] =
+proc countKinds:(int,int) =
+  for kind in playerKinds:
+    if kind == Human:
+      inc result[0]
+    elif kind == Computer:
+      inc result[1]
+
+template matchStats(statsMatches,aliasMatches:untyped):untyped =
   let 
-    humanCount = playerKinds.count Human
-    computerCount = playerKinds.count Computer
-    kindMatches = stats.filterIt(
+    (humanCount {.inject.},computerCount {.inject.}) = countKinds()
+    kindMatches {.inject.} = statsMatches
+    alias {.inject.} = playerHandles.getLoneAlias()
+  if humanCount == 1 and alias.len > 0: aliasMatches else: kindMatches
+
+proc matchingStats:(string,seq[GameStats[string,PlayerKind]]) =
+  let matches = matchStats(
+    gameStats.filterIt(
       it.playerKinds.count(Human) == humanCount and 
-      it.playerKinds.count(Computer) == computerCount
-    )
-  if humanCount == 1 and (let alias = playerHandles.getLoneAlias(); alias.len > 0): 
-    (alias,kindMatches.filterIt(alias in it.aliases))
-  else: ("",kindMatches)
+      it.playerKinds.count(Computer) == computerCount),
+    kindMatches.filterIt(alias in it.aliases))
+  (alias,matches)
+
+proc noneMatchingStats:seq[GameStats[string,PlayerKind]] =
+  matchStats(
+    gameStats.filterIt(
+      it.playerKinds.count(Human) != humanCount or 
+      it.playerKinds.count(Computer) != computerCount),
+    kindMatches.filterIt(alias notin it.aliases))
 
 proc statsBatchSpans:seq[Span] =
-  let stats = gameStats.matchingGames()
-  if gameStats.len > 0 and stats.matches.len > 0:
+  let (alias,matches) = matchingStats()
+  if gameStats.len > 0 and matches.len > 0:
     let 
-      turns = stats.matches.mapIt(it.turnCount).sum
-      avgTurns = turns div stats.matches.len
-      computerWins = stats.matches.countIt it.winner == "computer"
-      humanWins = stats.matches.len - computerWins
-      handle = if stats.alias.len > 0: stats.alias else: "Human"
-      computerPercent = ((computerWins.toFloat/stats.matches.len.toFloat)*100)
+      turns = matches.mapIt(it.turnCount).sum
+      avgTurns = turns div matches.len
+      computerWins = matches.countIt it.winner == "computer"
+      humanWins = matches.len - computerWins
+      handle = if alias.len > 0: alias else: "Human"
+      computerPercent = ((computerWins.toFloat/matches.len.toFloat)*100)
         .formatFloat(ffDecimal,2)
-      humanPercent = ((humanWins.toFloat/stats.matches.len.toFloat)*100)
+      humanPercent = ((humanWins.toFloat/matches.len.toFloat)*100)
         .formatFloat(ffDecimal,2)
     result = @[
+      newSpan("Statistics ",robotoGreen),
+      newSpan("(click to reset):\n",robotoWhite),
       newSpan("Games: ",robotoPurple),
-      newSpan($(stats.matches.len),robotoYellow),
+      newSpan($(matches.len),robotoYellow),
       newSpan("  |  Turns: ",robotoPurple),
       newSpan($turns,robotoYellow),
       newSpan("  |  Avg turns: ",robotoPurple),
@@ -300,9 +321,16 @@ proc statsBatchSpans:seq[Span] =
       newSpan(computerPercent&"%",robotoYellow),
     ]
 
+proc updateStatsBatch* =
+  statsBatch.setSpans statsBatchSpans()
+  statsBatch.update = true
+
 proc drawStats*(b:var Boxy) =
   if statsBatch.spansLength > 0:
     b.drawDynamicImage statsBatch
+
+template mouseOnStatsBatch*:bool =
+  mouseOn statsBatch
 
 func readReportedVisits(turnReports:seq[TurnReport]):array[1..60,int] =
   for square in turnReports.mapIt(it.moves.mapIt(it.toSquare)).flatMap.filterIt(it != 0):
@@ -369,10 +397,6 @@ proc newGameStats:GameStats[string,PlayerKind] =
     cash:cashToWin
   )
 
-proc updateStatsBatch* =
-  statsBatch.setSpans statsBatchSpans()
-  statsBatch.update = true
-
 func aliasToChars(alias:string):Alias =
   for i,ch in alias:
     if i < result.len: 
@@ -434,6 +458,11 @@ proc writeGamestats* =
     gameStats.add newGameStats()
     updateStatsBatch()
     writeGameStatsTo statsFile #jsonStatsFile
+
+proc resetMatchingStats* =
+  gameStats = noneMatchingStats()
+  writeGameStatsTo statsFile
+  updateStatsBatch()
 
 reportBatches = initReportBatches()
 readGameStatsFrom statsFile #jsonStatsFile
