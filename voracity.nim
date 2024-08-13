@@ -387,8 +387,9 @@ proc mouseMoved =
 
 proc keyboard (key:KeyboardEvent) =
   altPressed = key.pressed.alt
-  if batchInputNr != -1: key.batchKeyb inputBatch
-  if key.keyPressed: 
+  if batchInputNr != -1 and key.button != KeyEnter: 
+    key.batchKeyb inputBatch
+  elif key.keyPressed: 
     case key.button
     of NumpadAdd,NumpadSubtract:
       vol += (

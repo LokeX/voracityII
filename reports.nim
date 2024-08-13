@@ -43,8 +43,8 @@ const
   statsBatchInit = BatchInit(
     kind:TextBatch,
     name:"stats",
-    pos:(475,550),
-    padding:(20,20,10,10),
+    pos:(460,530),
+    padding:(15,75,8,15),
     font:(robotoRegular,20.0,color(1,1,1)),
     bgColor:color(0,0,0),
     opacity:25,
@@ -244,7 +244,7 @@ proc drawReport*(b:var Boxy,playerColor:PlayerColor) =
     animate reportBatches[playerColor]
   b.drawDynamicImage reportBatches[playerColor]
 
-let (robotoPurple,robotoYellow,robotoGreen,robotoWhite) = block:
+let (robotoPurple,robotoYellow,robotoGreen,robotoWhite,robotolh7) = block:
   var rob = roboto.copy
   rob.lineHeight = 24
   var 
@@ -252,11 +252,16 @@ let (robotoPurple,robotoYellow,robotoGreen,robotoWhite) = block:
     robotoPurple = rob.copy
     robotoGreen = rob.copy
     robotoWhite = rob.copy
+    robotolh7 = rob.copy
+  robotoGreen.size = 22
+  robotoWhite.size = 18
+  robotolh7.lineHeight = 7
+  # robotoWhite.lineHeight = 30
   robotoPurple.paint = color(25,0,25)
   robotoYellow.paint = color(25,25,0)
   robotoGreen.paint = color(0,25,0)
   robotoWhite.paint = color(25,25,25)
-  (robotoPurple,robotoYellow,robotoGreen,robotoWhite)
+  (robotoPurple,robotoYellow,robotoGreen,robotoWhite,robotolh7)
 
 func getLoneAlias(aliases:openArray[string]):string =
   for alias in aliases:
@@ -306,7 +311,8 @@ proc statsBatchSpans:seq[Span] =
         .formatFloat(ffDecimal,2)
     result = @[
       newSpan("Statistics ",robotoGreen),
-      newSpan("(click to reset):\n",robotoWhite),
+      newSpan(if mouseOn statsBatch: "  -   click to reset\n" else: "\n",robotoWhite),
+      newSpan("\n",robotolh7),
       newSpan("Games: ",robotoPurple),
       newSpan($(matches.len),robotoYellow),
       newSpan("  |  Turns: ",robotoPurple),
@@ -314,10 +320,12 @@ proc statsBatchSpans:seq[Span] =
       newSpan("  |  Avg turns: ",robotoPurple),
       newSpan($avgTurns&"\n",robotoYellow),
       newSpan(handle&" wins: ",robotoPurple),
-      newSpan($humanWins&"  |  ",robotoYellow),
+      newSpan($humanWins,robotoYellow),
+      newSpan("  |  ",robotoPurple),
       newSpan(humanPercent&"%\n",robotoYellow),
       newSpan("Computer wins: ",robotoPurple),
-      newSpan($computerWins&"  |  ",robotoYellow),
+      newSpan($computerWins,robotoYellow),
+      newSpan("  |  ",robotoPurple),
       newSpan(computerPercent&"%",robotoYellow),
     ]
 
@@ -327,6 +335,9 @@ proc updateStatsBatch* =
 
 proc drawStats*(b:var Boxy) =
   if statsBatch.spansLength > 0:
+    let (mouseOver,spanEmpty) = (mouseOn(statsBatch),statsBatch.getSpanText(1).len == 1)
+    if (mouseOver and spanEmpty) or (not mouseOver and not spanEmpty):
+      updateStatsBatch()
     b.drawDynamicImage statsBatch
 
 template mouseOnStatsBatch*:bool =

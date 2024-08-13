@@ -216,13 +216,6 @@ func plans*(player:Player):tuple[cashable,notCashable:seq[BlueCard]] =
     if player.isCashable plan: result.cashable.add plan
     else: result.notCashable.add plan
 
-# func needsProtectionOn*(player:Player,fromSquare,toSquare:int):bool =
-#   var hypoPlayer = player
-#   try: hypoPlayer.pieces[hypoPlayer.pieces.find fromSquare] = toSquare
-#   except: raise newException(CatchableError,"no piece on: "&($fromSquare))
-#   hypoPlayer.plans.notCashable
-#     .anyIt(toSquare in it.squares.required or toSquare in it.squares.oneInMany)
-
 proc discardCards*(player:var Player,deck:var Deck):seq[BlueCard] =
   while player.hand.len > 3:
     result.add player.hand[player.hand.high]
