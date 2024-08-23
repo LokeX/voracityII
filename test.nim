@@ -1,3 +1,13 @@
+iterator reversed[T](list:openArray[T]):T =
+  var idx = list.high
+  while idx >= list.low:
+    yield list[idx]
+    dec idx
+
+from sequtils import toSeq
+echo toSeq reversed [1,2,3,4,5]
+# out -> @[5, 4, 3, 2, 1]
+
 # playing with pointers
 proc write[T](p:pointer,i:int,val:T) =
   cast[ptr T](cast[int](p)+(sizeof(T)*i))[] = val

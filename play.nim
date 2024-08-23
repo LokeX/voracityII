@@ -167,15 +167,15 @@ proc playCashPlansTo*(deck:var Deck) =
     updateTurnReportCards(cashedPlans,Cashed)
     turn.player.updateBatch
     playSound "coins-to-table-2"
-    echo "Cashed plans:"
-    echo $turnPlayer.color," players pieces",turnPlayer.pieces
-    echo cashedPlans
     if turnPlayer.cash >= cashToWin:
       writeGamestats()
       playSound "applause-2"
       setMenuTo NewGameMenu
       updateKeybar = true
       showMenu = true
+    else:
+      turn.undrawnBlues += cashedPlans.len
+      nrOfUndrawnBluesPainter.update = true
 
 proc move*(square:int)
 proc eventMoveFmt(move:Move):EventMoveFmt =
@@ -217,7 +217,7 @@ proc selectBar =
 
 proc barMove(moveEvent:BlueCard):bool =
   dialogBarMoves = turnPlayer.eventMovesEval moveEvent
-  echo dialogBarMoves.mapIt(it.eventMoveFmt).mapIt(it.fromSquare&"\n"&it.toSquare).join("\n")
+  # echo dialogBarMoves.mapIt(it.eventMoveFmt).mapIt(it.fromSquare&"\n"&it.toSquare).join("\n")
   if dialogBarMoves.len > 0:
     if dialogBarMoves.len == 1 or turnPlayer.kind == Computer:
       moveSelection.event = true
@@ -413,6 +413,7 @@ proc leftMouse*(m:KeyEvent) =
     if (let square = mouseOnSquare(); square != -1): 
       if moveSelection.fromSquare == -1 or square notIn moveSelection.toSquares:
         select square
+        updateKeybar = true
       elif moveSelection.fromSquare != -1:
         move square
     elif turnPlayer.hand.len > 3: 

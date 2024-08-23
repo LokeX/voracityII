@@ -119,6 +119,8 @@ proc paintKeybar:Image =
     newSpan((
       if turn.nr == 0: 
         "Start Game" 
+      elif moveSelection.fromSquare != -1:
+        "Deselect piece"
       elif not showMenu:
         "Show Menu"
       elif turnPlayer.cash >= cashToWin: 
@@ -342,8 +344,7 @@ proc menuSelection =
   elif mouseOnMenuSelection("Start Game") or mouseOnMenuSelection("End Turn"):
     nextGameState()
   elif mouseOnMenuSelection("New Game"):
-    if turnPlayer.cash >= cashToWin:
-      setupNewGame()
+    if turnPlayer.cash >= cashToWin: setupNewGame()
     else: confirmEndGame()
 
 proc mouse(m:KeyEvent) =
@@ -405,6 +406,7 @@ proc keyboard (key:KeyboardEvent) =
       if batchInputNr != -1: 
         if inputBatch.input.len > 0:
           playerKinds[batchInputNr] = Human
+          players[batchInputNr].kind = Human
         playerHandles[batchInputNr] = inputBatch.input
         updateBatch batchInputNr
         batchInputNr = -1

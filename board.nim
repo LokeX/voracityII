@@ -168,10 +168,33 @@ func iconPath(square:Square):string =
     else: $square.nr
   )&".png"
 
-proc paintIcon(path:string):Image =
+proc typesetIcon(font:Font,txt:string,width,height:int):Arrangement =
+  typeset(
+    font,txt,
+    bounds = vec2(width.toFloat,height.toFloat),
+    hAlign = CenterAlign,
+    vAlign = MiddleAlign,
+    wrap = false
+  )
+
+let
+  asap = readTypeface "fonts\\AsapCondensed-Bold.ttf"
+  whiteAsap16 = setNewFont(asap,size = 20,color = color(1,1,0))
+  blackAsap16 = setNewFont(asap,size = 20,color = color(0,0,0))
+
+proc initIcon(square:Square):Image =
+  result = readImage square.iconPath
+  if square.name in ["Villa","Condo","Slum","Bank","Shop"]:
+    let 
+      txt = whiteAsap16.typesetIcon(square.name,result.width,result.height)
+      stroke = blackAsap16.typesetIcon(square.name,result.width,result.height)
+    result.fillText(txt,translate vec2(0,0))
+    result.strokeText(stroke,translate(vec2(0,0)),1.0)
+
+proc paintIcon(square:Square):Image =
   let 
     shadowSize = 4.0
-    icon = readImage path
+    icon = square.initIcon
     ctx = newImage(icon.width+shadowSize.toInt,icon.height+shadowSize.toInt).newContext
   ctx.fillStyle = color(0,0,0,150)
   ctx.fillrect(
@@ -186,7 +209,7 @@ proc buildBoardSquares*(path:string):BoardSquares =
   for name in lines path:
     inc count
     result[count] = (count,name,squareDims[count],nil)
-    result[count].icon = result[count].iconPath.paintIcon
+    result[count].icon = result[count].paintIcon
 
 let 
   boardImg* = readImage "pics\\engboard.jpg"

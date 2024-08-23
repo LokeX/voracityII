@@ -3,11 +3,11 @@ Color revolutionary
 {4,9,19,21}
 250000
 mission:
-Jet setter
+Jetsetter
 {4,11,25,43}
 250000
 mission:
-Drug Dealer
+Drugdealer
 {19,30,45,57}
 250000
 mission:
@@ -19,23 +19,23 @@ Pimp
 {11,21,30,57}
 250000
 mission:
-Money Master
-{12,13,22,33}
+Financier
+{6,13,21,45}
 250000
 mission:
 Terrorist
 {6,7,9,11}
 250000
-mission:
+plan:
 Mayor
-{4,25,43,60}
-250000
+{4,4}
+100000
 mission:
 Spy
 {4,6,9,60}
 250000
 mission:
-Rent seeker
+Rentseeker
 {10,22,33,39}
 250000
 job:
@@ -51,12 +51,16 @@ Addictions
 {12,48,60}
 125000
 job:
+Coup
+{6,6,60}
+125000
+job:
 Open house
 {8,22,26}
 125000
 job:
 Digestive issues
-{13,25,55}
+{11,13,25}
 125000
 job:
 Blood diamants
@@ -74,10 +78,10 @@ job:
 Bootlegging
 {48,49,55}
 125000
-job:
-Trans-action
-{4,21,25}
-125000
+mission:
+Trans action
+{4,21,25,45}
+250000
 job:
 Grapevine
 {4,30,48}
@@ -111,7 +115,7 @@ Gangbangers
 {4,21,60}
 125000
 job:
-Higher power
+Higher powers
 {4,7,10}
 125000
 job:
@@ -147,7 +151,7 @@ Nose job
 {8,25,30}
 125000
 job:
-Sweet hearts
+Sweethearts
 {12,13,21}
 125000
 job:
@@ -179,7 +183,7 @@ Ludomania
 {8,12}
 60000
 plan:
-Dead weight
+Deadweight
 {26,45}
 60000
 plan:
@@ -187,11 +191,11 @@ Broken bones
 {25,30}
 60000
 plan:
-Choire boys
+Choireboys
 {7,57}
 60000
 plan:
-Load
+Containment
 {30,49}
 60000
 plan:
@@ -239,11 +243,11 @@ Agent
 {4,9}
 60000
 plan:
-Party drugs
+Partydrugs
 {45,19}
 60000
 plan:
-Delivery
+Bouncing
 {30,19}
 60000
 plan:
@@ -255,7 +259,7 @@ Outstanding
 {22,39}
 60000
 plan:
-Health plan
+Healthplan
 {4,25}
 60000
 plan:
@@ -271,7 +275,7 @@ Judicial murder
 {10,10}
 100000
 plan:
-Strong medicine
+Prescriptions
 {45,57}
 60000
 plan:
@@ -299,7 +303,7 @@ Secret weapon
 {9,6}
 60000
 plan:
-Small box
+Compartmentalized
 {11,30}
 60000
 plan:
@@ -323,7 +327,7 @@ Stiffs
 {21,26}
 60000
 deed:
-Light load
+Loads of stuff
 {49}[23,34,42,44,50]
 50000
 deed:
@@ -351,23 +355,27 @@ Concuctions
 {45}[56,58,59]
 55000
 deed:
-Home brew
+Homebrew
 {48}[31,32]
 60000
 deed:
-Local dealership
-{30}[31,32]
+Faulty towers
+{43}[31,32]
+60000
+deed:
+Usery
+{39}[31,32]
 60000
 deed:
 Rentals
-{39}[31,32]
+{39}[56,58,59]
 60000
 deed:
 Protection
 {30}[23,34,42,44,50]
 50000
 deed:
-Body count
+Bodycount
 {26}[56,58,59]
 55000
 deed:
@@ -375,7 +383,7 @@ Blood suckers
 {25}[3,14,24,38,52]
 50000
 deed:
-Slum lord
+Slumlord
 {22}[56,58,59]
 55000
 deed:
@@ -399,7 +407,7 @@ Burglary
 {8}
 30000
 deed:
-Pure luck
+Lucky bastard
 {12}
 30000
 deed:
@@ -415,15 +423,15 @@ Cold meds
 {45}
 30000
 deed:
-Ram theft
+Ramtheft
 {13}
 30000
 deed:
-Sing along song
+Sing a long song
 {10}
 30000
 news:
-Mauled by anti-fascists
+Mauled by antifascist
 {57,25}
 pics\\news\\fitti6.jpg
 news:
@@ -467,7 +475,7 @@ Busted
 {36,60}
 pics\\events\\jail.jpg
 event:
-Gone overseas
+Get out of Dodge
 {11,49}
 pics\\events\\hop.jpg
 event:

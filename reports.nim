@@ -175,8 +175,9 @@ proc writeEndOfGameReports =
       turnReports.filterIt(it.playerBatch.color == player.color)[^1]
     var reportLines = report.reportLines
     reportLines.add @[
-      "Hand: "&player.hand.mapIt(it.title).join(","),
       "Drawn: "&report.cards.drawn.mapIt(it.title).join(","),
+      "Hand: "&player.hand.mapIt(it.title).join(","),
+      "Press and hold alt-key to view players hand"
     ]
     reportBatches[player.color].setSpans reportLines.mapIt newSpan(it&"\n",plainFont)
 
@@ -218,6 +219,7 @@ proc resetReports* =
   initTurnReport()
   turnReports.setLen 0
   selectedBatch = -1
+  killMatrixPainter.update = true
 
 template gotReport*(player:PlayerColor):bool =
   reportBatches[player].spansLength > 0
@@ -256,16 +258,25 @@ let (robotoPurple,robotoYellow,robotoGreen,robotoWhite,robotolh7) = block:
   robotoGreen.size = 22
   robotoWhite.size = 18
   robotolh7.lineHeight = 7
-  # robotoWhite.lineHeight = 30
   robotoPurple.paint = color(25,0,25)
   robotoYellow.paint = color(25,25,0)
   robotoGreen.paint = color(0,25,0)
   robotoWhite.paint = color(25,25,25)
   (robotoPurple,robotoYellow,robotoGreen,robotoWhite,robotolh7)
 
-func getLoneAlias(aliases:openArray[string]):string =
-  for alias in aliases:
-    if alias.len > 0: return alias
+proc getLoneAlias:string =
+  if (let aliases = playerHandles.filterIt(it.len > 0).deduplicate; aliases.len > 0):
+    if aliases.count(aliases[0]) == aliases.len:
+      result = aliases[0]
+
+func aliasCounts(handles:openArray[string]):seq[(string,int)] =
+  handles.filterIt(it.isAlpha).deduplicate.mapIt (it,handles.count it)
+
+proc playerHandlesMatch(aliases:openArray[string]):bool =
+  for (alias,count) in aliases.aliasCounts:
+    if count != playerHandles.count alias:
+      return false
+  true
 
 proc countKinds:(int,int) =
   for kind in playerKinds:
@@ -274,37 +285,38 @@ proc countKinds:(int,int) =
     elif kind == Computer:
       inc result[1]
 
-template matchStats(statsMatches,aliasMatches:untyped):untyped =
+template matchStats(statsMatching,aliasMatching:untyped):untyped =
   let 
     (humanCount {.inject.},computerCount {.inject.}) = countKinds()
-    kindMatches {.inject.} = statsMatches
-    alias {.inject.} = playerHandles.getLoneAlias()
-  if humanCount == 1 and alias.len > 0: aliasMatches else: kindMatches
+    kindMatches {.inject.} = statsMatching
+    playerHandleMatches = aliasMatching
+  # echo kindMatches
+  # echo playerHandleMatches
+  if playerHandleMatches.len > 0: playerHandleMatches else: kindMatches
 
-proc matchingStats:(string,seq[GameStats[string,PlayerKind]]) =
-  let matches = matchStats(
+proc matchingStats:seq[GameStats[string,PlayerKind]] =
+  matchStats(
     gameStats.filterIt(
       it.playerKinds.count(Human) == humanCount and 
       it.playerKinds.count(Computer) == computerCount),
-    kindMatches.filterIt(alias in it.aliases))
-  (alias,matches)
+    kindMatches.filterIt(playerHandlesMatch it.aliases))
 
 proc noneMatchingStats:seq[GameStats[string,PlayerKind]] =
   matchStats(
     gameStats.filterIt(
       it.playerKinds.count(Human) != humanCount or 
       it.playerKinds.count(Computer) != computerCount),
-    kindMatches.filterIt(alias notin it.aliases))
+    kindMatches.filterIt(not playerHandlesMatch it.aliases))
 
 proc statsBatchSpans:seq[Span] =
-  let (alias,matches) = matchingStats()
+  let (loneAlias,matches) = (getLoneAlias(),matchingStats())
   if gameStats.len > 0 and matches.len > 0:
     let 
       turns = matches.mapIt(it.turnCount).sum
       avgTurns = turns div matches.len
       computerWins = matches.countIt it.winner == "computer"
       humanWins = matches.len - computerWins
-      handle = if alias.len > 0: alias else: "Human"
+      handle = if loneAlias.len > 0: loneAlias else: "Human"
       computerPercent = ((computerWins.toFloat/matches.len.toFloat)*100)
         .formatFloat(ffDecimal,2)
       humanPercent = ((humanWins.toFloat/matches.len.toFloat)*100)
@@ -395,7 +407,7 @@ proc writeCashedCardsTo(path:string) =
 
 template winner:untyped =
   if turnReport.playerBatch.kind == Computer: "computer"
-  elif playerHandles[turnReport.playerBatch.color.ord].len > 0:
+  elif playerHandles[turnReport.playerBatch.color.ord].isAlpha:
     playerHandles[turnReport.playerBatch.color.ord]
   else: "human"
 
@@ -468,7 +480,7 @@ proc writeGamestats* =
   if players.anyHuman and players.anyComputer:
     gameStats.add newGameStats()
     updateStatsBatch()
-    writeGameStatsTo statsFile #jsonStatsFile
+    writeGameStatsTo statsFile
 
 proc resetMatchingStats* =
   gameStats = noneMatchingStats()
@@ -476,5 +488,5 @@ proc resetMatchingStats* =
   updateStatsBatch()
 
 reportBatches = initReportBatches()
-readGameStatsFrom statsFile #jsonStatsFile
+readGameStatsFrom statsFile
 updateStatsBatch()
