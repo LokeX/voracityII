@@ -202,7 +202,7 @@ func friendlyFireAdviced*(hypothetical:Hypothetic,move:Move):bool =
   move.toSquare notIn highways and
   move.toSquare notIn gasStations and
   hypothetical.allPlayerPieces.countIt(it == move.toSquare) == 1 and
-  # hypothetical.piecesOn(move.toSquare) == 1 and 
+  hypothetical.piecesOn(move.toSquare) == 1 and 
   hypothetical.requiredPiecesOn(move.toSquare) < 2 and
   hypothetical.friendlyFireBest(move)
 
