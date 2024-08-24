@@ -338,13 +338,13 @@ proc killPieceAndMove*(confirmedKill:string) =
     playSound "Deanscream-2"
   animateMove()
 
-func hostileFireEval(player:Player,pieceNr,toSquare:int):int =
+proc hostileFireEval(player:Player,pieceNr,toSquare:int):int =
   var hypoPlayer = player
   hypoPlayer.pieces[pieceNr] = toSquare
   hypoPlayer.hand = hypoPlayer.plans.notCashable
   hypoPlayer.hypotheticalInit.evalPos
 
-func hostileFireAdviced*(player:Player,fromSquare,toSquare:int):bool =
+proc hostileFireAdviced*(player:Player,fromSquare,toSquare:int):bool =
   let pieceNr = player.pieces.find(fromSquare)
   pieceNr != -1 and 
   player.hostileFireEval(pieceNr,toSquare) < player.hostileFireEval(pieceNr,0)

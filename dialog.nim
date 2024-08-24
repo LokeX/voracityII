@@ -51,8 +51,6 @@ proc endDialog(selected:string) =
 proc draw(b:var Boxy) =
   if dialogBatch != nil and dialogBatch.isActive:
     b.drawDynamicImage dialogBatch
-    # if square != -1:
-    #   b.drawDynamicImage moveToSquaresPainter
 
 proc keyboard(k:KeyboardEvent) = 
   if dialogBatch.isActive and k.pressedIs KeyEnter:
@@ -72,11 +70,7 @@ proc mouseMoved =
       .splitWhitespace[^1]
       .parseInt 
     except: -1
-    echo "dialogSelection = ",dialogEntries[dialogBatch.selection]
-    echo "selectedSquare = ",selectedSquare
-    echo "square = ",square
     if selectedSquare notin [-1,square]:
-      echo "updating"
       square = selectedSquare
       moveToSquaresPainter.context = @[square]
       moveToSquaresPainter.update = true

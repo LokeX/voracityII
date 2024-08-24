@@ -265,7 +265,7 @@ let (robotoPurple,robotoYellow,robotoGreen,robotoWhite,robotolh7) = block:
   (robotoPurple,robotoYellow,robotoGreen,robotoWhite,robotolh7)
 
 proc getLoneAlias:string =
-  if (let aliases = playerHandles.filterIt(it.len > 0).deduplicate; aliases.len > 0):
+  if (let aliases = playerHandles.filterIt(it.isAlpha).deduplicate; aliases.len > 0):
     if aliases.count(aliases[0]) == aliases.len:
       result = aliases[0]
 
@@ -349,7 +349,9 @@ proc drawStats*(b:var Boxy) =
   if statsBatch.spansLength > 0:
     let (mouseOver,spanEmpty) = (mouseOn(statsBatch),statsBatch.getSpanText(1).len == 1)
     if (mouseOver and spanEmpty) or (not mouseOver and not spanEmpty):
-      updateStatsBatch()
+      statsBatch.setSpanText(if mouseOn statsBatch: "  -   click to reset\n" else: "\n",1)
+      statsBatch.update = true
+      # updateStatsBatch()
     b.drawDynamicImage statsBatch
 
 template mouseOnStatsBatch*:bool =

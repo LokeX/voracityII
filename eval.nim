@@ -6,7 +6,6 @@ from math import pow,sum
 from algorithm import sort,sortedByIt
 import sugar
 import taskpools
-# from misc import flatMap,reduce,taskPoolsAs
 import misc
 
 const
@@ -21,6 +20,7 @@ type
   Hypothetic* = tuple
     board:array[61,int]
     pieces:array[5,int]
+    allPlayerPieces:seq[int]
     cards:seq[BlueCard]
     cash:int
 
@@ -88,13 +88,14 @@ func isCovered(hypothetical:Hypothetic,card:BlueCard):bool =
 func oneInMoreBonus(hypothetical:Hypothetic,card:BlueCard,square:int):int =
   let 
     requiredSquare = card.squares.required[0]
-    piecesOnRequiredSquare = hypothetical.piecesOn(requiredSquare) > 0
+    piecesOnRequiredSquare = hypothetical.piecesOn(requiredSquare)
   if square == requiredSquare:
-    if piecesOnRequiredSquare:
+    if piecesOnRequiredSquare == 1:
       result = card.cash
-    elif hypothetical.isCovered(square) and card.squares.oneInMany.anyIt hypothetical.isCovered it:
-      result = card.cash div 2
-  elif piecesOnRequiredSquare and square in card.squares.oneInMany:
+    elif piecesOnRequiredSquare == 0:
+      if hypothetical.isCovered(square) and card.squares.oneInMany.anyIt hypothetical.isCovered it:
+        result = card.cash div 2
+  elif piecesOnRequiredSquare > 0 and square in card.squares.oneInMany:
     result = card.cash
 
 func oneRequiredBonus(hypothetical:Hypothetic,card:BlueCard,square:int): int =
@@ -169,6 +170,7 @@ func evalBlue(hypothetical:Hypothetic,card:BlueCard): int =
   evalPos (
     baseEvalBoard(hypothetical),
     hypothetical.pieces,
+    hypothetical.allPlayerPieces,
     @[card],
     hypothetical.cash
   )
@@ -199,7 +201,8 @@ func friendlyFireAdviced*(hypothetical:Hypothetic,move:Move):bool =
   move.fromSquare != 0 and
   move.toSquare notIn highways and
   move.toSquare notIn gasStations and
-  hypothetical.piecesOn(move.toSquare) == 1 and 
+  hypothetical.allPlayerPieces.countIt(it == move.toSquare) == 1 and
+  # hypothetical.piecesOn(move.toSquare) == 1 and 
   hypothetical.requiredPiecesOn(move.toSquare) < 2 and
   hypothetical.friendlyFireBest(move)
 
@@ -210,7 +213,10 @@ func evalMove*(hypothetical:Hypothetic,pieceNr,toSquare:int):int =
   var pieces = hypothetical.pieces
   if hypothetical.friendlyFireAdviced (pieceNr,0,pieces[pieceNr],toSquare,0):
     pieces[pieceNr] = 0 else: pieces[pieceNr] = toSquare
-  (hypothetical.board,pieces,hypothetical.cards.threeBest,hypothetical.cash).evalPos
+  (hypothetical.board,pieces,
+  hypothetical.allPlayerPieces,
+  hypothetical.cards.threeBest,
+  hypothetical.cash).evalPos
 
 func bestMoveFrom(hypothetical:Hypothetic,generic:Move):Move =
   let
@@ -276,15 +282,21 @@ proc bestDiceMoves*(hypothetical:Hypothetic):seq[Move] =
     result.add dieMoves[dieMoves.mapIt(it.eval).maxIndex]
   result.sortedByIt it.eval
 
-func hypotheticalInit*(player:Player):Hypothetic =
+func allPlayerPieces(players:seq[Player]):seq[int] =
+  for player in players:
+    result.add player.pieces
+
+proc hypotheticalInit*(player:Player):Hypothetic =
   var board:EvalBoard
   (baseEvalBoard(
     (board,
     player.pieces,
+    @[],
     player.hand,
     player.cash)
   ),
   player.pieces,
+  players.allPlayerPieces,
   player.hand,
   player.cash)
 
@@ -295,7 +307,7 @@ func pieceNrsOnBars(player:Player):seq[int] =
   for nr,square in player.pieces:
     if square in bars: result.add nr
 
-func eventMovesEval*(player:Player,event:BlueCard):seq[Move] =
+proc eventMovesEval*(player:Player,event:BlueCard):seq[Move] =
   let hypothetical = player.hypotheticalInit
   for pieceNr in player.pieceNrsOnBars:
     for toSquare in event.moveSquares:
