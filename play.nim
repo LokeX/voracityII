@@ -94,6 +94,7 @@ proc setupNewGame* =
   playerBatches = newPlayerBatches()
   piecesImg.update = true
   setMenuTo SetupMenu
+  showMenu = true
   playSound "carhorn-1"
 
 proc togglePlayerKind(batchNr:int) =
@@ -425,8 +426,8 @@ proc endGame =
   if turnPlayer.kind == Human:
     recordTurnReport()
   setupNewGame()
-  setMenuTo SetupMenu
-  showMenu = true
+  # setMenuTo SetupMenu
+  # showMenu = true
 
 proc startNewGame =
   inc turn.nr
@@ -444,7 +445,8 @@ proc nextTurn =
   nextPlayerTurn()
   initTurnReport()
   if anyHuman players: showMenu = false
-  updateTurnReportCards(cashInPlansTo blueDeck, Cashed)
+  playCashPlansTo blueDeck
+  # updateTurnReportCards(cashInPlansTo blueDeck, Cashed)
 
 proc nextGameState* =
   if turnPlayer.cash >= cashToWin: 

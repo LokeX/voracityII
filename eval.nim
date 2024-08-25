@@ -24,12 +24,6 @@ type
     cards:seq[BlueCard]
     cash:int
 
-# template taskPoolsAs(pool,codeBlock:untyped) =
-#   var pool = Taskpool.new(num_threads = countProcessors())
-#   codeBlock
-#   pool.syncAll
-#   pool.shutdown
-
 func countBars*(hypothetical:Hypothetic): int = hypothetical.pieces.countIt(it in bars)
 
 func cardVal(hypothetical:Hypothetic): int =
@@ -55,7 +49,7 @@ func covers(pieceSquare,coverSquare:int): bool =
     if coverSquare in moveToSquares(pieceSquare,die):
       return true
 
-func isCovered(hypothetical:Hypothetic, square:int):bool =
+func isCovered(hypothetical:Hypothetic,square:int):bool =
   hypothetical.pieces.anyIt(it.covers(square))
 
 func blueCovers(hypothetical:Hypothetic,card:BlueCard):seq[Cover] =
@@ -85,25 +79,35 @@ func isCovered(hypothetical:Hypothetic,card:BlueCard):bool =
   let covers = hypothetical.blueCovers(card)
   card.requiredSquaresIn(covers) and card.enoughPiecesIn(covers)
 
+func cashValue(card:BlueCard):int =
+  let cashNeeded = cashToWin-card.cash
+  if cashNeeded < card.cash: cashNeeded else: card.cash
+
 func oneInMoreBonus(hypothetical:Hypothetic,card:BlueCard,square:int):int =
   let 
+    cash = card.cashValue
     requiredSquare = card.squares.required[0]
     piecesOnRequiredSquare = hypothetical.piecesOn(requiredSquare)
   if square == requiredSquare:
     if piecesOnRequiredSquare == 1:
-      result = card.cash
+      result = cash
+      # result = card.cash
     elif piecesOnRequiredSquare == 0:
       if hypothetical.isCovered(square) and card.squares.oneInMany.anyIt hypothetical.isCovered it:
-        result = card.cash div 2
+        result = cash div 2
+        # result = card.cash div 2
   elif piecesOnRequiredSquare > 0 and square in card.squares.oneInMany:
-    result = card.cash
+    result = cash
+    # result = card.cash
 
-func oneRequiredBonus(hypothetical:Hypothetic,card:BlueCard,square:int): int =
+func oneRequiredBonus(hypothetical:Hypothetic,card:BlueCard,square:int):int =
   if card.squares.oneInMany.len > 0:
     hypothetical.oneInMoreBonus(card,square)
-  elif hypothetical.isCovered square: 
-    card.cash
-  else: 0
+  else: card.cashValue
+  # elif hypothetical.isCovered square: 
+  #   card.cashValue
+  #   # card.cash
+  # else: 0
 
 func blueBonus(hypothetical:Hypothetic,card:BlueCard,square:int):int =
   let
@@ -113,19 +117,28 @@ func blueBonus(hypothetical:Hypothetic,card:BlueCard,square:int):int =
     let nrOfPiecesRequired = card.squares.required.len
     if nrOfPiecesRequired == 1: 
       result = hypothetical.oneRequiredBonus(card,square)
-    elif squareIndex < 0 and square in card.squares.oneInMany:
-        result = card.cash
+    # elif squareIndex < 0 and square in card.squares.oneInMany:
+    #     result = cash
+    #     # result = card.cash
     else:
       let
+        cash = card.cashValue
         piecesOn = requiredSquares.mapIt hypothetical.pieces.count it
         requiredPiecesOn = requiredSquares.mapIt card.squares.required.count it
-        freePieces = piecesOn[squareIndex] - requiredPiecesOn[squareIndex]
-        hasCover = hypothetical.isCovered card
-      if freePieces < 1 and hasCover:
+        # freePieces = piecesOn[squareIndex] - requiredPiecesOn[squareIndex]
+        piecesVsRequired = toSeq(0..requiredSquares.high).mapIt piecesOn[it] - requiredPiecesOn[it]
+        squaresWithRequiredPieces = piecesVsRequired.filterIt(it >= 0)
+        isMissingOnePiece = 
+          squaresWithRequiredPieces.len == requiredSquares.len-1 and 
+          piecesVsRequired[squareIndex] == -1
+        # hasCover = hypothetical.isCovered card
+      # if freePieces < 1 and hasCover:
+      if piecesVsRequired[squareIndex] < 1 and (isMissingOnePiece or hypothetical.isCovered card):
         var nrOfPieces = 1
         for square in 0..requiredSquares.high:
           nrOfPieces += min(piecesOn[square],requiredPiecesOn[square])
-        result = (card.cash div nrOfPiecesRequired)*nrOfPieces
+        result = (cash div nrOfPiecesRequired)*nrOfPieces
+        # result = (card.cash div nrOfPiecesRequired)*nrOfPieces
 
 func blueVals(hypothetical:Hypothetic,squares:seq[int]):seq[int] =
   result.setLen(squares.len)

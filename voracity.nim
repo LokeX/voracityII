@@ -354,7 +354,7 @@ proc mouse(m:KeyEvent) =
     pinnedBatchNr = -1
     batchInputNr = -1
     inputBatch.deleteInput
-  if mouseOnStatsBatch: confirmResetStats()
+  if statsBatchVisible and mouseOnStatsBatch: confirmResetStats()
   if m.rightMousePressed and turn.nr == 0 and mouseOnBatchPlayerNr != -1:
     batchInputNr = mouseOnBatchPlayerNr
   if m.leftMousePressed or m.rightMousePressed:

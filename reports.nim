@@ -345,6 +345,9 @@ proc updateStatsBatch* =
   statsBatch.setSpans statsBatchSpans()
   statsBatch.update = true
 
+template statsBatchVisible*: untyped =
+  statsBatch.spansLength > 0
+  
 proc drawStats*(b:var Boxy) =
   if statsBatch.spansLength > 0:
     let (mouseOver,spanEmpty) = (mouseOn(statsBatch),statsBatch.getSpanText(1).len == 1)
