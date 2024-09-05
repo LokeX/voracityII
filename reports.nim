@@ -28,7 +28,7 @@ type
     playerBatch:tuple[color:PlayerColor,kind:PlayerKind]
     diceRolls*:seq[Dice]
     moves*:seq[Move]
-    cards*:tuple[drawn,played,cashed,discarded:seq[BlueCard]]
+    cards*:tuple[drawn,played,cashed,discarded,hand:seq[BlueCard]]
     kills:seq[PlayerColor]
 
 const
@@ -166,7 +166,17 @@ proc reportSpansFrom(turnReport:TurnReport):seq[Span] =
   for line in reportLines turnReport:
     result.add newSpan(line&"\n",plainFont)
 
+proc echoTurn(report:TurnReport) =
+  for fn,item in turnReport.fieldPairs:
+    when typeOf(item) is tuple:
+      for n,i in item.fieldPairs: 
+        echo n,": ",$i
+    else: 
+      echo fn,": ",$item
+
 proc recordTurnReport* =
+  turnReport.cards.hand = turnPlayer.hand
+  echoTurn turnReport
   turnReports.add turnReport
 
 proc writeEndOfGameReports =

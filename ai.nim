@@ -52,15 +52,17 @@ proc aiMove(hypothetical:Hypothetic,dice:openArray[int]):(bool,Move) =
   ):(true,winMove) else: (false,hypothetical.move dice)
 
 func betterThan(move:Move,hypothetical:Hypothetic):bool =
-  move.eval.toFloat > hypothetical.evalPos().toFloat
-  # move.eval.toFloat >= hypothetical.evalPos().toFloat*0.75
+  move.eval.toFloat >= hypothetical.evalPos().toFloat*0.85
 
 proc moveAi =
   let (isWinningMove,move) = hypo.aiMove([diceRoll[1].ord,diceRoll[2].ord])
   if isWinningMove or move.betterThan hypo:
+    if turnPlayer.skipped > 0: 
+      turnPlayer.skipped = 0
     moveSelection.fromSquare = move.fromSquare
     move move.toSquare
   else:
+    inc turnPlayer.skipped
     echo "ai skips move:"
     # echo "currentPosEval: ",currentPosEval
     # echo "moveEval: ",move.eval

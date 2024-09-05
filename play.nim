@@ -273,7 +273,11 @@ proc drawCardFrom*(deck:var Deck) =
   case blue.cardKind
   of Event: playEvent()
   of News: playNews()
-  else: action = Drawn
+  else: 
+    # if turnPlayer.kind == Human:
+    #   discard turnPlayer.pieces.covers2 turnPlayer.hand[^1]
+    #   echo "org covers result: ",turnPlayer.pieces.covers turnPlayer.hand[^1]
+    action = Drawn
   updateTurnReportCards(@[blue],action)
   dec turn.undrawnBlues
   nrOfUndrawnBluesPainter.update = true
@@ -356,16 +360,17 @@ proc shouldKillEnemyOn(killer:Player,toSquare:int): bool =
       return false 
   else:
     let 
-      randKill = rand(1..100) <= 5
+      # randKill = rand(1..100) <= 5
       hostileFireAdviced = killer.hostileFireAdviced(moveSelection.fromSquare,toSquare)
-      agroKill = rand(1..100) <= killer.agro and hostileFireAdviced
+      agroKill = rand(1..100) <= killer.agro div 5
       planChance = players[singlePiece.playerNr].cashChanceOn(toSquare,blueDeck)
       barKill = toSquare in bars and (
-        killer.nrOfPiecesOnBars > 1 or players.len < 3
+        killer.nrOfPiecesOnBars > 0 or players.len < 3
       )
-    (planChance > 0.05*(players.len.toFloat/2)) or agroKill or barKill or randKill
+    (planChance > 0.1*(players.len.toFloat/2)) or 
+    agroKill or barKill or hostileFireAdviced
 
-proc aiRemovePiece(move:Move): bool =
+proc aiRemovePiece(move:Move):bool =
   turnPlayer.hypotheticalInit.friendlyFireAdviced(move) or 
   turnPlayer.shouldKillEnemyOn move.toSquare
 

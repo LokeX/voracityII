@@ -17,6 +17,7 @@ type
       squares*:PlanSquares
       cash*:int
       eval*:int
+      covered*:bool
     of Event,News:
       moveSquares*:seq[int]
       bgPath:string

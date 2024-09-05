@@ -1,9 +1,9 @@
+from algorithm import sort,sortedByIt
+from math import pow,sum
 import game
 import board
 import deck
 import sequtils
-from math import pow,sum
-from algorithm import sort,sortedByIt
 import sugar
 import taskpools
 import misc
@@ -14,101 +14,88 @@ const
   posPercent = [1.0,0.3,0.3,0.3,0.3,0.3,0.3,0.15,0.14,0.12,0.10,0.08,0.05]
 
 type
-  Cover = tuple[pieceNr,square:int]
   Move* = tuple[pieceNr,die,fromSquare,toSquare,eval:int]
   EvalBoard* = array[61,int]
   Hypothetic* = tuple
     board:array[61,int]
     pieces:array[5,int]
-    allPlayerPieces:seq[int]
+    allPlayersPieces:seq[int]
     cards:seq[BlueCard]
     cash:int
+    skipped:int
 
-func countBars*(hypothetical:Hypothetic): int = hypothetical.pieces.countIt(it in bars)
+func countBars*(hypothetical:Hypothetic):int = hypothetical.pieces.countIt(it in bars)
 
+func covers*(pieces:openArray[int],card:BlueCard):bool
 func cardVal(hypothetical:Hypothetic): int =
-  if (let val = 3 - hypothetical.cards.len; val > 0): val*10000 else: 0
+  if (let val = 3 - hypothetical.cards.filterIt(hypothetical.pieces.covers it).len; val > 0): 
+    val*20000 else: 0
 
-func barVal*(hypothetical:Hypothetic): int = 
+func barVal*(hypothetical:Hypothetic):int = 
   let 
     barCount = hypothetical.countBars
   valBar-(500*barCount)+cardVal(hypothetical)
-
-func piecesOn(hypothetical:Hypothetic,square:int): int =
+  
+func piecesOn(hypothetical:Hypothetic,square:int):int =
   hypothetical.pieces.count(square)
 
-func requiredPiecesOn*(hypothetical:Hypothetic,square:int): int =
+func requiredPiecesOn*(hypothetical:Hypothetic,square:int):int =
   if hypothetical.cards.len == 0: 0 else:
     hypothetical.cards.mapIt(it.squares.required.count(square)).max
 
-func freePiecesOn(hypothetical:Hypothetic,square:int): int =
+func freePiecesOn(hypothetical:Hypothetic,square:int):int =
   hypothetical.piecesOn(square) - hypothetical.requiredPiecesOn(square)
 
-func covers(pieceSquare,coverSquare:int): bool =
-  for die in 1..6:
-    if coverSquare in moveToSquares(pieceSquare,die):
-      return true
+func covers(pieceSquare,coverSquare:int):bool =
+  pieceSquare == coverSquare or
+  toSeq(1..6).anyIt coverSquare in moveToSquares(pieceSquare,it)
 
-func isCovered(hypothetical:Hypothetic,square:int):bool =
-  hypothetical.pieces.anyIt(it.covers(square))
+func covers(pieces,squares:openArray[int]):bool =
+  let coverPieces = pieces.filterIt it.covers squares[0]
+  if coverPieces.len == 0: 
+    return false 
+  elif squares.len == 1: 
+    return true
+  else:
+    for piece in coverPieces:
+      if pieces.filterIt(it != piece).covers squares[1..squares.high]:
+        return true
 
-func blueCovers(hypothetical:Hypothetic,card:BlueCard):seq[Cover] =
-  let requiredDistinct = card.squares.required.deduplicate
-  for pieceNr,pieceSquare in hypothetical.pieces:
-    if pieceSquare in requiredDistinct:
-      result.add (pieceNr,pieceSquare)
-    else:
-      for blueSquare in requiredDistinct:
-        if pieceSquare.covers blueSquare:
-          result.add (pieceNr,blueSquare)
+func covers*(pieces:openArray[int],card:BlueCard):bool =
+  pieces.covers card.squares.required
 
-func enoughPiecesIn(card:BlueCard,covers:seq[Cover]):bool =
-  let availablePieces = covers.mapIt(it.pieceNr).deduplicate
-  availablePieces.len >= card.squares.required.len
-
-func requiredSquaresIn(card:BlueCard,covers:seq[Cover]):bool =
+func rewardValue(hypothetical:Hypothetic,card:BlueCard):int =
   let 
-    required = card.squares.required
-    requiredDistinct = required.deduplicate
-    requiredCounts = requiredDistinct.mapIt required.count it
-    coverSquares = covers.mapIt it.square
-    coversCount = requiredDistinct.mapIt coverSquares.count it
-  toSeq(0..requiredCounts.high).allIt coversCount[it] >= requiredCounts[it]
+    cashNeeded = cashToWin-card.cash
+    # lockedPosModifier = 
+    #   if card.cardKind == Mission: 
+    #     hypothetical.skipped+1
+    #   else: 1
+  if cashNeeded < card.cash: 
+    cashNeeded #div lockedPosModifier
+  else: 
+    card.cash #div lockedPosModifier
 
-func isCovered(hypothetical:Hypothetic,card:BlueCard):bool =
-  let covers = hypothetical.blueCovers(card)
-  card.requiredSquaresIn(covers) and card.enoughPiecesIn(covers)
-
-func cashValue(card:BlueCard):int =
-  let cashNeeded = cashToWin-card.cash
-  if cashNeeded < card.cash: cashNeeded else: card.cash
-
-func oneInMoreBonus(hypothetical:Hypothetic,card:BlueCard,square:int):int =
+func coversOneIn(pieces,squares:openArray[int]):bool =
+  for piece in pieces:
+    for square in squares:
+      if piece.covers square:
+        return true
+  
+func oneInMoreBonus(hypothetical:Hypothetic,blueCard:BlueCard,square:int):int =
   let 
-    cash = card.cashValue
-    requiredSquare = card.squares.required[0]
-    piecesOnRequiredSquare = hypothetical.piecesOn(requiredSquare)
+    reward = hypothetical.rewardValue blueCard
+    requiredSquare = blueCard.squares.required[0]
   if square == requiredSquare:
-    if piecesOnRequiredSquare == 1:
-      result = cash
-      # result = card.cash
-    elif piecesOnRequiredSquare == 0:
-      if hypothetical.isCovered(square) and card.squares.oneInMany.anyIt hypothetical.isCovered it:
-        result = cash div 2
-        # result = card.cash div 2
-  elif piecesOnRequiredSquare > 0 and square in card.squares.oneInMany:
-    result = cash
-    # result = card.cash
-
-func oneRequiredBonus(hypothetical:Hypothetic,card:BlueCard,square:int):int =
-  if card.squares.oneInMany.len > 0:
-    hypothetical.oneInMoreBonus(card,square)
-  else: card.cashValue
-  # elif hypothetical.isCovered square: 
-  #   card.cashValue
-  #   # card.cash
-  # else: 0
-
+    if blueCard.squares.oneInMany.anyIt hypothetical.piecesOn(it) > 0: result = reward
+    elif hypothetical.pieces.coversOneIn blueCard.squares.oneInMany:
+      result = 
+        case hypothetical.piecesOn(requiredSquare)
+        of 0:reward div 2
+        of 1:reward
+        else:0
+  elif hypothetical.piecesOn(requiredSquare) > 0: result = reward
+ 
 func blueBonus(hypothetical:Hypothetic,card:BlueCard,square:int):int =
   let
     requiredSquares = card.squares.required.deduplicate
@@ -116,29 +103,24 @@ func blueBonus(hypothetical:Hypothetic,card:BlueCard,square:int):int =
   if squareIndex >= 0 or square in card.squares.oneInMany:
     let nrOfPiecesRequired = card.squares.required.len
     if nrOfPiecesRequired == 1: 
-      result = hypothetical.oneRequiredBonus(card,square)
-    # elif squareIndex < 0 and square in card.squares.oneInMany:
-    #     result = cash
-    #     # result = card.cash
+      result = if card.squares.oneInMany.len > 0:
+        hypothetical.oneInMoreBonus(card,square)
+      else: hypothetical.rewardValue(card)*2 #+(hypothetical.distract*2)
     else:
       let
-        cash = card.cashValue
         piecesOn = requiredSquares.mapIt hypothetical.pieces.count it
         requiredPiecesOn = requiredSquares.mapIt card.squares.required.count it
-        # freePieces = piecesOn[squareIndex] - requiredPiecesOn[squareIndex]
-        piecesVsRequired = toSeq(0..requiredSquares.high).mapIt piecesOn[it] - requiredPiecesOn[it]
-        squaresWithRequiredPieces = piecesVsRequired.filterIt(it >= 0)
-        isMissingOnePiece = 
-          squaresWithRequiredPieces.len == requiredSquares.len-1 and 
-          piecesVsRequired[squareIndex] == -1
-        # hasCover = hypothetical.isCovered card
-      # if freePieces < 1 and hasCover:
-      if piecesVsRequired[squareIndex] < 1 and (isMissingOnePiece or hypothetical.isCovered card):
-        var nrOfPieces = 1
-        for square in 0..requiredSquares.high:
-          nrOfPieces += min(piecesOn[square],requiredPiecesOn[square])
-        result = (cash div nrOfPiecesRequired)*nrOfPieces
-        # result = (card.cash div nrOfPiecesRequired)*nrOfPieces
+        piecesVsRequired = 
+          toSeq(0..requiredSquares.high)
+          .mapIt piecesOn[it] - requiredPiecesOn[it]
+        missingPiece = 
+          piecesVsRequired[squareIndex] == -1 and
+          piecesVsRequired.countIt(it >= 0) == requiredSquares.len-1
+      if piecesVsRequired[squareIndex] < 1 and (missingPiece or hypothetical.pieces.covers card): 
+        result = 
+          (hypothetical.rewardValue(card) div nrOfPiecesRequired)*
+          (toSeq(0..requiredSquares.high)
+          .mapIt(min(piecesOn[it],requiredPiecesOn[it])).sum+1)
 
 func blueVals(hypothetical:Hypothetic,squares:seq[int]):seq[int] =
   result.setLen(squares.len)
@@ -160,18 +142,35 @@ func posPercentages(hypothetical:Hypothetic,squares:seq[int]):seq[float] =
 
 func evalSquare(hypothetical:Hypothetic,square:int):int =
   let 
-    squares = toSeq(square..square+posPercent.len-1).mapIt adjustToSquareNr it
+    squares = toSeq(square..square+posPercent.high).mapIt adjustToSquareNr it
     blueSquareValues = hypothetical.blueVals squares
     baseSquareVals = squares.mapIt(hypothetical.board[it].toFloat)
     squarePercent = hypothetical.posPercentages squares
-  toSeq(0..posPercent.len-1)
+  toSeq(0..posPercent.high)
   .mapIt(((baseSquareVals[it]+blueSquareValues[it].toFloat)*squarePercent[it]).toInt)
   .sum
 
-func evalPos*(hypothetical:Hypothetic):int = 
-  hypothetical.pieces.mapIt(hypothetical.evalSquare it).sum
+func bestIndex(hypothetical:sink Hypothetic,pieceNr:int,squares:openArray[int]):int =
+  if hypothetical.pieces[pieceNr] in squares:
+    hypothetical.pieces[pieceNr] = 0
+  maxIndex squares.mapIt hypothetical.evalSquare it
 
-func baseEvalBoard*(hypothetical:Hypothetic): EvalBoard =
+func indexIt(hypothetical:Hypothetic,pieceNr:int,squares:sink seq[int]):int =
+  squares.add gasStations
+  squares[hypothetical.bestIndex(pieceNr,squares)]
+
+func pieceNrToSquare(hypothetical:Hypothetic,pieceNr:int):int =
+  case hypothetical.pieces[pieceNr]
+  of 0: hypothetical.indexIt(pieceNr,@highways)
+  of highways: hypothetical.indexIt(pieceNr,@[hypothetical.pieces[pieceNr]])
+  else: hypothetical.pieces[pieceNr]
+
+func evalPos*(hypothetical:Hypothetic):int = 
+  toSeq(0..hypothetical.pieces.high)
+  .mapIt(hypothetical.evalSquare hypothetical.pieceNrToSquare it)
+  .sum
+
+func baseEvalBoard*(hypothetical:Hypothetic):EvalBoard =
   result[0] = 4000
   for highway in highways: 
     result[highway] = highwayVal
@@ -179,13 +178,14 @@ func baseEvalBoard*(hypothetical:Hypothetic): EvalBoard =
     result[bar] = barVal(hypothetical)
     if hypothetical.piecesOn(bar) == 1: result[bar] *= 2
 
-func evalBlue(hypothetical:Hypothetic,card:BlueCard): int =
+func evalBlue(hypothetical:Hypothetic,card:BlueCard):int =
   evalPos (
     baseEvalBoard(hypothetical),
     hypothetical.pieces,
-    hypothetical.allPlayerPieces,
+    hypothetical.allPlayersPieces,
     @[card],
-    hypothetical.cash
+    hypothetical.cash,
+    hypothetical.skipped
   )
 
 func evalBlues*(hypothetical:Hypothetic):seq[BlueCard] =
@@ -214,7 +214,7 @@ func friendlyFireAdviced*(hypothetical:Hypothetic,move:Move):bool =
   move.fromSquare != 0 and
   move.toSquare notIn highways and
   move.toSquare notIn gasStations and
-  hypothetical.allPlayerPieces.countIt(it == move.toSquare) == 1 and
+  hypothetical.allPlayersPieces.countIt(it == move.toSquare) == 1 and
   hypothetical.piecesOn(move.toSquare) == 1 and 
   hypothetical.requiredPiecesOn(move.toSquare) < 2 and
   hypothetical.friendlyFireBest(move)
@@ -225,11 +225,13 @@ func threeBest(cards:seq[BlueCard]):seq[BlueCard] =
 func evalMove*(hypothetical:Hypothetic,pieceNr,toSquare:int):int =
   var pieces = hypothetical.pieces
   if hypothetical.friendlyFireAdviced (pieceNr,0,pieces[pieceNr],toSquare,0):
-    pieces[pieceNr] = 0 else: pieces[pieceNr] = toSquare
+    pieces[pieceNr] = 0 
+  else: pieces[pieceNr] = toSquare
   (hypothetical.board,pieces,
-  hypothetical.allPlayerPieces,
+  hypothetical.allPlayersPieces,
   hypothetical.cards.threeBest,
-  hypothetical.cash).evalPos
+  hypothetical.cash,
+  hypothetical.skipped).evalPos
 
 func bestMoveFrom(hypothetical:Hypothetic,generic:Move):Move =
   let
@@ -295,23 +297,28 @@ proc bestDiceMoves*(hypothetical:Hypothetic):seq[Move] =
     result.add dieMoves[dieMoves.mapIt(it.eval).maxIndex]
   result.sortedByIt it.eval
 
-func allPlayerPieces(players:seq[Player]):seq[int] =
+func allPlayersPieces(players:seq[Player]):seq[int] =
   for player in players:
     result.add player.pieces
 
-proc hypotheticalInit*(player:Player):Hypothetic =
-  var board:EvalBoard
-  (baseEvalBoard(
-    (board,
+proc boardInit(player:Player):EvalBoard =
+  baseEvalBoard (
+    result,
     player.pieces,
     @[],
     player.hand,
-    player.cash)
-  ),
+    player.cash,
+    turn.nr
+  )
+
+proc hypotheticalInit*(player:Player):Hypothetic = (
+  player.boardInit,
   player.pieces,
-  players.allPlayerPieces,
+  players.allPlayersPieces,
   player.hand,
-  player.cash)
+  player.cash,
+  player.skipped
+)
 
 proc sortBlues*(player:Player):seq[BlueCard] =
   player.hypotheticalInit.evalBluesThreaded

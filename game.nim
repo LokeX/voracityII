@@ -20,6 +20,7 @@ type
     hand*:seq[BlueCard]
     cash*:int
     agro*:int
+    skipped*:int
   Turn* = tuple
     nr:int 
     player:int
