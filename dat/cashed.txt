@@ -1,82 +1,82 @@
 Polterabend: 144
 Hooters: 47
-Rock solid claims: 75
+Rock solid claims: 76
 Up yours: 48
 Outsider: 66
 Safe bet: 32
-Agent: 32
+Agent: 34
 VIP Lounge: 47
 Knocked out: 73
 Bystanders: 30
 White collars: 24
 Color revolutionary: 30
 Blood diamants: 29
-Bail: 45
+Bail: 46
 Healthplan: 37
 Insurgency: 37
-Protection: 59
-Cold meds: 104
+Protection: 61
+Cold meds: 105
 Financing: 63
-Drugdealer: 53
-Human resources: 69
+Drugdealer: 54
+Human resources: 70
 Outstanding: 70
 Deadly cargo: 51
-Hooked: 78
-Sing a long song: 75
-Brotherhood: 53
+Hooked: 79
+Sing a long song: 76
+Brotherhood: 54
 Small arms: 62
 Higher powers: 39
-Bouncing: 79
+Bouncing: 80
 Open house: 30
 Underhanded: 85
-Choireboys: 63
+Choireboys: 64
 Secret weapon: 47
 Digestive issues: 18
-Containment: 89
+Containment: 91
 Mayor: 26
 Acquittal: 39
-Legalese: 73
+Legalese: 74
 Knock knock: 58
-Trance: 72
+Trance: 73
 Broken bones: 44
-Chicks in cages: 85
+Chicks in cages: 86
 Slumlord: 65
 Loads of stuff: 92
-Flay'em: 56
-Faulty towers: 70
+Flay'em: 57
+Faulty towers: 71
 Deadweight: 34
-Moonshine: 129
+Moonshine: 132
 Sweethearts: 26
-Diamonds are...: 40
-Borderless: 57
-Occupational hazard: 36
+Diamonds are...: 41
+Borderless: 58
+Occupational hazard: 37
 Rentseeker: 40
 Ludomania: 52
 Homebrew: 58
-Razia: 44
+Razia: 45
 Express demands: 45
 Meat: 44
 Ramtheft: 45
 Compartmentalized: 59
 Foreign aid: 80
 Demolition: 105
-Usery: 57
+Usery: 58
 Concuctions: 62
 Bodycount: 40
 Debt to society: 57
-Redemption: 56
+Redemption: 57
 Burial at sea: 46
 Stiffs: 46
-Burglary: 109
+Burglary: 110
 Heartless: 17
 Duty free: 83
 Lucky bastard: 60
 Side effects: 35
-Grand designs: 83
+Grand designs: 84
 Bodyguard: 37
 Et spiritus sancti: 64
 Informer: 33
-Aiding and abetting: 27
+Aiding and abetting: 28
 Infiltration: 38
 High society: 87
 Rentals: 51
@@ -85,7 +85,7 @@ Recycling: 26
 Gangbangers: 32
 Judicial murder: 25
 Financier: 19
-Blood suckers: 40
+Blood suckers: 41
 Nose job: 48
 Bootlegging: 59
 Trans action: 30
@@ -93,8 +93,8 @@ Advisory board: 61
 Lord of War: 38
 Projects: 62
 Grapevine: 47
-Prescriptions: 57
-Addictions: 29
+Prescriptions: 58
+Addictions: 30
 Lawfare: 39
 Specimens: 23
 Pimp: 38

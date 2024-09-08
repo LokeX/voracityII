@@ -50,7 +50,7 @@ func covers(pieceSquare,coverSquare:int):bool =
   pieceSquare == coverSquare or
   toSeq(1..6).anyIt coverSquare in moveToSquares(pieceSquare,it)
 
-func covers(pieces:sink seq[int],squares:seq[int]):bool =
+func covers(pieces,squares:openArray[int]):bool =
   let coverPieces = pieces.filterIt it.covers squares[0]
   if coverPieces.len == 0: 
     return false 
@@ -58,19 +58,20 @@ func covers(pieces:sink seq[int],squares:seq[int]):bool =
     return true
   else:
     for piece in coverPieces:
-      pieces.del pieces.find piece
-      if pieces.covers squares[1..squares.high]:
+      var nextPieces = @pieces
+      nextPieces.del nextPieces.find piece
+      if nextPieces.covers squares[1..squares.high]:
         return true
-      
+
 func coversOneIn(pieces,squares:openArray[int]):bool =
   for piece in pieces:
     for square in squares:
       if piece.covers square:
         return true
-  
+
 func covers*(pieces:openArray[int],card:BlueCard):bool =
-  (card.squares.required.len == 0 or @pieces.covers(card.squares.required)) and
-  (card.squares.oneInMany.len == 0 or @pieces.coversOneIn(card.squares.oneInMany))
+  (card.squares.required.len == 0 or pieces.covers(card.squares.required)) and
+  (card.squares.oneInMany.len == 0 or pieces.coversOneIn(card.squares.oneInMany))
   # if card.squares.oneInMany.len > 0:
   #   pieces.covers(card.squares.required) and pieces.coversOneIn(card.squares.oneInMany)
   # else: pieces.covers card.squares.required
@@ -224,14 +225,6 @@ func friendlyFireAdviced*(hypothetical:Hypothetic,move:Move):bool =
   hypothetical.piecesOn(move.toSquare) == 1 and 
   hypothetical.requiredPiecesOn(move.toSquare) < 2 and
   hypothetical.friendlyFireBest(move)
-
-# func uncoveredBlues(hypothetical:Hypothetic):seq[BlueCard] =
-#   hypothetical.cards.filterIt not hypothetical.pieces.covers it
-
-# func sortBluesBy(cards:seq[BlueCard],squares:seq[int]):seq[BlueCard] =
-#   let squareCounts:seq[tuple[card:BlueCard,count:int]] = 
-#     cards.mapIt (it,it.squares.required.deduplicate.countIt it in squares)
-#   squareCounts.sorted((a,b) => b.count - a.count).mapIt(it.card)
 
 template requiredSquares(cards:untyped):untyped =
   cards.mapIt(it.squares.required.deduplicate).flatMap
