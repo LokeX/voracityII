@@ -1,4 +1,4 @@
-import sequtils,sugar
+import sequtils,misc
 
 const
   highways* = [5,17,29,41,53]
@@ -29,17 +29,24 @@ func covers(pieces,squares:openArray[int]):bool =
     return true
   else:
     for piece in coverPieces:
-      if pieces.filterIt(it != piece).covers squares[1..squares.high]:
+      var ps = @pieces
+      ps.del ps.find piece
+      if ps.covers squares[1..squares.high]:
         return true
       
   # debugEcho "squares: ",squares
   # debugEcho "pieces: ",pieces
+  # debugEcho "square: ",squares[0]
   # debugEcho "coverPieces: ",coverPieces
+  # debugEcho "coversquares: "
+  # for piece in pieces:
+  #   debugEcho "from square: ",piece
+  #   debugEcho toSeq(1..6).mapIt(moveToSquares(piece,it)).flatmap.deduplicate
   # debugEcho ""
 
 let
-  cardSquares = [6,7,9,11]
-  pieceSquares = [11,5,29,41,53]
+  cardSquares = [26,30,49]
+  pieceSquares = [22,40,0,0,0]
 
 echo pieceSquares.covers cardSquares
 
