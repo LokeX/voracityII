@@ -175,7 +175,9 @@ proc playCashPlansTo*(deck:var Deck) =
       updateKeybar = true
       showMenu = true
     else:
-      turn.undrawnBlues += cashedPlans.len
+      turn.undrawnBlues += cashedPlans.mapIt(
+        if it.squares.required.len == 1: 2 else: 1
+      ).sum
       nrOfUndrawnBluesPainter.update = true
 
 proc move*(square:int)

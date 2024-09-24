@@ -206,7 +206,8 @@ proc cashedCards:seq[BlueCard] =
 proc reportAnimationMoves:seq[AnimationMove] =
   if selectedBatchColor == turnPlayer.color:
     result.add turnReport.moves.mapIt (it.fromSquare,it.toSquare)
-  else: result.add selectedBatchColor
+  else: 
+    result.add selectedBatchColor
     .reports[^1].moves
     .mapIt (it.fromSquare,it.toSquare)
 

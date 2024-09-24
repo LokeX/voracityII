@@ -5,6 +5,13 @@ import os
 import taskpools,cpuinfo
 export spawn
 
+template exclude*(things,excludeThing:untyped):untyped =
+  var included = when typeof(things) is seq: 
+    things else: @things  
+  if (let index = included.find excludeThing; index != -1): 
+    included.del index
+  included
+
 template taskPoolsAs*(pool,codeBlock:untyped) =
   var pool = Taskpool.new(num_threads = countProcessors())
   codeBlock

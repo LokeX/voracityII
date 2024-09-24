@@ -50,18 +50,16 @@ func covers(pieceSquare,coverSquare:int):bool =
   pieceSquare == coverSquare or
   toSeq(1..6).anyIt coverSquare in moveToSquares(pieceSquare,it)
 
-func covers(pieces,squares:openArray[int]):bool =
+func covers(pieces,squares:openArray[int]):int =
   let coverPieces = pieces.filterIt it.covers squares[0]
-  if coverPieces.len == 0: 
-    return false 
-  elif squares.len == 1: 
-    return true
+  if coverPieces.len == 0:
+    5-pieces.len
+  elif squares.len == 1:
+    6-pieces.len
   else:
-    for piece in coverPieces:
-      var nextPieces = @pieces
-      nextPieces.del nextPieces.find piece
-      if nextPieces.covers squares[1..squares.high]:
-        return true
+    coverPieces
+    .mapIt(pieces.exclude(it).covers squares[1..squares.high])
+    .max
 
 func coversOneIn(pieces,squares:openArray[int]):bool =
   for piece in pieces:
@@ -69,12 +67,17 @@ func coversOneIn(pieces,squares:openArray[int]):bool =
       if piece.covers square:
         return true
 
+# template coveredBy(squares,pieces:untyped):untyped =
+#   pieces.covers(squares) == squares.len
+
 func covers*(pieces:openArray[int],card:BlueCard):bool =
-  (card.squares.required.len == 0 or pieces.covers(card.squares.required)) and
+  let nrOfCovers = pieces.covers card.squares.required
+  # debugEcho "covers:"
+  # debugEcho card.title
+  # debugEcho "nrOfCovers: ",nrOfCovers
+  # debugEcho "required: ",card.squares.required.len
+  (card.squares.required.len == 0 or card.squares.required.len == nrOfCovers) and
   (card.squares.oneInMany.len == 0 or pieces.coversOneIn(card.squares.oneInMany))
-  # if card.squares.oneInMany.len > 0:
-  #   pieces.covers(card.squares.required) and pieces.coversOneIn(card.squares.oneInMany)
-  # else: pieces.covers card.squares.required
 
 func rewardValue(hypothetical:Hypothetic,card:BlueCard):int =
   let 
@@ -103,7 +106,7 @@ func oneInMoreBonus(hypothetical:Hypothetic,blueCard:BlueCard,square:int):int =
         else:0
     elif hypothetical.piecesOn(requiredSquare) > 0: result = reward
  
-func blueBonus(hypothetical:Hypothetic,card:BlueCard,square:int):int =
+func blueBonus(hypothetical:Hypothetic,card:BlueCard,covered:bool,square:int):int =
   let
     requiredSquares = card.squares.required.deduplicate
     squareIndex = requiredSquares.find square
@@ -123,7 +126,7 @@ func blueBonus(hypothetical:Hypothetic,card:BlueCard,square:int):int =
         missingPiece = 
           piecesVsRequired[squareIndex] == -1 and
           piecesVsRequired.countIt(it >= 0) == requiredSquares.len-1
-      if piecesVsRequired[squareIndex] < 1 and (missingPiece or hypothetical.pieces.covers card): 
+      if piecesVsRequired[squareIndex] < 1 and (missingPiece or covered):
         result = 
           (hypothetical.rewardValue(card) div nrOfPiecesRequired)*
           (toSeq(0..requiredSquares.high)
@@ -132,9 +135,10 @@ func blueBonus(hypothetical:Hypothetic,card:BlueCard,square:int):int =
 func blueVals(hypothetical:Hypothetic,squares:seq[int]):seq[int] =
   result.setLen(squares.len)
   if hypothetical.cards.len > 0:
-    for i,square in squares:
-      for card in hypothetical.cards:
-        result[i] += hypothetical.blueBonus(card,square)
+    let covers = hypothetical.cards.mapIt hypothetical.pieces.covers it
+    for si,square in squares:
+      for ci,card in hypothetical.cards:
+        result[si] += hypothetical.blueBonus(card,covers[ci],square)
 
 func posPercentages(hypothetical:Hypothetic,squares:seq[int]):seq[float] =
   var freePieces:int
@@ -226,29 +230,74 @@ func friendlyFireAdviced*(hypothetical:Hypothetic,move:Move):bool =
   hypothetical.requiredPiecesOn(move.toSquare) < 2 and
   hypothetical.friendlyFireBest(move)
 
-template requiredSquares(cards:untyped):untyped =
+template requiredCardSquares(cards:untyped):untyped =
   cards.mapIt(it.squares.required.deduplicate).flatMap
 
-func squareCounts(cards:seq[BlueCard],squares:seq[int]):seq[int] =
-  cards.mapIt(it.squares.required.deduplicate.countIt it in squares)
+func countSquaresIn(cardSquares,requiredSquares:seq[int]):int =
+  cardSquares.mapIt(requiredSquares.count it).sum
 
-func selectCards(selected,unselected:sink seq[BlueCard]):seq[BlueCard] =
-  if unselected.len < 2 or selected.len > 2:
-    selected & unselected
+template squareCountsIn(cards,requiredSquares:untyped):untyped =
+  cards.mapIt it.squares.required.deduplicate.countSquaresIn requiredSquares
+
+template printSelectionReport =
+  debugEcho ""
+  debugEcho "selecting cards by square:"
+  debugEcho ""
+  debugEcho "selected cards: "
+  debugEcho selected.mapIt(it.title).join "\n"
+  debugEcho "unselected cards:"
+  debugEcho unselected.mapIt(it.title).join "\n"
+  if selected.len == 0:
+    debugEcho "unselected required: "
   else:
-    let index = unselected.squareCounts(
-      if selected.len == 0: unselected.requiredSquares
-      else: selected.requiredSquares
-    ).maxIndex
+    debugEcho "selected required: "
+  debugEcho requiredSquares
+  debugEcho "squareCounts: "
+  debugEcho squareCounts
+  debugEcho "max index: ",index
+  debugEcho "max index contains = ",squareCounts[index]
+  debugEcho "passing new sequences:"
+    # debugEcho "covers: "
+    # debugEcho covers
+    # debugEcho "values: "
+    # debugEcho values
+
+func selectCards(selected,unselected:sink seq[BlueCard],covers:sink seq[int]):seq[BlueCard] =
+  if unselected.len < 2 or selected.len > 2: selected & unselected
+  else:
+    let 
+      requiredSquares = 
+        if selected.len == 0: unselected.requiredCardSquares
+        else: selected.requiredCardSquares
+      squareCounts = 
+        if selected.len == 0:
+          let counts = unselected.squareCountsIn requiredSquares
+          toseq(0..counts.high).mapIt counts[it]-unselected[it].squares.required.len
+        else: unselected.squareCountsIn requiredSquares
+      values = toSeq(0..covers.high).mapIt squareCounts[it]+covers[it]
+      index = values.maxIndex
+      # index = squareCounts.maxIndex
+    printSelectionReport
     selected.add unselected[index]
     unselected.del index
-    selectCards(selected,unselected)
+    covers.del index
+    selectCards(selected,unselected,covers)
+
+template printCoveredReport =
+  debugEcho "sort uncovered blues: "
+  debugEcho "covered cards: "
+  debugEcho coveredCards.mapIt(it.title).join "\n"
+  debugEcho "uncovered cards: "
+  debugEcho uncoveredCards.mapIt(it.title).join "\n"
 
 func sortUncoveredBlues(hypothetical:Hypothetic):seq[BlueCard] =
   let coveredCards = hypothetical.cards.filterIt hypothetical.pieces.covers it
   if coveredCards.len < 3: 
-    let uncoveredCards = hypothetical.cards.filterIt(not hypothetical.pieces.covers it)
-    selectCards(coveredCards,uncoveredCards)
+    let 
+      uncoveredCards = hypothetical.cards.filterIt(not hypothetical.pieces.covers it)
+      covers = uncoveredCards.mapIt hypothetical.pieces.covers it.squares.required
+    printCoveredReport
+    selectCards(coveredCards,uncoveredCards,covers)
   else: hypothetical.cards
 
 func threeBest(cards:seq[BlueCard]):seq[BlueCard] =

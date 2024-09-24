@@ -26,10 +26,6 @@ mission:
 Terrorist
 {6,7,9,11}
 400000
-plan:
-Mayor
-{4,4}
-100000
 mission:
 Spy
 {4,6,9,60}
@@ -37,6 +33,18 @@ Spy
 mission:
 Rentseeker
 {10,22,33,39}
+400000
+mission:
+Transactionalist
+{4,21,25,45}
+400000
+mission:
+Globalist
+{6,11,49,55}
+400000
+mission:
+Circle jerk
+{4,10,33,36}
 400000
 job:
 VIP Lounge
@@ -53,14 +61,14 @@ Addictions
 job:
 Coup
 {6,6,60}
-200000
+250000
 job:
 Open house
 {8,22,26}
 200000
 job:
-Digestive issues
-{11,13,25}
+Transitions
+{25,36,45}
 200000
 job:
 Blood diamants
@@ -78,10 +86,6 @@ job:
 Bootlegging
 {48,49,55}
 200000
-mission:
-Trans action
-{4,21,25,45}
-400000
 job:
 Grapevine
 {4,30,48}
@@ -159,11 +163,15 @@ Broman escorte
 {10,36,60}
 200000
 plan:
+Mayor
+{4,4}
+150000
+plan:
 Chicks in cages
 {19,21}
 100000
 plan:
-Meat
+Meat grinder
 {55,57}
 100000
 plan:
@@ -223,10 +231,6 @@ Small arms
 {6,57}
 100000
 plan:
-Bystanders
-{25,57}
-100000
-plan:
 Flay'em
 {10,39}
 100000
@@ -273,7 +277,7 @@ Infiltration
 plan:
 Judicial murder
 {10,10}
-100000
+150000
 plan:
 Prescriptions
 {45,57}
@@ -301,10 +305,6 @@ Recycling
 plan:
 Secret weapon
 {9,6}
-100000
-plan:
-Compartmentalized
-{11,30}
 100000
 plan:
 Human resources
@@ -463,8 +463,8 @@ Boozers
 {48,60}
 pics\\news\\fitti2.jpg
 news:
-Demolision
-{30,43}
+Resocialization
+{36,4}
 pics\\news\\fitti3.jpg
 news:
 Call of duty

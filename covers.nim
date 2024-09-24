@@ -18,22 +18,27 @@ func moveToSquares*(fromSquare,die:int):seq[int] =
   result = result.filterIt(it != fromSquare).deduplicate
 
 func covers(pieceSquare,coverSquare:int):bool =
-  debugEcho pieceSquare,",",coverSquare
+  # debugEcho pieceSquare,",",coverSquare
   pieceSquare == coverSquare or
   toSeq(1..6).anyIt coverSquare in moveToSquares(pieceSquare,it)
 
-func covers(pieces:sink seq[int],squares:seq[int]):bool =
+func covers(pieces,squares:openArray[int]):int =
   let coverPieces = pieces.filterIt it.covers squares[0]
-  if coverPieces.len == 0: 
-    return false 
-  elif squares.len == 1: 
-    return true
+  if coverPieces.len == 0:
+    5-pieces.len
+  elif squares.len == 1:
+    6-pieces.len
   else:
-    for piece in coverPieces:
-      var nextPieces = pieces
-      nextPieces.del nextPieces.find piece
-      if nextPieces.covers squares[1..squares.high]:
-        return true
+    coverPieces
+    .mapIt(pieces.exclude(it).covers squares[1..squares.high])
+    .max
+
+template covered(pieces,squares:untyped):untyped =
+  pieces.covers(squares) == squares.len
+
+    # for piece in coverPieces:
+    #   if pieces.exclude(piece).covers squares[1..squares.high]:
+    #     return true
       
       
   # debugEcho "pieces: ",pieces
@@ -52,7 +57,7 @@ func covers(pieces:sink seq[int],squares:seq[int]):bool =
 
 let
   cardSquares = @[4,21,60]
-  pieceSquares = @[20,21,60,0,0]
+  pieceSquares = @[20,21,60,6,6]
 
 echo pieceSquares.covers cardSquares
 
