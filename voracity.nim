@@ -1,8 +1,8 @@
 import win
-import deck
+import graphics
 import game
 import play
-import board
+# import board
 import times
 import megasound
 import dialog
@@ -229,10 +229,10 @@ proc showCards(b:var Boxy) =
     header = ""
     color = Black
   if turn.nr == 0:
-    if pinnedCards == Deck or mouseOn blueDeck.drawSlot.area:
+    if pinnedCards == Deck or mouseOn drawPileArea:
       cards = blueDeck.fullDeck
       header = "Full deck"
-  elif pinnedCards == Discard or mouseOn blueDeck.discardSlot.area:
+  elif pinnedCards == Discard or mouseOn discardPileArea:
     cards = blueDeck.discardPile
     header = "Discard pile"
   elif batchSelected and selectedBatchColor.reports.len > 0:
@@ -257,14 +257,14 @@ template showFooter:untyped =
   mouseOnBatchPlayerNr != -1 or 
   pinnedBatchNr != -1 or 
   pinnedCards == Discard or 
-  mouseOn(blueDeck.discardSlot.area) or
+  mouseOn(discardPileArea) or
   pinnedCards == Deck or
-  (mouseOn(blueDeck.drawSlot.area) and turn.nr == 0)
+  (mouseOn(drawPileArea) and turn.nr == 0)
 
 template clickToPin:untyped =
   (mouseOnBatchPlayerNr != -1 or 
-  mouseOn(blueDeck.discardSlot.area) or 
-  mouseOn(blueDeck.drawSlot.area)) and 
+  mouseOn(discardPileArea) or 
+  mouseOn(drawPileArea)) and 
   (pinnedBatchNr == -1 and pinnedCards == None)
 
 proc drawCardsFooter(b:var Boxy) =
@@ -287,6 +287,8 @@ proc draw(b:var Boxy) =
   if oldBg != -1: b.drawImage backgrounds[oldBg].name,oldBgRect
   b.drawImage backgrounds[bgSelected].name,bgRect
   b.drawBoard
+  # b.drawDynamicImage piecesImg
+  # b.drawDynamicImage piecesImg
   b.drawDynamicImage piecesImg
   b.drawPlayerBatches
   b.drawStats
@@ -309,7 +311,7 @@ proc draw(b:var Boxy) =
       b.drawDynamicImage nrOfUndrawnBluesPainter
     if mouseOnBatchPlayerNr != -1 and gotReport mouseOnBatchColor:
       b.drawReport mouseOnBatchColor
-  elif pinnedCards != Deck and not mouseOn blueDeck.drawSlot.area: 
+  elif pinnedCards != Deck and not mouseOn drawPileArea: 
     b.drawImage("logo",vec2(1475,60))
     b.drawImage("advicetext",vec2(1525,450))
     b.drawImage("barman",Rect(x:1555,y:530,w:220,h:275))
@@ -359,9 +361,9 @@ proc mouse(m:KeyEvent) =
   if m.rightMousePressed and turn.nr == 0 and mouseOnBatchPlayerNr != -1:
     batchInputNr = mouseOnBatchPlayerNr
   if m.leftMousePressed or m.rightMousePressed:
-    if mouseOn blueDeck.discardSlot.area: 
+    if mouseOn discardPileArea: 
       pinnedCards = Discard
-    elif turn.nr == 0 and mouseOn blueDeck.drawSlot.area: 
+    elif turn.nr == 0 and mouseOn drawPileArea: 
       pinnedCards = Deck
     else: pinnedCards = None
   if m.leftMousePressed:
@@ -374,7 +376,7 @@ proc mouse(m:KeyEvent) =
         startDiceRoll humanRoll
   elif m.rightMousePressed and batchInputNr == -1: 
     if turn.nr > 0 and turnPlayer.kind == Computer: 
-      m.aiRightMouse
+      aiRightMouse()
     else:
       m.rightMouse
     keybarPainter.update = true
@@ -387,7 +389,7 @@ proc mouseMoved =
   if showMenu and mouseOn mainMenu.area:
     mainMenu.mouseSelect
 
-proc keyboard (key:KeyboardEvent) =
+proc keyboard(key:KeyboardEvent) =
   altPressed = key.pressed.alt
   if batchInputNr != -1 and key.button != KeyEnter: 
     key.batchKeyb inputBatch
@@ -428,6 +430,13 @@ proc keyboard (key:KeyboardEvent) =
     editDiceRoll key.rune.toUTF8
 
 proc cycle = 
+  for i,update in batchUpdate:
+    if update: 
+      updateBatch i
+      batchUpdate[i] = false
+  if soundToPlay.len > 0:
+    playSound soundToPlay[0]
+    soundToPlay.delete 0
   if bgRect.w < scaledWidth.toFloat:
     if bgRect.w+90 < scaledWidth.toFloat:
       bgRect.w += 90
@@ -448,6 +457,17 @@ proc timer =
           startMovesAnimations(mouseOnBatchColor,moves)
   # echo frames*2.5
   frames = 0
+
+proc playerKindsFromFile:seq[PlayerKind] =
+  try:
+    readFile(kindFile)
+    .split("@[,]\" ".toRunes)
+    .filterIt(it.len > 0)
+    .mapIt(PlayerKind(PlayerKind.mapIt($it).find(it)))
+  except: defaultPlayerKinds
+
+proc playerKindsToFile*(playerKinds:openArray[PlayerKind]) =
+  writeFile(kindFile,$playerKinds.mapIt($it))
 
 proc settingsToFile =
   let f = open(settingsFile,fmWrite)
@@ -485,11 +505,18 @@ var
     timer:timerCall()
   )
 
+blueDeck.initGraphics
 addImage("logo",paintLogo())
 addImage("barman",paintBarman())
 addImage("advicetext",paintSubText())
 addImage("volume",paintVolume())
 randomize()
+for i,kind in playerKindsFromFile(): 
+  echo kind
+  playerKinds[i] = kind
+initPlayers()
+playerBatches = newPlayerBatches()
+updateStatsBatch()
 if fileExists(settingsFile): 
   settingsFromFile()
 else: settingsToFile()

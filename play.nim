@@ -1,11 +1,8 @@
 import win except splitWhitespace,strip
 import game
-import megasound
-import colors
-import board
+import graphics
 import dialog
 import sequtils
-import deck
 import batch
 import eval
 import menu
@@ -25,6 +22,10 @@ var
   singlePiece*:SinglePiece
   dialogBarMoves*:seq[Move]
   updateKeybar*:bool
+  soundToPlay*:seq[string]
+
+template playSound(s:string) =
+  soundToPlay.add s
 
 proc drawCursor*(b:var Boxy) =
   if turn.nr > 0 and showCursor:
@@ -56,19 +57,19 @@ proc drawPlayerBatches*(b:var Boxy) =
       b.drawBatch playerBatches[batchNr]
 
 proc paintPieces*:Image =
-  var ctx = newImage(squares[0].dims.area.x2-bx.toInt,boardImg.height).newContext
+  var ctx = newImage(boardImg.width+50,boardImg.height).newContext
   ctx.font = ibmBold
   ctx.fontSize = 10
-  for i,player in (if turn.nr == 0: players.filterIt(it.kind != None) else: players):
-    for square in player.pieces.deduplicate():
+  for i,player in players:
+    for square in player.pieces.deduplicate:
       let 
-        nrOfPiecesOnSquare = player.pieces.filterIt(it == square).len
-        piece = player.color.pieceOn(square)
+        nrOfPiecesOnSquare = player.pieces.countIt it == square
+        piece = player.color.pieceOn square
       ctx.fillStyle = playerColors[player.color]
-      ctx.fillRect(piece)
+      ctx.fillRect piece
       if turn.nr > 0 and i == turn.player and square == moveSelection.fromSquare:
         ctx.fillStyle = contrastColors[player.color]
-        ctx.fillRect(Rect(x:piece.x+4,y:piece.y+4,w:piece.w-8,h:piece.h-8))
+        ctx.fillRect Rect(x:piece.x+4,y:piece.y+4,w:piece.w-8,h:piece.h-8)
       if nrOfPiecesOnSquare > 1:
         ctx.fillStyle = contrastColors[player.color]
         ctx.fillText($nrOfPiecesOnSquare,piece.x+2,piece.y+10)
@@ -109,9 +110,10 @@ proc togglePlayerKind(batchNr:int) =
   piecesImg.update = true
 
 proc mouseOnCardSlot(player:var Player,deck:var Deck):int =
-  result = -1
   for (_,slot) in player.hand.cardSlots:
-    if mouseOn slot.area: return slot.nr
+    if mouseOn slot.area: return
+    inc result
+  result = -1
 
 proc movesFrom(player:Player,square:int):seq[int] =
   if turn.diceMoved: moveToSquares square
@@ -164,11 +166,14 @@ proc playMassacre =
     piecesImg.update = true
 
 proc playCashPlansTo*(deck:var Deck) =
-  if (let cashedPlans = cashInPlansTo(deck); cashedPlans.len > 0):
+  let
+    initialCash = turnPlayer.cash
+    cashedPlans = cashInPlansTo deck
+  if cashedPlans.len > 0:
     updateTurnReportCards(cashedPlans,Cashed)
     turn.player.updateBatch
     playSound "coins-to-table-2"
-    if turnPlayer.cash >= cashToWin:
+    if initialCash < cashToWin and turnPlayer.cash >= cashToWin:
       writeGamestats()
       playSound "applause-2"
       setMenuTo NewGameMenu
@@ -275,11 +280,7 @@ proc drawCardFrom*(deck:var Deck) =
   case blue.cardKind
   of Event: playEvent()
   of News: playNews()
-  else: 
-    # if turnPlayer.kind == Human:
-    #   discard turnPlayer.pieces.covers2 turnPlayer.hand[^1]
-    #   echo "org covers result: ",turnPlayer.pieces.covers turnPlayer.hand[^1]
-    action = Drawn
+  else: action = Drawn
   updateTurnReportCards(@[blue],action)
   dec turn.undrawnBlues
   nrOfUndrawnBluesPainter.update = true
@@ -413,7 +414,7 @@ proc move*(square:int) =
   else: animateMove()
 
 proc leftMouse*(m:KeyEvent) =
-  if turn.undrawnBlues > 0 and mouseOn blueDeck.drawSlot.area: 
+  if turn.undrawnBlues > 0 and mouseOn drawPileArea: 
     drawCardFrom blueDeck
     playCashPlansTo blueDeck
     turnPlayer.hand = turnPlayer.sortBlues

@@ -6,7 +6,7 @@ template exclude(things,excludeThing:untyped):untyped =
   of things.high: things[things.low..things.high-1]
   else: things[things.low..index-1] & things[index+1..things.high]
 
-echo [3,4,5].exclude 3
+echo [3,4,5].exclude 4
 
-for x in 'a'..'z': echo x
+#for x in 'a'..'z': echo x
 

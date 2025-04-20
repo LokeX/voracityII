@@ -1,5 +1,4 @@
-from win import KeyEvent
-import board
+import graphics
 import play
 import game
 import eval
@@ -7,7 +6,7 @@ import sequtils
 import times
 import reports
 import menu
-import colors
+# import colors
 
 type
   Phase* = enum Await,Draw,Reroll,AiMove,PostMove,EndTurn
@@ -109,7 +108,7 @@ proc aiTakeTurn*() =
   turn.player.updateBatch
 
 # please, for the love of God: don't even breethe on it!
-proc aiRightMouse*(m:KeyEvent) =
+proc aiRightMouse* =
   if phase == EndTurn: 
     if showMenu: 
       endTurn()

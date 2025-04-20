@@ -2,8 +2,6 @@ from algorithm import sort,sorted,sortedByIt
 from math import pow,sum
 from strutils import join
 import game
-import board
-import deck
 import sequtils
 import sugar
 import taskpools

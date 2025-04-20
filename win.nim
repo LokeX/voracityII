@@ -99,15 +99,19 @@ proc setFont*(font:var Font,size:float = 12.0,color:Color = color(1,1,1)) =
   font.paint = color
   font.size = size
 
-proc setNewFont*(typeFacePath:string,size:float = 12.0,color:Color = color(1,1,1)):Font =
-  result = newFont(typeFacePath.readTypeface)
+proc setNewFont*[T:Typeface or string](typeFace:T,size:float = 12.0,color:Color = color(1,1,1)):Font =
+  result = newFont(
+    when T is string:
+      typeFace.readTypeface
+    else: typeFace
+  )
   result.paint = color
   result.size = size
 
-func setNewFont*(typeFace:Typeface,size:float = 12.0,color:Color = color(1,1,1)):Font =
-  result = newFont(typeFace)
-  result.paint = color
-  result.size = size
+# func setNewFont*(typeFace:Typeface,size:float = 12.0,color:Color = color(1,1,1)):Font =
+#   result = newFont(typeFace)
+#   result.paint = color
+#   result.size = size
 
 proc addImage*(key:string,img:Image) = bxy.addImage(key,img)
   

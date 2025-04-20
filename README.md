@@ -14,6 +14,8 @@ nimble install boxy
 
 nimble install pixie
 
+nimble install slappy
+
 ---------------------------------------------------
 
 If you're on Windows and just want to play:

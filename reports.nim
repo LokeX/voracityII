@@ -1,11 +1,11 @@
 import win except align,split,strip
 import batch
-import colors
+# import colors
 import sequtils
 import strutils
 import game
-import deck
-import board
+# import deck
+import graphics
 import eval
 import misc
 import os
@@ -52,7 +52,7 @@ const
   )
 
 let
-  plainFont = setNewFont(reportFont,18,contrastColors[turnPlayer.color])
+  plainFont = setNewFont(reportFont,18,color(1,1,1,1))
   matrixFont = setNewFont(killMatrixFont,size = 16.0)
   roboto = setNewFont(robotoRegular,size = 15.0)
 
@@ -504,4 +504,3 @@ proc resetMatchingStats* =
 
 reportBatches = initReportBatches()
 readGameStatsFrom statsFile
-updateStatsBatch()

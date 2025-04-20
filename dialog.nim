@@ -1,7 +1,7 @@
 import batch
 import strutils
 import win except strip,splitWhitespace
-from board import moveToSquaresPainter,moveSelection
+from graphics import moveToSquaresPainter,moveSelection
 
 const
   thisDialog = "dialog"

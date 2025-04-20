@@ -1,15 +1,33 @@
-import win except strip
-import deck
+from algorithm import sorted,sortedByIt
+from math import sum
 import strutils
 import sequtils
-from algorithm import sorted,sortedByIt
 import random
-import batch
-import colors
-import board
 import os
- 
+
 type
+  PlayerColor* = enum Red,Green,Blue,Yellow,Black,White
+  DieFace* = enum 
+    DieFace1 = 1,DieFace2 = 2,DieFace3 = 3,
+    DieFace4 = 4,DieFace5 = 5,DieFace6 = 6
+  Dice* = array[1..2,DieFace]
+  ProtoCard = array[4,string]
+  PlanSquares = tuple[required,oneInMany:seq[int]]
+  CardKind* = enum Deed,Plan,Job,Event,News,Mission
+  BlueCard* = object
+    title*:string
+    case cardKind*:CardKind
+    of Plan,Mission,Job,Deed:
+      squares*:PlanSquares
+      cash*:int
+      eval*:int
+      covered*:bool
+    of Event,News:
+      moveSquares*:seq[int]
+      bgPath*:string
+  Deck* = object 
+    fullDeck*,drawPile*,discardPile*:seq[BlueCard]
+    lastDrawn*:string
   PlayerKind* = enum Human,Computer,None
   Pieces* = array[5,int]
   Player* = object
@@ -21,133 +39,154 @@ type
     cash*:int
     agro*:int
     skipped*:int
+    # update*:bool
   Turn* = tuple
     nr:int 
     player:int
     diceMoved:bool
     undrawnBlues:int
-  BatchSetup = tuple
-    name:string
-    bgColor:PlayerColor
-    entries:seq[string]
-    hAlign:HorizontalAlignment
-    font:string
-    fontSize:float
-    padding:(int,int,int,int)
 
 const
-  roboto* = "fonts\\Kalam-Bold.ttf"
-  fjallaOneRegular* = "fonts\\FjallaOne-Regular.ttf"
-  ibmBold* = "fonts\\IBMPlexMono-Bold.ttf"
-  settingsFile* = "settings.cfg"
+  kindFile* = "playerkinds.cfg"
   handlesFile = "dat\\handles.txt"
   
-  defaultPlayerKinds = @[Human,Computer,None,None,None,None]
+  defaultPlayerKinds* = @[Human,Computer,None,None,None,None]
   cashToWin* = 1_000_000
   piecePrice* = 10_000
   startCash* = 50_000
   
-  (pbx,pby) = (20,20)
-  popUpCard = Rect(x:500,y:275,w:cardWidth*0.9,h:cardHeight*0.9)
-  drawPile = Rect(x:855,y:495,w:110,h:180)
-  discardPile = Rect(x:1025,y:495,w:cardWidth*0.441,h:cardHeight*0.441)
+  highways* = [5,17,29,41,53]
+  gasStations* = [2,15,27,37,47]
+  bars* = [1,16,18,20,28,35,40,46,51,54]
 
-  inputEntries:seq[string] = @[
-    "Write player handle:\n",
-    "\n",
-  ]
-  condensedRegular = "fonts\\AsapCondensed-Regular.ttf"
-  titleBorder:Border = (size:0,angle:0,color:color(0,0,100))
-  inputBorder:Border = (size:0,angle:0,color:color(0,0,100))
-  inputBatchInit = BatchInit(
-    kind:InputBatch,
-    name:"inputBatch",
-    titleOn:true,
-    titleLine:(color:color(1,1,0),bgColor:color(0,0,0),border:titleBorder),
-    pos:(400,200),
-    inputCursor:(0.5,color(0,1,0)),
-    inputLine:(color(0,1,0),color(0,0,0),inputBorder),
-    padding:(40,40,20,20),
-    entries:inputEntries,
-    inputMaxChars:8,
-    alphaOnly:true,
-    font:(condensedRegular,30.0,color(1,1,1)),
-    bgColor:color(0,0,0),
-    border:(15,25,color(0,0,100)),
-    shadow:(15,1.5,color(255,255,255,200))
-  )
+func parseProtoCards(lines:sink seq[string]):seq[ProtoCard] =
+  var 
+    cardLine:int
+    protoCard:ProtoCard 
+  for line in lines:
+    protocard[cardLine] = line
+    if cardLine == 3:
+      result.add protoCard
+      cardLine = 0
+    else: inc cardLine
+
+func parseCardSquares(str:string,brackets:array[2,char]):seq[int] =
+  let (f,l) = (str.find(brackets[0]),str.find(brackets[1]))
+  if -1 in [f,l]: @[] else: str[f+1..l-1].split(',').mapIt it.parseInt
+
+func parseCardKindFrom(kind:string):CardKind =
+  try: CardKind(CardKind.mapIt(($it).toLower).find kind[0..kind.high-1].toLower) 
+  except: raise newException(CatchableError,"Error, parsing CardKind: "&kind)
+
+func newBlueCards(protoCards:seq[ProtoCard]):seq[BlueCard] =
+  var card:BlueCard
+  for protoCard in protoCards:
+    card = BlueCard(title:protoCard[1],cardKind:parseCardKindFrom protoCard[0])
+    if card.cardKind in [Event,News]:
+      card.moveSquares = parseCardSquares(protoCard[2],['{','}'])
+      card.bgPath = protoCard[3]
+    else:
+      card.squares = (
+        parseCardSquares(protoCard[2],['{','}']),
+        parseCardSquares(protoCard[2],['[',']']),
+      )
+      card.cash = protoCard[3].parseInt
+    result.add card
+
+proc newDeck*(path:string):Deck =
+  result = Deck(fullDeck:path.lines.toSeq.parseProtoCards.newBlueCards)
+  result.drawPile = result.fullDeck
+  result.drawPile.shuffle
+
+proc resetDeck*(deck:var Deck) =
+  deck.discardPile.setLen 0
+  deck.drawPile = deck.fullDeck
+  deck.drawPile.shuffle
+  deck.lastDrawn = ""
+
+proc shufflePiles*(deck:var Deck) =
+  deck.drawPile.add deck.discardPile
+  deck.discardPile.setLen 0
+  deck.drawPile.shuffle
+
+proc drawFrom*(hand:var seq[BlueCard],deck:var Deck) =
+  if deck.drawPile.len == 0:
+    deck.shufflePiles
+  hand.add deck.drawPile.pop
+  deck.lastDrawn = hand[^1].title
+
+proc drawFromDiscardPile*(hand:var seq[BlueCard],deck:var Deck) =
+  if deck.discardPile.len > 0:
+    hand.add deck.discardPile.pop
+    deck.lastDrawn = hand[^1].title
+
+proc playTo*(hand:var seq[BlueCard],deck:var Deck,card:int) =
+  deck.discardPile.add hand[card]
+  hand.del card
 
 var 
-  inputBatch* = newBatch inputBatchInit
+  diceRoll*:Dice = [DieFace3,DieFace4]
+  turn*:Turn
   blueDeck* = newDeck "decks\\blues.txt"
   playerKinds*:array[6,PlayerKind]
-  playerBatches*:array[6,Batch]
   playerHandles*:array[6,string]
   players*:seq[Player]
-  turn*:Turn
-  showCursor*:bool
+  batchUpdate*:array[6,bool]
+
+# var
+#   inputBatch* = newBatch inputBatchInit
+#   playerBatches*:array[6,Batch]
+#   showCursor*:bool
+
+proc rollDice*() = 
+  for die in diceRoll.mitems: 
+    die = DieFace(rand(1..6))
+
+func adjustToSquareNr*(adjustSquare:int):int =
+  if adjustSquare > 60: adjustSquare - 60 else: adjustSquare
+
+func canKillPieceOn*(square:int):bool =
+  square notIn highways and square notIn gasStations
+
+func moveToSquare(fromSquare:int,die:int):int = 
+  adjustToSquareNr fromSquare+die
+
+func moveToSquares*(fromSquare,die:int):seq[int] =
+  if fromsquare != 0: result.add moveToSquare(fromSquare,die)
+  else: result.add highways.mapIt moveToSquare(it,die)
+  if fromSquare in highways or fromsquare == 0:      
+    result.add gasStations.mapIt moveToSquare(it,die)
+  result = result.filterIt(it != fromSquare).deduplicate
+
+func moveToSquares*(fromSquare:int):seq[int] =
+  if fromSquare == 0: 
+    result.add highways
+    result.add gasStations
+  elif fromSquare in highways: 
+    result.add gasStations
+
+func moveToSquares*(fromSquare:int,dice:Dice):seq[int] =
+  result.add moveToSquares fromSquare
+  for i,die in dice:
+    if i == 1 or dice[1] != dice[2]:
+      result.add moveToSquares(fromSquare,die.ord)
+  result.deduplicate
+
+func diceMoved*(fromSquare,toSquare:int):bool =
+  if fromSquare == 0:
+    tosquare notin gasStations and toSquare notin highways
+  elif fromSquare in highways:
+    toSquare notin gasStations
+  else: true
+
+func dieUsed*(fromSquare,toSquare:int,dice:Dice):int =
+  if toSquare in moveToSquares(fromSquare,dice[1].ord):
+    dice[1].ord
+  elif toSquare in moveToSquares(fromSquare,dice[2].ord):
+    dice[2].ord
+  else: -1
 
 template turnPlayer*:untyped = players[turn.player]
-
-proc playerBatch(setup:BatchSetup,yOffset:int):Batch = 
-  newBatch BatchInit(
-    kind:TextBatch,
-    name:setup.name,
-    pos:(pbx,pby+yOffset),
-    padding:setup.padding,
-    entries:setup.entries,
-    hAlign:setup.hAlign,
-    fixedBounds:(175,110),
-    font:(setup.font,setup.fontSize,contrastColors[setup.bgColor]),
-    border:(3,20,contrastColors[setup.bgColor]),
-    blur:2,
-    opacity:25,
-    bgColor:playerColors[setup.bgColor],
-    shadow:(10,1.75,color(255,255,255,100))
-  )
-
-proc playerBatchTxt(playerNr:int):seq[string] =
-  if turn.nr == 0:
-    if playerKinds[playerNr] == Human and playerHandles[playerNr].len > 0:
-      @[playerHandles[playerNr]]
-    else:
-      @[$playerKinds[playerNr]]
-  else: @[
-    "Turn Nr: "&($turn.nr)&"\n",
-    "Cards: "&($players[playerNr].hand.len)&"\n",
-    "Cash: "&(insertSep($players[playerNr].cash,'.'))
-  ]
-
-proc updateBatch*(playerNr:int) =
-  playerBatches[playerNr].setSpanTexts playerBatchTxt playerNr
-  playerBatches[playerNr].update = true
-
-proc batchSetup(playerNr:int):BatchSetup =
-  let player = players[playerNr]
-  result.name = $player.color
-  result.bgColor = player.color
-  if turn.nr == 0: 
-    result.hAlign = CenterAlign
-    result.font = fjallaOneRegular
-    result.fontSize = 30
-    result.padding = (0,0,35,35)
-  else: 
-    result.hAlign = LeftAlign
-    result.font = roboto
-    result.fontSize = 18
-    result.padding = (20,20,12,10)
-  result.entries = playerBatchTxt playerNr
-
-proc newPlayerBatches*:array[6,Batch] =
-  var 
-    yOffset = pby
-    setup:BatchSetup
-  for playerNr,_ in players:
-    if playerNr > 0: 
-      yOffset = pby+((result[playerNr-1].rect.h.toInt+15)*playerNr)
-    setup = batchSetup playerNr
-    result[playerNr] = setup.playerBatch yOffset
-    result[playerNr].update = true
 
 func anyHuman*(players:seq[Player]):bool =
   players.anyIt it.kind == Human
@@ -257,25 +296,13 @@ proc newPlayers*:seq[Player] =
 proc nextPlayerTurn* =
   turn.diceMoved = false
   turnPlayer.turnNr = turn.nr
-  turn.player.updateBatch
+  batchUpdate[turn.player] = true
   if turn.player == players.high:
     inc turn.nr
     turn.player = players.low
   else: inc turn.player
-  turn.player.updateBatch
   turn.undrawnBlues = turnPlayer.nrOfPiecesOnBars
   blueDeck.lastDrawn = ""
-
-proc playerKindsFromFile:seq[PlayerKind] =
-  try:
-    readFile(settingsFile)
-    .split("@[,]\" ".toRunes)
-    .filterIt(it.len > 0)
-    .mapIt(PlayerKind(PlayerKind.mapIt($it).find(it)))
-  except: defaultPlayerKinds
-
-proc playerKindsToFile*(playerKinds:openArray[PlayerKind]) =
-  writeFile(settingsFile,$playerKinds.mapIt($it))
 
 proc playerHandlesToFile*(playerHandles:openArray[string]) =
   writeFile(handlesFile,playerHandles.mapIt(if it.len > 0: it else: "n/a").join "\n")
@@ -289,13 +316,6 @@ proc playerHandlesFromFile:array[6,string] =
         result[count] = lineStrip
       inc count
 
-proc initPlayers =
-  randomize()
-  for i,kind in playerKindsFromFile(): playerKinds[i] = kind
+proc initPlayers* =
   playerHandles = playerHandlesFromFile()
   players = newDefaultPlayers()
-  playerBatches = newPlayerBatches()
-
-initPlayers()
-blueDeck.initCardSlots discardPile,popUpCard,drawPile
-
