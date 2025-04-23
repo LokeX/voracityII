@@ -15,7 +15,7 @@ type
 var
   autoEndTurn* = true
   hypo:Hypothetic
-  phase:Phase
+  phase*:Phase
   diceReroll:DiceReroll
 
 template phaseIs*:untyped = phase
@@ -87,7 +87,7 @@ proc postMovePhase =
   # recordTurnReport()
   phase = EndTurn
 
-proc endTurn = 
+proc endTurn* = 
   # showMenu = false
   phase = Await
   nextGameState()
@@ -105,12 +105,12 @@ proc aiTakeTurn*() =
   of AiMove: moveAi()
   of PostMove: postMovePhase()
   of EndTurn: endTurnPhase()
-  turn.player.updateBatch
+  turnPlayer.update = true
 
 # please, for the love of God: don't even breethe on it!
-proc aiRightMouse* =
-  if phase == EndTurn: 
-    if showMenu: 
-      endTurn()
+# proc aiRightMouse* =
+#   if phase == EndTurn: 
+#     if showMenu: 
+#       endTurn()
       # showMenu = not showMenu
  

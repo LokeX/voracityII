@@ -1,109 +1,109 @@
-Moonshine: 60
-Borderless: 33
-Cold meds: 41
+Moonshine: 61
+Borderless: 34
+Cold meds: 42
 Projects: 26
 Outstanding: 34
 Hooked: 38
-Underhanded: 44
+Underhanded: 46
 Occupational hazard: 23
 Stiffs: 17
-Pimp: 21
+Pimp: 22
 Financier: 13
-Prescriptions: 22
+Prescriptions: 23
 Drugdealer: 29
-Lucky bastard: 32
+Lucky bastard: 33
 Protection: 23
 Demolition: 49
-Containment: 41
+Containment: 42
 White collars: 12
-Advisory board: 43
-Color revolutionary: 24
+Advisory board: 44
+Color revolutionary: 26
 Express demands: 24
 Transactionalist: 15
-Broken bones: 24
-Human resources: 42
-Polterabend: 56
+Broken bones: 25
+Human resources: 43
+Polterabend: 60
 Faulty towers: 26
-Financing: 23
-Rock solid claims: 38
-Duty free: 51
+Financing: 24
+Rock solid claims: 39
+Duty free: 52
 Sweethearts: 10
 Hooters: 25
-Et spiritus sancti: 33
+Et spiritus sancti: 35
 Choireboys: 27
 Knocked out: 36
-Agent: 33
-Debt to society: 25
+Agent: 34
+Debt to society: 28
 Heartless: 17
 Lipstick on a pig: 25
 Meat grinder: 16
-Concuctions: 27
+Concuctions: 28
 Foreign aid: 41
-Bouncing: 38
-Usery: 35
+Bouncing: 39
+Usery: 36
 Transitions: 12
-Razia: 13
-Loads of stuff: 35
-Grapevine: 32
-Recycling: 15
+Razia: 14
+Loads of stuff: 36
+Grapevine: 33
+Recycling: 16
 Rentals: 10
-Deadly cargo: 26
-Globalist: 23
-Homebrew: 22
-Gangbangers: 14
+Deadly cargo: 27
+Globalist: 24
+Homebrew: 24
+Gangbangers: 15
 Ludomania: 29
-Healthplan: 24
+Healthplan: 25
 Specimens: 18
 Insurgency: 30
-Diamonds are...: 25
+Diamonds are...: 26
 Side effects: 17
 Chicks in cages: 47
 Golden chains: 19
-Up yours: 26
+Up yours: 27
 Flay'em: 21
 Knock knock: 33
 Lawfare: 34
 Blood diamants: 14
 Brotherhood: 26
-Rentseeker: 23
+Rentseeker: 24
 Ramtheft: 24
 Small arms: 30
 Burglary: 52
-Sing a long song: 47
+Sing a long song: 48
 Slumlord: 15
-Deadweight: 19
-Mayor: 22
+Deadweight: 20
+Mayor: 23
 Coup: 15
 Safe bet: 22
 High society: 32
 Blood suckers: 16
 Acquittal: 27
-Legalese: 46
+Legalese: 48
 Nose job: 23
 VIP Lounge: 21
 Laundry: 15
 Terrorist: 19
-Outsider: 34
+Outsider: 35
 Trance: 38
 Burial at sea: 18
 Informer: 11
-Infiltration: 15
-Redemption: 30
-Bootlegging: 30
-Secret weapon: 28
+Infiltration: 16
+Redemption: 32
+Bootlegging: 31
+Secret weapon: 29
 Bail: 25
-Higher powers: 30
+Higher powers: 32
 Stove away: 19
 Lord of War: 9
 Aiding and abetting: 9
 Bodyguard: 16
-Jetsetter: 12
+Jetsetter: 13
 Judicial murder: 13
 Open house: 17
 Circle jerk: 14
 Spy: 6
-Grand designs: 33
-Bodycount: 5
+Grand designs: 34
+Bodycount: 6
 Broman escorte: 9
 Addictions: 5
-Home invasion: 3
+Home invasion: 4

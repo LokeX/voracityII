@@ -1,152 +1,46 @@
-import win except splitWhitespace,strip
+from math import sum
 import game
-import graphics
-import dialog
 import sequtils
-import batch
 import eval
-import menu
 import reports
 import random
 import strutils
+import times
 import sugar
 
 type
+  ChangeMenuState* = enum MenuOn,MenuOff,NoAction
+  ConfigState* = enum None,StartGame,SetupGame,GameWon,StatGame
   SinglePiece = tuple[playerNr,pieceNr:int]
-  EventMoveFmt = tuple[fromSquare,toSquare:string]
-
-const
-  (humanRoll*,computerRoll*) = (0,80)
+  EventMoveFmt* = tuple[fromSquare,toSquare:string]
 
 var
   singlePiece*:SinglePiece
   dialogBarMoves*:seq[Move]
+  changeMenuState* = NoAction
+  # turnOffMenu*:bool
+  runMoveAnimation*:bool
+  rollTheDice*:bool
+  runSelectBar*:bool
+  killDialogSquare* = -1
   updateKeybar*:bool
+  updatePieces*:bool
+  updateUndrawnBlues*:bool
   soundToPlay*:seq[string]
+  configState* = None
 
 template playSound(s:string) =
   soundToPlay.add s
 
-proc drawCursor*(b:var Boxy) =
-  if turn.nr > 0 and showCursor:
-    let 
-      x = (playerBatches[turn.player].area.x2-40).toFloat
-      y = (playerBatches[turn.player].area.y1+10).toFloat
-      cursor = Rect(x:x,y:y,w:20,h:20)
-    b.drawRect(cursor,contrastColors[players[turn.player].color])
-
-proc paintUndrawnBlues:Image =
-  var ctx = newImage(110,180).newContext
-  ctx.font = fjallaOneRegular
-  ctx.fontSize = 160
-  ctx.fillStyle = color(1,1,0)
-  ctx.fillText($turn.undrawnBlues,20,160)
-  ctx.image
-
-var 
-  nrOfUndrawnBluesPainter* = DynamicImage[void](
-    name:"undrawBlues",
-    area:(855,495,0,0), # may do drawpile.toArea
-    updateImage:paintUndrawnBlues,
-    update:true
-  )
-
-proc drawPlayerBatches*(b:var Boxy) =
-  for batchNr,_ in players:
-    if playerBatches[batchNr].isActive: 
-      b.drawBatch playerBatches[batchNr]
-
-proc paintPieces*:Image =
-  var ctx = newImage(boardImg.width+50,boardImg.height).newContext
-  ctx.font = ibmBold
-  ctx.fontSize = 10
-  for i,player in players:
-    for square in player.pieces.deduplicate:
-      let 
-        nrOfPiecesOnSquare = player.pieces.countIt it == square
-        piece = player.color.pieceOn square
-      ctx.fillStyle = playerColors[player.color]
-      ctx.fillRect piece
-      if turn.nr > 0 and i == turn.player and square == moveSelection.fromSquare:
-        ctx.fillStyle = contrastColors[player.color]
-        ctx.fillRect Rect(x:piece.x+4,y:piece.y+4,w:piece.w-8,h:piece.h-8)
-      if nrOfPiecesOnSquare > 1:
-        ctx.fillStyle = contrastColors[player.color]
-        ctx.fillText($nrOfPiecesOnSquare,piece.x+2,piece.y+10)
-  ctx.image
-
-proc mouseOnPlayerBatchNr*:int =
-  result = -1
-  for i,_ in players:
-    if mouseOn playerBatches[i]: return i
-
-var 
-  piecesImg* = DynamicImage[void](
-    name:"pieces",
-    area:(bx.toInt,by.toInt,0,0),
-    updateImage:paintPieces,
-    update:true
-  )
-
 proc setupNewGame* =
+  configState = SetupGame
   turn = (0,0,false,0)
   blueDeck.resetDeck
   players = newDefaultPlayers()
-  playerBatches = newPlayerBatches()
-  piecesImg.update = true
-  setMenuTo SetupMenu
-  showMenu = true
-  playSound "carhorn-1"
-
-proc togglePlayerKind(batchNr:int) =
-  playerKinds[batchNr] = 
-    case playerKinds[batchNr]
-    of Human:Computer
-    of Computer:None
-    of None:Human
-  players[batchNr].kind = playerKinds[batchNr]
-  updateBatch batchNr
-  updateStatsBatch()
-  piecesImg.update = true
-
-proc mouseOnCardSlot(player:var Player,deck:var Deck):int =
-  for (_,slot) in player.hand.cardSlots:
-    if mouseOn slot.area: return
-    inc result
-  result = -1
-
-proc movesFrom(player:Player,square:int):seq[int] =
-  if turn.diceMoved: moveToSquares square
-  else: moveToSquares(square,diceRoll)
-
-proc select(square:int) =
-  if turnPlayer.hasPieceOn square:
-    moveSelection = (-1,square,-1,turnPlayer.movesFrom(square),false)
-    moveToSquaresPainter.context = moveSelection.toSquares
-    moveToSquaresPainter.update = true
-    piecesImg.update = true
-    playSound "carstart-1"
 
 func pieceOnSquare(player:Player,square:int):int =
   for i,piece in player.pieces:
     if piece == square: return i
-
-proc drawMoveToSquares*(b:var Boxy,square:int) =
-  if square != moveSelection.hoverSquare:
-    if turn.diceMoved:
-      moveToSquaresPainter.context = square.moveToSquares
-    else:
-      moveToSquaresPainter.context = square.moveToSquares diceRoll
-    moveToSquaresPainter.update = true
-    moveSelection.hoverSquare = square
-  b.drawDynamicImage moveToSquaresPainter
-
-proc drawSquares*(b:var Boxy) =
-  if moveSelection.fromSquare != -1:
-    b.drawDynamicImage moveToSquaresPainter
-  elif (let square = mouseOnSquare(); square != -1) and turnPlayer.hasPieceOn(square):
-    b.drawMoveToSquares square
-  else: moveSelection.hoverSquare = -1
 
 proc barToMassacre(player:Player,players:seq[Player]):int =
   if (let playerBars = turnPlayer.onBars; playerBars.len > 0):
@@ -163,7 +57,7 @@ proc playMassacre =
       players[playerNr].pieces[pieceNr] = 0
     playSound "Deanscream-2"
     playSound "Gunshot"
-    piecesImg.update = true
+    updatePieces = true
 
 proc playCashPlansTo*(deck:var Deck) =
   let
@@ -171,57 +65,36 @@ proc playCashPlansTo*(deck:var Deck) =
     cashedPlans = cashInPlansTo deck
   if cashedPlans.len > 0:
     updateTurnReportCards(cashedPlans,Cashed)
-    turn.player.updateBatch
+    turnPlayer.update = true
     playSound "coins-to-table-2"
     if initialCash < cashToWin and turnPlayer.cash >= cashToWin:
-      writeGamestats()
-      playSound "applause-2"
-      setMenuTo NewGameMenu
-      updateKeybar = true
-      showMenu = true
+      configState = GameWon
+      # writeGamestats()
+      # playSound "applause-2"
+      # setMenuTo NewGameMenu
+      # updateKeybar = true
+      # showMenu = true
     else:
       turn.undrawnBlues += cashedPlans.mapIt(
         if it.squares.required.len == 1: 2 else: 1
       ).sum
-      nrOfUndrawnBluesPainter.update = true
+      updateUndrawnBlues = true
 
 proc move*(square:int)
-proc eventMoveFmt(move:Move):EventMoveFmt =
-  ("from:"&squares[move.fromSquare].name&" Nr. "&($squares[move.fromSquare].nr)&"\n",
-   "to:"&squares[move.toSquare].name&" Nr. "&($squares[move.toSquare].nr)&"\n")
+proc eventMoveFmt*(move:Move):EventMoveFmt =
+  ("from:"&board[move.fromSquare].name&" Nr. "&($board[move.fromSquare].nr)&"\n",
+   "to:"&board[move.toSquare].name&" Nr. "&($board[move.toSquare].nr)&"\n")
 
-proc dialogEntries(moves:seq[Move],f:EventMoveFmt -> string):seq[string] =
+proc dialogEntries*(moves:seq[Move],f:EventMoveFmt -> string):seq[string] =
   var ms = moves.mapIt(it.eventMoveFmt).mapIt(f it).deduplicate
   stripLineEnd ms[^1]
   ms
 
-proc endBarMoveSelection(selection:string) =
+proc endBarMoveSelection*(selection:string) =
   if (let toSquare = selection.splitWhitespace[^1].parseInt; toSquare != -1):
     moveSelection.toSquare = toSquare
     moveSelection.event = true
     move moveSelection.toSquare
-
-proc selectBarMoveDest(selection:string) =
-  let 
-    entries = dialogBarMoves.dialogEntries move => move.toSquare
-    fromSquare = selection.splitWhitespace[^1].parseInt
-  if fromSquare != -1:
-    moveSelection.fromSquare = fromSquare
-  if entries.len > 1:
-    startDialog(entries,0..entries.high,endBarMoveSelection)
-  elif entries.len == 1: 
-    moveSelection.toSquare = dialogBarMoves[0].toSquare
-    moveSelection.event = true
-    move moveSelection.toSquare
-
-proc selectBar =
-  showMenu = false
-  let entries = dialogBarMoves.dialogEntries move => move.fromSquare
-  if entries.len > 1:
-    startDialog(entries,0..entries.high,selectBarMoveDest)
-  elif entries.len == 1: 
-    moveSelection.fromSquare = dialogBarMoves[0].fromSquare
-    selectBarMoveDest entries[0]
 
 proc barMove(moveEvent:BlueCard):bool =
   dialogBarMoves = turnPlayer.eventMovesEval moveEvent
@@ -232,10 +105,11 @@ proc barMove(moveEvent:BlueCard):bool =
       moveSelection.fromSquare = dialogBarMoves[0].fromSquare
       moveSelection.toSquare = dialogBarMoves[0].toSquare
       return true
-    else: selectBar()
+    else: runSelectBar = true
+      # selectBar()
 
 proc playNews =
-  piecesImg.update = true
+  updatePieces = true
   let news = turnPlayer.hand[^1]
   turnPlayer.hand.playTo blueDeck,turnPlayer.hand.high
   for (playerNr,pieceNr) in players.piecesOn news.moveSquares[0]:
@@ -283,13 +157,9 @@ proc drawCardFrom*(deck:var Deck) =
   else: action = Drawn
   updateTurnReportCards(@[blue],action)
   dec turn.undrawnBlues
-  nrOfUndrawnBluesPainter.update = true
-  turn.player.updateBatch
+  updateUndrawnBlues = true
+  turnPlayer.update = true
   playSound "page-flip-2"
-
-proc togglePlayerKind* =
-  if (let batchNr = mouseOnPlayerBatchNr(); batchNr != -1) and turn.nr == 0:
-    togglePlayerKind batchNr
 
 func singlePieceOn*(players:seq[Player],square:int):SinglePiece =
   if players.nrOfPiecesOn(square) == 1:
@@ -305,7 +175,7 @@ proc getMove:Move =
   result.toSquare = moveSelection.toSquare
   result.pieceNr = turnPlayer.pieceOnSquare moveSelection.fromSquare
 
-proc move =
+proc move* =
   var move = getMove()
   if not turn.diceMoved and not moveSelection.event:
     turn.diceMoved = diceMoved(
@@ -318,25 +188,17 @@ proc move =
   turnPlayer.pieces[move.pieceNr] = moveSelection.toSquare
   if moveSelection.fromSquare == 0: 
     turnPlayer.cash -= piecePrice
-    updateBatch turn.player
+    turnPlayer.update = true
   playCashPlansTo blueDeck
   turnPlayer.hand = turnPlayer.sortBlues
-  playerBatches[turn.player].update = true
+  turnPlayer.update = true
   moveSelection.fromSquare = -1
-  piecesImg.update = true
+  updatePieces = true
   playSound "driveBy"
   if moveSelection.toSquare in bars:
     inc turn.undrawnBlues
-    nrOfUndrawnBluesPainter.update = true
+    updateUndrawnBlues = true
     playSound "can-open-1"
-
-proc animateMove* =
-  startMoveAnimation(
-    turnPlayer.color,
-    moveSelection.fromSquare,
-    moveSelection.toSquare
-  )
-  move()
 
 proc killPieceAndMove*(confirmedKill:string) =
   if confirmedKill == "Yes":
@@ -344,7 +206,8 @@ proc killPieceAndMove*(confirmedKill:string) =
     updateTurnReport players[singlePiece.playerNr].color
     playSound "Gunshot"
     playSound "Deanscream-2"
-  animateMove()
+  if configState == StatGame: move()
+  else: runMoveAnimation = true
 
 proc hostileFireEval(player:Player,pieceNr,toSquare:int):int =
   var hypoPlayer = player
@@ -359,11 +222,9 @@ proc hostileFireAdviced*(player:Player,fromSquare,toSquare:int):bool =
 
 proc shouldKillEnemyOn(killer:Player,toSquare:int): bool =
   if killer.hasPieceOn(toSquare) or 
-    killer.cash-(killer.removedPieces*piecePrice) <= startCash div 2: 
-      return false 
+    killer.cash-(killer.removedPieces*piecePrice) <= startCash div 2: false 
   else:
     let 
-      # randKill = rand(1..100) <= 5
       hostileFireAdviced = killer.hostileFireAdviced(moveSelection.fromSquare,toSquare)
       agroKill = rand(1..100) <= killer.agro div 5
       planChance = players[singlePiece.playerNr].cashChanceOn(toSquare,blueDeck)
@@ -385,22 +246,6 @@ proc aiKillDecision =
       "No"
   )
 
-proc startKillDialog(square:int) =
-  let 
-    targetPlayer = players[singlePiece.playerNr]
-    targetSquare = targetPlayer.pieces[singlePiece.pieceNr]
-    cashChance = targetPlayer.cashChanceOn(targetSquare,blueDeck)*100
-    entries:seq[string] = @[
-      "Remove piece on:\n",
-      squares[square].name&" Nr."&($squares[square].nr)&"?\n",
-      "Cash chance: "&cashChance.formatFloat(ffDecimal,2)&"%\n",
-      "\n",
-      "Yes\n",
-      "No",
-    ]
-  showMenu = false
-  startDialog(entries,4..5,killPieceAndMove)
-
 proc hasKillablePiece(square:int):bool =
   singlePiece = players.singlePieceOn square
   singlePiece.playerNr != -1 and canKillPieceOn square
@@ -409,41 +254,23 @@ proc move*(square:int) =
   moveSelection.toSquare = square
   if square.hasKillablePiece:
     if turnPlayer.kind == Human:
-      startKillDialog square
+      killDialogSquare = square
     else: aiKillDecision()
-  else: animateMove()
-
-proc leftMouse*(m:KeyEvent) =
-  if turn.undrawnBlues > 0 and mouseOn drawPileArea: 
-    drawCardFrom blueDeck
-    playCashPlansTo blueDeck
-    turnPlayer.hand = turnPlayer.sortBlues
-  elif not isRollingDice():
-    if (let square = mouseOnSquare(); square != -1): 
-      if moveSelection.fromSquare == -1 or square notIn moveSelection.toSquares:
-        select square
-        updateKeybar = true
-      elif moveSelection.fromSquare != -1:
-        move square
-    elif turnPlayer.hand.len > 3: 
-      if (let slotNr = turnPlayer.mouseOnCardSlot blueDeck; slotNr != -1):
-        turnPlayer.hand.playTo blueDeck,slotNr
-        turnPlayer.hand = turnPlayer.sortBlues
+  elif configState == StatGame: 
+    move()
+  else: runMoveAnimation = true
+    # animateMove()
 
 proc endGame =
   if turnPlayer.kind == Human:
     recordTurnReport()
   setupNewGame()
-  # setMenuTo SetupMenu
-  # showMenu = true
 
 proc startNewGame =
+  configState = StartGame
   inc turn.nr
   players = newPlayers()
-  playerBatches = newPlayerBatches()
   resetReports()
-  setMenuTo GameMenu
-  showMenu = false
 
 proc nextTurn =
   playSound "page-flip-2"
@@ -452,9 +279,8 @@ proc nextTurn =
   diceRolls.setLen 0
   nextPlayerTurn()
   initTurnReport()
-  if anyHuman players: showMenu = false
+  if anyHuman players: changeMenuState = MenuOff
   playCashPlansTo blueDeck
-  # updateTurnReportCards(cashInPlansTo blueDeck, Cashed)
 
 proc nextGameState* =
   if turnPlayer.cash >= cashToWin: 
@@ -464,13 +290,117 @@ proc nextGameState* =
       startNewGame()
     else: 
       nextTurn()
-    startDiceRoll(if turnPlayer.kind == Human: humanRoll else: computerRoll)
+    if configState == StatGame: rollDice()
+    else: rollTheDice = true
+    # startDiceRoll(if turnPlayer.kind == Human: humanRoll else: computerRoll)
   playSound "carhorn-1"
 
-proc rightMouse*(m:KeyEvent) =
-  if moveSelection.fromSquare != -1:
-    moveSelection.fromSquare = -1
-    piecesImg.update = true
-  elif not showMenu:
-    showMenu = true
-  else: nextGameState()
+type
+  Phase* = enum Await,Draw,Reroll,AiMove,PostMove,EndTurn
+  DiceReroll = tuple[isPausing:bool,pauseStartTime:float]
+
+var
+  autoEndTurn* = true
+  hypo:Hypothetic
+  phase*:Phase
+  diceReroll:DiceReroll
+
+template phaseIs*:untyped = phase
+
+proc drawCards =
+  playCashPlansTo blueDeck
+  while turn.undrawnBlues > 0:
+    drawCardFrom blueDeck
+    playCashPlansTo blueDeck
+  hypo.cards = turnPlayer.hand
+  hypo.pieces = turnPlayer.pieces
+  if hypo.cards.len > 3:
+    hypo.cards = hypo.evalBluesThreaded
+    turnPlayer.hand = hypo.cards
+  phase = Reroll
+
+proc reroll(hypothetical:Hypothetic): bool =
+  let 
+    bestDiceMoves = hypothetical.bestDiceMoves()
+    bestDice = bestDiceMoves.mapIt(it.die)
+  updateTurnReport diceRoll
+  isDouble() and diceRoll[1].ord notIn bestDice[^2..^1]
+
+proc aiMove(hypothetical:Hypothetic,dice:openArray[int]):(bool,Move) =
+  if(
+    let winMove = hypothetical.winningMove dice; 
+    winMove.pieceNr != -1
+  ):(true,winMove) else: (false,hypothetical.move dice)
+
+func betterThan(move:Move,hypothetical:Hypothetic):bool =
+  move.eval.toFloat >= hypothetical.evalPos().toFloat*0.85
+
+proc moveAi =
+  let (isWinningMove,move) = hypo.aiMove([diceRoll[1].ord,diceRoll[2].ord])
+  if isWinningMove or move.betterThan hypo:
+    if turnPlayer.skipped > 0: 
+      turnPlayer.skipped = 0
+    moveSelection.fromSquare = move.fromSquare
+    move move.toSquare
+  else:
+    inc turnPlayer.skipped
+    echo "ai skips move:"
+    # echo "currentPosEval: ",currentPosEval
+    # echo "moveEval: ",move.eval
+  phase = PostMove
+
+proc startTurn = 
+  hypo = hypotheticalInit(turnPlayer)
+  phase = Draw
+
+proc rerollPhase =
+  if configState == StatGame:
+    if not diceReroll.isPausing or hypo.reroll:
+      rollDice()
+      diceReroll.isPausing = true
+    else:
+      diceReroll.isPausing = false
+      phase = AiMove
+  if diceReroll.isPausing and cpuTime() - diceReroll.pauseStartTime >= 0.25:
+    diceReroll.isPausing = false
+    rollTheDice = true
+    # startDiceRoll(computerRoll)
+  elif not diceReroll.isPausing and hypo.reroll: 
+    diceReroll.isPausing = true
+    diceReroll.pauseStartTime = cpuTime()
+  elif not diceReroll.isPausing: 
+    phase = AiMove
+
+proc postMovePhase =
+  moveSelection.fromSquare = -1
+  drawCards()
+  # recordTurnReport()
+  phase = EndTurn
+
+proc endTurn* = 
+  # showMenu = false
+  phase = Await
+  nextGameState()
+
+proc endTurnPhase =
+  if autoEndTurn and turnPlayer.cash < cashToWin:
+    endTurn()
+  else: changeMenuState = MenuOn
+
+proc aiTakeTurn*() =
+  case phase
+  of Await: startTurn()
+  of Draw: drawCards()
+  of Reroll: rerollPhase()
+  of AiMove: moveAi()
+  of PostMove: postMovePhase()
+  of EndTurn: endTurnPhase()
+  turnPlayer.update = true
+
+# please, for the love of God: don't even breethe on it!
+# proc aiRightMouse* =
+#   if phase == EndTurn: 
+#     if showMenu: 
+#       endTurn()
+      # showMenu = not showMenu
+ 

@@ -1,12 +1,10 @@
 import win except align,split,strip
+from eval import Move
 import batch
-# import colors
 import sequtils
 import strutils
 import game
-# import deck
 import graphics
-import eval
 import misc
 import os
 import sugar

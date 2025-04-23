@@ -1,7 +1,8 @@
 import batch
+import game
 import strutils
 import win except strip,splitWhitespace
-from graphics import moveToSquaresPainter,moveSelection
+from graphics import moveToSquaresPainter
 
 const
   thisDialog = "dialog"

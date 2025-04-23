@@ -1,12 +1,11 @@
-import win
+import win except splitWhitespace
 import graphics
 import game
 import play
-# import board
 import times
 import megasound
 import dialog
-import ai
+# import ai
 import menu
 import batch
 import sugar
@@ -16,7 +15,6 @@ import misc
 import random
 import eval
 import strutils
-import colors
 import os
 
 const
@@ -350,6 +348,58 @@ proc menuSelection =
     if turnPlayer.cash >= cashToWin: setupNewGame()
     else: confirmEndGame()
 
+proc togglePlayerKind* =
+  if (let batchNr = mouseOnPlayerBatchNr(); batchNr != -1) and turn.nr == 0:
+    playerKinds[batchNr] = 
+      case playerKinds[batchNr]
+      of Human:Computer
+      of Computer:None
+      of None:Human
+    players[batchNr].kind = playerKinds[batchNr]
+    players[batchNr].update = true
+    piecesImg.update = true
+    updateStatsBatch()
+
+proc select*(square:int) =
+  if turnPlayer.hasPieceOn square:
+    moveSelection = (-1,square,-1,turnPlayer.movesFrom(square),false)
+    moveToSquaresPainter.context = moveSelection.toSquares
+    moveToSquaresPainter.update = true
+    # updatePieces = true
+    piecesImg.update = true
+    playSound "carstart-1"
+
+proc leftMouse* =
+  if turn.undrawnBlues > 0 and mouseOn drawPileArea: 
+    drawCardFrom blueDeck
+    playCashPlansTo blueDeck
+    turnPlayer.hand = turnPlayer.sortBlues
+  elif not isRollingDice():
+    if (let square = mouseOnSquare(); square != -1): 
+      if moveSelection.fromSquare == -1 or square notIn moveSelection.toSquares:
+        select square
+        updateKeybar = true
+      elif moveSelection.fromSquare != -1:
+        move square
+    elif turnPlayer.hand.len > 3: 
+      if (let slotNr = turnPlayer.mouseOnCardSlot; slotNr != -1):
+        turnPlayer.hand.playTo blueDeck,slotNr
+        turnPlayer.hand = turnPlayer.sortBlues
+
+proc rightMouse =
+  if moveSelection.fromSquare != -1:
+    moveSelection.fromSquare = -1
+    updatePieces = true
+    # piecesImg.update = true
+  elif not showMenu:
+    showMenu = true
+  else: nextGameState()
+
+proc aiRightMouse* =
+  if phase == EndTurn: 
+    if showMenu: 
+      endTurn()
+
 proc mouse(m:KeyEvent) =
   if mouseOnBatchPlayerNr != -1:
     if turn.nr > 0: pinnedBatchNr = mouseOnBatchPlayerNr
@@ -371,14 +421,14 @@ proc mouse(m:KeyEvent) =
     if showMenu and mouseOnMenuSelection():
       menuSelection()
     elif turnPlayer.kind == Human:
-      m.leftMouse
+      leftMouse()
       if turn.nr > 0 and mouseOnDice() and mayReroll(): 
         startDiceRoll humanRoll
   elif m.rightMousePressed and batchInputNr == -1: 
     if turn.nr > 0 and turnPlayer.kind == Computer: 
       aiRightMouse()
     else:
-      m.rightMouse
+      rightMouse()
     keybarPainter.update = true
 
 proc mouseMoved = 
@@ -411,7 +461,8 @@ proc keyboard(key:KeyboardEvent) =
           playerKinds[batchInputNr] = Human
           players[batchInputNr].kind = Human
         playerHandles[batchInputNr] = inputBatch.input
-        updateBatch batchInputNr
+        players[batchInputNr].update = true
+        # updateBatch batchInputNr
         batchInputNr = -1
         inputBatch.deleteInput
         updateStatsBatch()
@@ -429,11 +480,110 @@ proc keyboard(key:KeyboardEvent) =
   if key.button == ButtonUnknown and not isRollingDice():
     editDiceRoll key.rune.toUTF8
 
+proc configSetupGame =
+  playerBatches = newPlayerBatches()
+  piecesImg.update = true
+  setMenuTo SetupMenu
+  showMenu = true
+  playSound "carhorn-1"
+  configState = None
+
+proc configStartGame =
+  playerBatches = newPlayerBatches()
+  setMenuTo GameMenu
+  showMenu = false
+  configState = None
+
+proc gameWon =
+  writeGamestats()
+  playSound "applause-2"
+  setMenuTo NewGameMenu
+  updateKeybar = true
+  showMenu = true
+  configState = None
+
+proc selectBarMoveDest(selection:string) =
+  let 
+    entries = dialogBarMoves.dialogEntries move => move.toSquare
+    fromSquare = selection.splitWhitespace[^1].parseInt
+  if fromSquare != -1:
+    moveSelection.fromSquare = fromSquare
+  if entries.len > 1:
+    startDialog(entries,0..entries.high,endBarMoveSelection)
+  elif entries.len == 1: 
+    moveSelection.toSquare = dialogBarMoves[0].toSquare
+    moveSelection.event = true
+    move moveSelection.toSquare
+
+proc selectBar =
+  showMenu = false
+  let entries = dialogBarMoves.dialogEntries move => move.fromSquare
+  if entries.len > 1:
+    startDialog(entries,0..entries.high,selectBarMoveDest)
+  elif entries.len == 1: 
+    moveSelection.fromSquare = dialogBarMoves[0].fromSquare
+    selectBarMoveDest entries[0]
+
+proc startKillDialog(square:int) =
+  let 
+    targetPlayer = players[singlePiece.playerNr]
+    targetSquare = targetPlayer.pieces[singlePiece.pieceNr]
+    cashChance = targetPlayer.cashChanceOn(targetSquare,blueDeck)*100
+    entries:seq[string] = @[
+      "Remove piece on:\n",
+      board[square].name&" Nr."&($board[square].nr)&"?\n",
+      "Cash chance: "&cashChance.formatFloat(ffDecimal,2)&"%\n",
+      "\n",
+      "Yes\n",
+      "No",
+    ]
+  showMenu = false
+  startDialog(entries,4..5,killPieceAndMove)
+
+proc animateMove* =
+  startMoveAnimation(
+    turnPlayer.color,
+    moveSelection.fromSquare,
+    moveSelection.toSquare
+  )
+  move()
+
+proc aiTurn(): bool =
+  turn.nr != 0 and 
+  turnPlayer.kind == Computer and 
+  not isRollingDice()
+
 proc cycle = 
-  for i,update in batchUpdate:
-    if update: 
-      updateBatch i
-      batchUpdate[i] = false
+  if changeMenuState == MenuOff:
+    showMenu = false
+  elif changeMenuState == MenuOn:
+    showMenu = true
+  if changeMenuState != NoAction:
+    changeMenuState = NoAction
+  if runMoveAnimation:
+    runMoveAnimation = false
+    animateMove()
+  if rollTheDice:
+    startDiceRoll(if turnPlayer.kind == Human: humanRoll else: computerRoll)
+    rollTheDice = false
+  if killDialogSquare > -1:
+    startKillDialog killDialogSquare
+    killDialogSquare = -1
+  if runSelectBar:
+    runSelectBar = false
+    selectBar()
+  if configState == StartGame:
+    configStartGame()
+  elif configState == SetupGame:
+    configSetupGame()
+  elif configState == GameWon:
+    gameWon()
+  if updateUndrawnBlues:
+    nrOfUndrawnBluesPainter.update = true
+    updateUndrawnBlues = false
+  if updatePieces:
+    piecesImg.update = true
+    updatePieces = false
   if soundToPlay.len > 0:
     playSound soundToPlay[0]
     soundToPlay.delete 0

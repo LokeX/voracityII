@@ -6,6 +6,11 @@ import random
 import os
 
 type
+  MoveSelection* = tuple
+    hoverSquare,fromSquare,toSquare:int
+    toSquares:seq[int]
+    event:bool
+  Board* = array[61,tuple[nr:int,name:string]]
   PlayerColor* = enum Red,Green,Blue,Yellow,Black,White
   DieFace* = enum 
     DieFace1 = 1,DieFace2 = 2,DieFace3 = 3,
@@ -39,7 +44,7 @@ type
     cash*:int
     agro*:int
     skipped*:int
-    # update*:bool
+    update*:bool
   Turn* = tuple
     nr:int 
     player:int
@@ -47,7 +52,7 @@ type
     undrawnBlues:int
 
 const
-  kindFile* = "playerkinds.cfg"
+  kindFile* = "dat\\playerkinds.cfg"
   handlesFile = "dat\\handles.txt"
   
   defaultPlayerKinds* = @[Human,Computer,None,None,None,None]
@@ -58,6 +63,26 @@ const
   highways* = [5,17,29,41,53]
   gasStations* = [2,15,27,37,47]
   bars* = [1,16,18,20,28,35,40,46,51,54]
+
+proc newBoard*(path:string):Board =
+  var count = 0
+  result[0] = (0,"Removed")
+  for name in lines path:
+    inc count
+    result[count] = (count,name)
+
+proc newDeck*(path:string):Deck
+
+var 
+  diceRoll*:Dice = [DieFace3,DieFace4]
+  turn*:Turn
+  blueDeck* = newDeck "decks\\blues.txt"
+  board* = newBoard "dat\\board.txt"
+  playerKinds*:array[6,PlayerKind]
+  playerHandles*:array[6,string]
+  players*:seq[Player]
+  moveSelection*:MoveSelection = (-1,-1,-1,@[],false)
+  diceRolls*:seq[Dice]
 
 func parseProtoCards(lines:sink seq[string]):seq[ProtoCard] =
   var 
@@ -124,23 +149,11 @@ proc playTo*(hand:var seq[BlueCard],deck:var Deck,card:int) =
   deck.discardPile.add hand[card]
   hand.del card
 
-var 
-  diceRoll*:Dice = [DieFace3,DieFace4]
-  turn*:Turn
-  blueDeck* = newDeck "decks\\blues.txt"
-  playerKinds*:array[6,PlayerKind]
-  playerHandles*:array[6,string]
-  players*:seq[Player]
-  batchUpdate*:array[6,bool]
-
-# var
-#   inputBatch* = newBatch inputBatchInit
-#   playerBatches*:array[6,Batch]
-#   showCursor*:bool
-
 proc rollDice*() = 
   for die in diceRoll.mitems: 
     die = DieFace(rand(1..6))
+
+proc isDouble*: bool = diceRoll[1] == diceRoll[2]
 
 func adjustToSquareNr*(adjustSquare:int):int =
   if adjustSquare > 60: adjustSquare - 60 else: adjustSquare
@@ -185,6 +198,10 @@ func dieUsed*(fromSquare,toSquare:int,dice:Dice):int =
   elif toSquare in moveToSquares(fromSquare,dice[2].ord):
     dice[2].ord
   else: -1
+
+proc movesFrom*(player:Player,square:int):seq[int] =
+  if turn.diceMoved: moveToSquares square
+  else: moveToSquares(square,diceRoll)
 
 template turnPlayer*:untyped = players[turn.player]
 
@@ -296,7 +313,8 @@ proc newPlayers*:seq[Player] =
 proc nextPlayerTurn* =
   turn.diceMoved = false
   turnPlayer.turnNr = turn.nr
-  batchUpdate[turn.player] = true
+  # batchUpdate[turn.player] = true
+  turnPlayer.update = true
   if turn.player == players.high:
     inc turn.nr
     turn.player = players.low

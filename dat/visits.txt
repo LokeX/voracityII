@@ -1,60 +1,60 @@
-Bar Nr.1: 97
+Bar Nr.1: 100
 Gas Station Nr.2: 11
-Bank Nr.3: 50
-Town Hall Nr.4: 469
-Highway Nr.5: 211
-Barracks Nr.6: 412
-Church Nr.7: 300
-Villa Nr.8: 269
-Embassey Nr.9: 258
-Courthouse Nr.10: 323
-Airport Nr.11: 356
-Casino Nr.12: 158
-Jeweler Nr.13: 175
+Bank Nr.3: 51
+Town Hall Nr.4: 485
+Highway Nr.5: 216
+Barracks Nr.6: 416
+Church Nr.7: 307
+Villa Nr.8: 270
+Embassey Nr.9: 263
+Courthouse Nr.10: 330
+Airport Nr.11: 365
+Casino Nr.12: 159
+Jeweler Nr.13: 176
 Bank Nr.14: 54
-Gas Station Nr.15: 44
-Bar Nr.16: 529
-Highway Nr.17: 149
-Bar Nr.18: 234
-Disco Nr.19: 309
-Bar Nr.20: 277
-Brothel Nr.21: 667
-Realestate Nr.22: 186
-Shop Nr.23: 18
+Gas Station Nr.15: 45
+Bar Nr.16: 540
+Highway Nr.17: 152
+Bar Nr.18: 239
+Disco Nr.19: 312
+Bar Nr.20: 283
+Brothel Nr.21: 677
+Realestate Nr.22: 189
+Shop Nr.23: 19
 Bank Nr.24: 29
-Hospital Nr.25: 214
-Undertaker Nr.26: 202
+Hospital Nr.25: 219
+Undertaker Nr.26: 208
 Gas Station Nr.27: 20
-Bar Nr.28: 150
-Highway Nr.29: 162
-McLeans Nr.30: 705
-Condo Nr.31: 92
+Bar Nr.28: 152
+Highway Nr.29: 164
+McLeans Nr.30: 722
+Condo Nr.31: 94
 Condo Nr.32: 58
-Lawyers Nr.33: 355
+Lawyers Nr.33: 363
 Shop Nr.34: 38
-Bar Nr.35: 220
-Prison Nr.36: 211
+Bar Nr.35: 224
+Prison Nr.36: 214
 Gas Station Nr.37: 10
 Bank Nr.38: 25
-Debt Inc Nr.39: 303
+Debt Inc Nr.39: 309
 Bar Nr.40: 240
-Highway Nr.41: 225
-Shop Nr.42: 55
-Entreprenour Nr.43: 242
-Shop Nr.44: 29
-Pharmacy Nr.45: 377
-Bar Nr.46: 197
+Highway Nr.41: 227
+Shop Nr.42: 56
+Entreprenour Nr.43: 248
+Shop Nr.44: 31
+Pharmacy Nr.45: 381
+Bar Nr.46: 198
 Gas Station Nr.47: 4
-Brewery Nr.48: 321
-Harbour Nr.49: 321
-Shop Nr.50: 24
-Bar Nr.51: 407
-Bank Nr.52: 32
-Highway Nr.53: 170
-Bar Nr.54: 175
-Import inc Nr.55: 197
-Slum Nr.56: 56
-Alley Nr.57: 277
-Slum Nr.58: 46
+Brewery Nr.48: 328
+Harbour Nr.49: 325
+Shop Nr.50: 25
+Bar Nr.51: 412
+Bank Nr.52: 33
+Highway Nr.53: 177
+Bar Nr.54: 177
+Import inc Nr.55: 200
+Slum Nr.56: 57
+Alley Nr.57: 281
+Slum Nr.58: 47
 Slum Nr.59: 39
-Police Nr.60: 187
+Police Nr.60: 193

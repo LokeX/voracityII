@@ -1,19 +1,15 @@
 import win
 import batch
-# import colors
 import strutils
 import game
 import megasound
 import sequtils
+import random
 
 type
   BoardSquares* = array[61,Square]
   Square* = tuple[nr:int,name:string,dims:Dims,icon:Image]
   Dims* = tuple[area:Area,rect:Rect]
-  MoveSelection* = tuple
-    hoverSquare,fromSquare,toSquare:int
-    toSquares:seq[int]
-    event:bool
   AnimationMove* = tuple[fromSquare,toSquare:int]
   MoveAnimation* = object
     active*:bool
@@ -22,6 +18,16 @@ type
     movesIdx:int
     moves:seq[AnimationMove]
     squares:seq[int]
+  BatchSetup = tuple
+    name:string
+    bgColor:PlayerColor
+    entries:seq[string]
+    hAlign:HorizontalAlignment
+    font:string
+    fontSize:float
+    padding:(int,int,int,int)
+  Reveal* = enum Front,Back
+  CardSlot = tuple[area:Area,rect:Rect]
 
 const
   playerColors*:array[PlayerColor,Color] = [
@@ -43,7 +49,7 @@ const
     color(255,255,255),
   ]  
 
-const
+  (humanRoll*,computerRoll*) = (0,80)
   diceRollRects = (Rect(x:1450,y:60,w:50,h:50),Rect(x:1450,y:120,w:50,h:50))
   diceRollDims:array[1..2,Dims] = [
     (diceRollRects[0].toArea,diceRollRects[0]),
@@ -57,12 +63,106 @@ const
   (lxo,rxo) = (70.0,1030.0)
   maxRollFrames = 120
 
+  (pbx,pby) = (20,20)
+  kalam* = "fonts\\Kalam-Bold.ttf"
+  fjallaOneRegular* = "fonts\\FjallaOne-Regular.ttf"
+  ibmBold* = "fonts\\IBMPlexMono-Bold.ttf"
+  inputEntries:seq[string] = @[
+    "Write player handle:\n",
+    "\n",
+  ]
+  condensedRegular = "fonts\\AsapCondensed-Regular.ttf"
+  titleBorder:Border = (size:0,angle:0,color:color(0,0,100))
+  inputBorder:Border = (size:0,angle:0,color:color(0,0,100))
+  inputBatchInit = BatchInit(
+    kind:InputBatch,
+    name:"inputBatch",
+    titleOn:true,
+    titleLine:(color:color(1,1,0),bgColor:color(0,0,0),border:titleBorder),
+    pos:(400,200),
+    inputCursor:(0.5,color(0,1,0)),
+    inputLine:(color(0,1,0),color(0,0,0),inputBorder),
+    padding:(40,40,20,20),
+    entries:inputEntries,
+    inputMaxChars:8,
+    alphaOnly:true,
+    font:(condensedRegular,30.0,color(1,1,1)),
+    bgColor:color(0,0,0),
+    border:(15,25,color(0,0,100)),
+    shadow:(15,1.5,color(255,255,255,200))
+  )
+
+func buildCardSlots(r:Rect,cardsInRow:range[2..8]):seq[CardSlot] =
+  const
+    slotRanges:array[2..8,HSlice[int,int]] = [0..7,0..17,0..31,0..49,0..71,0..97,0..128]
+    padding:array[2..8,float] = [20,10,5,3,2,1,1]
+  let
+    sizeFactor = 1.0/cardsInRow.toFloat
+    rect = Rect(x:r.x,y:r.y,w:r.w*sizeFactor,h:r.h*sizeFactor)
+  var slot:Rect
+  for i in slotRanges[cardsInRow]:
+    slot = Rect(w:rect.w,h:rect.h,
+      x:rect.x+((rect.w+padding[cardsInRow])*(i mod cardsInRow).toFloat),
+      y:rect.y+((rect.h+padding[cardsInRow])*(i div cardsInRow).toFloat)
+    )
+    result.add (slot.toArea,slot)
+
+func buildCardSlots(initPosDim:Rect):seq[seq[CardSlot]] =
+  for cardsInRow in 2..8: result.add buildCardSlots(initPosDim,cardsInRow)
+
+const
+  (cardWidth*,cardHeight*) = (255.0,410.0)
+  popUpCardRect = Rect(x:500,y:275,w:cardWidth*0.9,h:cardHeight*0.9)
+  drawPileRect = Rect(x:855,y:495,w:110,h:180)
+  discardPileRect = Rect(x:1025,y:495,w:cardWidth*0.441,h:cardHeight*0.441)
+  drawPileArea* = drawPileRect.toArea
+  discardPileArea* = discardPileRect.toArea
+  slotCapacities = [8,18,32,50,72,98,128]
+  initPosDim = Rect(x:1580.0,y:50.0,w:cardWidth,h:cardHeight)
+  cardSlotsX = initPosDim.buildCardSlots
+
+let
+  deedbg = readImage "pics\\deedbg.jpg"
+  planbg = readImage "pics\\bronze_plates.jpg"
+  jobbg = readImage "pics\\silverback.jpg"
+  missionbg = readImage "pics\\mission.jpg"
+  blueBack = readImage "pics\\blueback.jpg"
+  roboto = readTypeface "fonts\\Roboto-Regular_1.ttf"
+  point = readTypeface "fonts\\StintUltraCondensed-Regular.ttf"
+  ibmplex = readTypeFace "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
+
 var
-  diceRolls*:seq[Dice]
+  inputBatch* = newBatch inputBatchInit
+  playerBatches*:array[6,Batch]
+  showCursor*:bool
+
   dieRollFrame* = maxRollFrames
-  moveSelection*:MoveSelection = (-1,-1,-1,@[],false)
   moveAnimation*:MoveAnimation
   dieEdit:int
+
+proc drawCursor*(b:var Boxy) =
+  if turn.nr > 0 and showCursor:
+    let 
+      x = (playerBatches[turn.player].area.x2-40).toFloat
+      y = (playerBatches[turn.player].area.y1+10).toFloat
+      cursor = Rect(x:x,y:y,w:20,h:20)
+    b.drawRect(cursor,contrastColors[players[turn.player].color])
+
+proc paintUndrawnBlues:Image =
+  var ctx = newImage(110,180).newContext
+  ctx.font = fjallaOneRegular
+  ctx.fontSize = 160
+  ctx.fillStyle = color(1,1,0)
+  ctx.fillText($turn.undrawnBlues,20,160)
+  ctx.image
+
+var 
+  nrOfUndrawnBluesPainter* = DynamicImage[void](
+    name:"undrawBlues",
+    area:(855,495,0,0), # may do drawpile.toArea
+    updateImage:paintUndrawnBlues,
+    update:true
+  )
 
 proc editDiceRoll*(input:string) =  
   if input.toUpper == "D": dieEdit = 1 
@@ -96,8 +196,6 @@ proc drawDice*(b:var Boxy) =
       diceRolls.add diceRoll #please: don't do as I do
 
 proc isRollingDice*: bool = dieRollFrame < maxRollFrames
-
-proc isDouble*: bool = diceRoll[1] == diceRoll[2]
 
 proc startDiceRoll*(rollFrames:int) =
   if not isRollingDice(): 
@@ -166,18 +264,29 @@ proc paintIcon(square:Square):Image =
   ctx.drawImage(icon,0,0)
   result = ctx.image
 
-proc buildBoardSquares*(path:string):BoardSquares =
+proc buildBoardSquares*(board:Board):BoardSquares =
   const squareDims = squareDims()
-  var count = 0
-  result[0] = (0,"Removed",squareDims[0],nil)
-  for name in lines path:
-    inc count
-    result[count] = (count,name,squareDims[count],nil)
-    result[count].icon = result[count].paintIcon
+  # var count = 0
+  for (nr,name) in board:
+    # inc count
+    if nr > 0:
+      result[nr] = (nr,name,squareDims[nr],nil)
+      result[nr].icon = result[nr].paintIcon
+    else: 
+      result[0] = (0,"Removed",squareDims[0],nil)
+
+# proc buildBoardSquares*(path:string):BoardSquares =
+#   const squareDims = squareDims()
+#   var count = 0
+#   result[0] = (0,"Removed",squareDims[0],nil)
+#   for name in lines path:
+#     inc count
+#     result[count] = (count,name,squareDims[count],nil)
+#     result[count].icon = result[count].paintIcon
 
 let 
   boardImg* = readImage "pics\\engboard.jpg"
-  squares* = buildBoardSquares "dat\\board.txt"
+  squares* = buildBoardSquares board
 
 proc mouseOnSquare*:int =
   for square in squares:
@@ -207,6 +316,23 @@ var
     update:true
   )
 
+proc drawMoveToSquares*(b:var Boxy,square:int) =
+  if square != moveSelection.hoverSquare:
+    if turn.diceMoved:
+      moveToSquaresPainter.context = square.moveToSquares
+    else:
+      moveToSquaresPainter.context = square.moveToSquares diceRoll
+    moveToSquaresPainter.update = true
+    moveSelection.hoverSquare = square
+  b.drawDynamicImage moveToSquaresPainter
+
+proc drawSquares*(b:var Boxy) =
+  if moveSelection.fromSquare != -1:
+    b.drawDynamicImage moveToSquaresPainter
+  elif (let square = mouseOnSquare(); square != -1) and turnPlayer.hasPieceOn(square):
+    b.drawMoveToSquares square
+  else: moveSelection.hoverSquare = -1
+
 proc pieceOn*(color:PlayerColor,squareNr:int):Rect =
   let 
     r = squares[squareNr].dims.rect
@@ -214,6 +340,33 @@ proc pieceOn*(color:PlayerColor,squareNr:int):Rect =
   if squareNr == 0: Rect(x:r.x,y:r.y+6+colorOffset,w:r.w-10,h:12)
   elif r.w == 35: Rect(x:r.x+5,y:r.y+6+colorOffset,w:r.w-10,h:12)
   else: Rect(x:r.x+6+colorOffset,y:r.y+5,w:12,h:r.h-10)
+
+proc paintPieces*:Image =
+  var ctx = newImage(boardImg.width+50,boardImg.height).newContext
+  ctx.font = ibmBold
+  ctx.fontSize = 10
+  for i,player in (if turn.nr != 0: players else: players.filterIt it.kind != None):
+    for square in player.pieces.deduplicate:
+      let 
+        nrOfPiecesOnSquare = player.pieces.countIt it == square
+        piece = player.color.pieceOn square
+      ctx.fillStyle = playerColors[player.color]
+      ctx.fillRect piece
+      if turn.nr > 0 and i == turn.player and square == moveSelection.fromSquare:
+        ctx.fillStyle = contrastColors[player.color]
+        ctx.fillRect Rect(x:piece.x+4,y:piece.y+4,w:piece.w-8,h:piece.h-8)
+      if nrOfPiecesOnSquare > 1:
+        ctx.fillStyle = contrastColors[player.color]
+        ctx.fillText($nrOfPiecesOnSquare,piece.x+2,piece.y+10)
+  ctx.image
+
+var 
+  piecesImg* = DynamicImage[void](
+    name:"pieces",
+    area:(bx.toInt,by.toInt,0,0),
+    updateImage:paintPieces,
+    update:true
+  )
 
 func squareDistance(fromSquare,toSquare:int):int =
   if fromSquare < toSquare:
@@ -283,73 +436,6 @@ addImage("board",boardImg)
 for die in DieFace: 
   addImage $die,("pics\\diefaces\\"&($die.ord)&".png").readImage
 
-# import win
-# import game
-# import sequtils
-# import strutils
-import random
-# import board
-
-type
-  Reveal* = enum Front,Back
-  CardSlot = tuple[area:Area,rect:Rect]
-  # ProtoCard = array[4,string]
-  # PlanSquares = tuple[required,oneInMany:seq[int]]
-  # CardKind* = enum Deed,Plan,Job,Event,News,Mission
-  # BlueCard* = object
-  #   title*:string
-  #   case cardKind*:CardKind
-  #   of Plan,Mission,Job,Deed:
-  #     squares*:PlanSquares
-  #     cash*:int
-  #     eval*:int
-  #     covered*:bool
-  #   of Event,News:
-  #     moveSquares*:seq[int]
-  #     bgPath:string
-  # Deck* = object 
-  #   fullDeck*,drawPile*,discardPile*:seq[BlueCard]
-  #   lastDrawn*:string
-
-func buildCardSlots(r:Rect,cardsInRow:range[2..8]):seq[CardSlot] =
-  const
-    slotRanges:array[2..8,HSlice[int,int]] = [0..7,0..17,0..31,0..49,0..71,0..97,0..128]
-    padding:array[2..8,float] = [20,10,5,3,2,1,1]
-  let
-    sizeFactor = 1.0/cardsInRow.toFloat
-    rect = Rect(x:r.x,y:r.y,w:r.w*sizeFactor,h:r.h*sizeFactor)
-  var slot:Rect
-  for i in slotRanges[cardsInRow]:
-    slot = Rect(w:rect.w,h:rect.h,
-      x:rect.x+((rect.w+padding[cardsInRow])*(i mod cardsInRow).toFloat),
-      y:rect.y+((rect.h+padding[cardsInRow])*(i div cardsInRow).toFloat)
-    )
-    result.add (slot.toArea,slot)
-
-func buildCardSlots(initPosDim:Rect):seq[seq[CardSlot]] =
-  for cardsInRow in 2..8: result.add buildCardSlots(initPosDim,cardsInRow)
-
-const
-  (cardWidth*,cardHeight*) = (255.0,410.0)
-  popUpCardRect = Rect(x:500,y:275,w:cardWidth*0.9,h:cardHeight*0.9)
-  drawPileRect = Rect(x:855,y:495,w:110,h:180)
-  discardPileRect = Rect(x:1025,y:495,w:cardWidth*0.441,h:cardHeight*0.441)
-  drawPileArea* = drawPileRect.toArea
-  discardPileArea* = discardPileRect.toArea
-  slotCapacities = [8,18,32,50,72,98,128]
-  initPosDim = Rect(x:1580.0,y:50.0,w:cardWidth,h:cardHeight)
-  cardSlotsX = initPosDim.buildCardSlots
-
-let
-  deedbg = readImage "pics\\deedbg.jpg"
-  planbg = readImage "pics\\bronze_plates.jpg"
-  jobbg = readImage "pics\\silverback.jpg"
-  missionbg = readImage "pics\\mission.jpg"
-  blueBack = readImage "pics\\blueback.jpg"
-  roboto = readTypeface "fonts\\Roboto-Regular_1.ttf"
-  point = readTypeface "fonts\\StintUltraCondensed-Regular.ttf"
-  ibmplex = readTypeFace "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
-
 func nrOfslots(nrOfCards:int):int =
   for i,capacity in slotCapacities:
     if nrOfCards <= capacity: return i
@@ -363,37 +449,11 @@ iterator cardSlots*(cards:seq[BlueCard]):(BlueCard,CardSlot) =
       yield (cards[i],slots[i])
       inc i
 
-# func parseProtoCards(lines:sink seq[string]):seq[ProtoCard] =
-#   var 
-#     cardLine:int
-#     protoCard:ProtoCard 
-#   for line in lines:
-#     protocard[cardLine] = line
-#     if cardLine == 3:
-#       result.add protoCard
-#       cardLine = 0
-#     else: inc cardLine
-
-# func parseCardSquares(str:string,brackets:array[2,char]):seq[int] =
-#   let (f,l) = (str.find(brackets[0]),str.find(brackets[1]))
-#   if -1 in [f,l]: @[] else: str[f+1..l-1].split(',').mapIt it.parseInt
-
-# func parseCardKindFrom(kind:string):CardKind =
-#   try: CardKind(CardKind.mapIt(($it).toLower).find kind[0..kind.high-1].toLower) 
-#   except: raise newException(CatchableError,"Error, parsing CardKind: "&kind)
-
-# func newBlueCards(protoCards:seq[ProtoCard]):seq[BlueCard] =
-#   for protoCard in protoCards:
-#     result.add BlueCard(title:protoCard[1],cardKind:parseCardKindFrom protoCard[0])
-#     if result[^1].cardKind in [Event,News]:
-#       result[^1].moveSquares = parseCardSquares(protoCard[2],['{','}'])
-#       result[^1].bgPath = protoCard[3]
-#     else:
-#       result[^1].squares = (
-#         parseCardSquares(protoCard[2],['{','}']),
-#         parseCardSquares(protoCard[2],['[',']']),
-#       )
-#       result[^1].cash = protoCard[3].parseInt
+proc mouseOnCardSlot*(player:Player):int =
+  for (_,slot) in player.hand.cardSlots:
+    if mouseOn slot.area: return
+    inc result
+  result = -1
 
 func required(plan:BlueCard,squares:BoardSquares):seq[string] =
   let 
@@ -568,37 +628,6 @@ proc initGraphics*(deck:Deck) =
   for idx,img in deck.fullDeck.mapIt it.paintBlue squares:
     addImage(deck.fullDeck[idx].title,img)
 
-# proc newDeck*(path:string):Deck =
-#   result = Deck(fullDeck:path.lines.toSeq.parseProtoCards.newBlueCards)
-#   result.drawPile = result.fullDeck
-#   result.drawPile.shuffle
-
-# proc resetDeck*(deck:var Deck) =
-#   deck.discardPile.setLen 0
-#   deck.drawPile = deck.fullDeck
-#   deck.drawPile.shuffle
-#   deck.lastDrawn = ""
-
-# proc shufflePiles*(deck:var Deck) =
-#   deck.drawPile.add deck.discardPile
-#   deck.discardPile.setLen 0
-#   deck.drawPile.shuffle
-
-# proc drawFrom*(hand:var seq[BlueCard],deck:var Deck) =
-#   if deck.drawPile.len == 0:
-#     deck.shufflePiles
-#   hand.add deck.drawPile.pop
-#   deck.lastDrawn = hand[^1].title
-
-# proc drawFromDiscardPile*(hand:var seq[BlueCard],deck:var Deck) =
-#   if deck.discardPile.len > 0:
-#     hand.add deck.discardPile.pop
-#     deck.lastDrawn = hand[^1].title
-
-# proc playTo*(hand:var seq[BlueCard],deck:var Deck,card:int) =
-#   deck.discardPile.add hand[card]
-#   hand.del card
-
 proc paintCardSquares*(blue:BlueCard):Image =
   result = newImage(boardImg.width,boardImg.height)
   result.paintSquares(blue.squares.required.deduplicate,color(0,0,0,100))
@@ -639,50 +668,10 @@ proc paintCards*(b:var Boxy,deck:Deck,cards:seq[BlueCard],show:Reveal = Front) =
       b.drawImage(card.title,popUpCardRect)
       b.drawCardSquares card
 
-type
-  BatchSetup = tuple
-    name:string
-    bgColor:PlayerColor
-    entries:seq[string]
-    hAlign:HorizontalAlignment
-    font:string
-    fontSize:float
-    padding:(int,int,int,int)
-
-const
-  (pbx,pby) = (20,20)
-  kalam* = "fonts\\Kalam-Bold.ttf"
-  fjallaOneRegular* = "fonts\\FjallaOne-Regular.ttf"
-  ibmBold* = "fonts\\IBMPlexMono-Bold.ttf"
-  inputEntries:seq[string] = @[
-    "Write player handle:\n",
-    "\n",
-  ]
-  condensedRegular = "fonts\\AsapCondensed-Regular.ttf"
-  titleBorder:Border = (size:0,angle:0,color:color(0,0,100))
-  inputBorder:Border = (size:0,angle:0,color:color(0,0,100))
-  inputBatchInit = BatchInit(
-    kind:InputBatch,
-    name:"inputBatch",
-    titleOn:true,
-    titleLine:(color:color(1,1,0),bgColor:color(0,0,0),border:titleBorder),
-    pos:(400,200),
-    inputCursor:(0.5,color(0,1,0)),
-    inputLine:(color(0,1,0),color(0,0,0),inputBorder),
-    padding:(40,40,20,20),
-    entries:inputEntries,
-    inputMaxChars:8,
-    alphaOnly:true,
-    font:(condensedRegular,30.0,color(1,1,1)),
-    bgColor:color(0,0,0),
-    border:(15,25,color(0,0,100)),
-    shadow:(15,1.5,color(255,255,255,200))
-  )
-
-var
-  inputBatch* = newBatch inputBatchInit
-  playerBatches*:array[6,Batch]
-  showCursor*:bool
+proc mouseOnPlayerBatchNr*:int =
+  result = -1
+  for i,_ in players:
+    if mouseOn playerBatches[i]: return i
 
 proc playerBatch(setup:BatchSetup,yOffset:int):Batch = 
   newBatch BatchInit(
@@ -713,9 +702,13 @@ proc playerBatchTxt(playerNr:int):seq[string] =
     "Cash: "&(insertSep($players[playerNr].cash,'.'))
   ]
 
-proc updateBatch*(playerNr:int) =
-  playerBatches[playerNr].setSpanTexts playerBatchTxt playerNr
-  playerBatches[playerNr].update = true
+proc drawPlayerBatches*(b:var Boxy) =
+  for batchNr,_ in players:
+    if players[batchNr].update:
+      playerBatches[batchNr].setSpanTexts playerBatchTxt batchNr
+      playerBatches[batchNr].update = true
+      players[batchNr].update = false
+    b.drawBatch playerBatches[batchNr]
 
 proc batchSetup(playerNr:int):BatchSetup =
   let player = players[playerNr]
