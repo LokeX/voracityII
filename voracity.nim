@@ -553,7 +553,27 @@ proc aiTurn(): bool =
   turnPlayer.kind == Computer and 
   not isRollingDice()
 
+proc resetReports* =
+  for batch in reportBatches.mitems:
+    batch.setSpans @[]
+  initTurnReport()
+  turnReports.setLen 0
+  selectedBatch = -1
+  killMatrixPainter.update = true
+
 proc cycle = 
+  if resetReportsUpdate:
+    resetReports()
+    resetReportsUpdate = false
+  if turnReportBatchesInit:
+    initReportBatchesTurn()
+    turnReportBatchesInit = false
+  if turnReportUpdate:
+    writeTurnReportUpdate()
+    turnReportUpdate = false
+  if updateKillMatrix:
+    killMatrixPainter.update = true
+    updateKillMatrix = false
   if changeMenuState == MenuOff:
     showMenu = false
   elif changeMenuState == MenuOn:

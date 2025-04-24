@@ -1,5 +1,4 @@
 import win except align,split,strip
-from eval import Move
 import batch
 import sequtils
 import strutils
@@ -7,27 +6,10 @@ import game
 import graphics
 import misc
 import os
-import sugar
 
 type 
-  CashedCards = seq[tuple[title:string,count:int]]  
   KillMatrix = array[PlayerColor,array[PlayerColor,int]]
-  PlayedCard* = enum Drawn,Played,Cashed,Discarded
-  ReportBatches = array[PlayerColor,Batch]
-  Alias = array[8,char]
-  GameStats[T,U] = object
-    turnCount:int
-    playerKinds:array[6,U]
-    aliases:array[6,T]
-    winner:T
-    cash:int
-  TurnReport = object
-    turnNr:int
-    playerBatch:tuple[color:PlayerColor,kind:PlayerKind]
-    diceRolls*:seq[Dice]
-    moves*:seq[Move]
-    cards*:tuple[drawn,played,cashed,discarded,hand:seq[BlueCard]]
-    kills:seq[PlayerColor]
+  ReportBatches* = array[PlayerColor,Batch]
 
 const
   robotoRegular* = "fonts\\Roboto-Regular_1.ttf"
@@ -56,11 +38,8 @@ let
 
 var
   statsBatch = newBatch statsBatchInit
-  reportBatches:ReportBatches
-  selectedBatch:int
-  turnReports:seq[TurnReport]
-  turnReport*:TurnReport
-  gameStats:seq[GameStats[string,PlayerKind]]
+  reportBatches*:ReportBatches
+  selectedBatch*:int
 
 proc victims(killer:PlayerColor):seq[PlayerColor] =
   for report in turnReports:
@@ -115,7 +94,7 @@ proc paintKillMatrix:Image =
   result.applyOpacity 25
 
 var 
-  killMatrixPainter = DynamicImage[void](
+  killMatrixPainter* = DynamicImage[void](
     name:"killMatrix",
     area:(250+bx.toInt,250+by.toInt,0,0),
     updateImage:paintKillMatrix,
@@ -164,18 +143,18 @@ proc reportSpansFrom(turnReport:TurnReport):seq[Span] =
   for line in reportLines turnReport:
     result.add newSpan(line&"\n",plainFont)
 
-proc echoTurn(report:TurnReport) =
-  for fn,item in turnReport.fieldPairs:
-    when typeOf(item) is tuple:
-      for n,i in item.fieldPairs: 
-        echo n,": ",$i
-    else: 
-      echo fn,": ",$item
+# proc echoTurn(report:TurnReport) =
+#   for fn,item in turnReport.fieldPairs:
+#     when typeOf(item) is tuple:
+#       for n,i in item.fieldPairs: 
+#         echo n,": ",$i
+#     else: 
+#       echo fn,": ",$item
 
-proc recordTurnReport* =
-  turnReport.cards.hand = turnPlayer.hand
-  echoTurn turnReport
-  turnReports.add turnReport
+# proc recordTurnReport* =
+#   turnReport.cards.hand = turnPlayer.hand
+#   echoTurn turnReport
+#   turnReports.add turnReport
 
 proc writeEndOfGameReports =
   for player in players:
@@ -189,45 +168,30 @@ proc writeEndOfGameReports =
     ]
     reportBatches[player.color].setSpans reportLines.mapIt newSpan(it&"\n",plainFont)
 
-proc initTurnReport* =
-  turnReport = TurnReport()
-  turnReport.turnNr = turnPlayer.turnNr+1
+proc initReportBatchesTurn* =
   turnReport.playerBatch.color = turnPlayer.color
   turnReport.playerBatch.kind = turnPlayer.kind
   reportBatches[turnPlayer.color].setSpans reportSpansFrom turnReport
   reportBatches[turnPlayer.color].update = true
 
-proc writeUpdate =
+# proc initTurnReport* =
+#   turnReport = TurnReport()
+#   turnReport.turnNr = turnPlayer.turnNr+1
+#   initReportBatchesTurn()
+
+proc writeTurnReportUpdate* =
   reportBatches[turnPlayer.color].setSpans reportSpansFrom turnReport
   if turnPlayer.cash >= cashToWin:
     writeEndOfGameReports()
   reportBatches[turnPlayer.color].update = true
 
-proc updateTurnReport*[T](item:T) =
-  when typeOf(T) is Move: 
-    turnReport.moves.add item
-  when typeof(T) is Dice: 
-    turnReport.diceRolls.add item
-  when typeof(T) is PlayerColor: 
-    turnReport.kills.add item
-    killMatrixPainter.update = true
-  writeUpdate()
-  
-proc updateTurnReportCards*(blues:seq[BlueCard],playedCard:PlayedCard) =
-  case playedCard
-  of Drawn: turnReport.cards.drawn.add blues
-  of Played: turnReport.cards.played.add blues
-  of Cashed: turnReport.cards.cashed.add blues
-  of Discarded: turnReport.cards.discarded.add blues
-  writeUpdate()
-
-proc resetReports* =
-  for batch in reportBatches.mitems:
-    batch.setSpans @[]
-  initTurnReport()
-  turnReports.setLen 0
-  selectedBatch = -1
-  killMatrixPainter.update = true
+# proc resetReports* =
+#   for batch in reportBatches.mitems:
+#     batch.setSpans @[]
+#   initTurnReport()
+#   turnReports.setLen 0
+#   selectedBatch = -1
+#   killMatrixPainter.update = true
 
 template gotReport*(player:PlayerColor):bool =
   reportBatches[player].spansLength > 0
@@ -272,82 +236,29 @@ let (robotoPurple,robotoYellow,robotoGreen,robotoWhite,robotolh7) = block:
   robotoWhite.paint = color(25,25,25)
   (robotoPurple,robotoYellow,robotoGreen,robotoWhite,robotolh7)
 
-proc getLoneAlias:string =
-  if (let aliases = playerHandles.filterIt(it.isAlpha).deduplicate; aliases.len > 0):
-    if aliases.count(aliases[0]) == aliases.len:
-      result = aliases[0]
-
-func aliasCounts(handles:openArray[string]):seq[(string,int)] =
-  handles.filterIt(it.isAlpha).deduplicate.mapIt (it,handles.count it)
-
-proc playerHandlesMatch(aliases:openArray[string]):bool =
-  for (alias,count) in aliases.aliasCounts:
-    if count != playerHandles.count alias:
-      return false
-  true
-
-proc countKinds:(int,int) =
-  for kind in playerKinds:
-    if kind == Human:
-      inc result[0]
-    elif kind == Computer:
-      inc result[1]
-
-template matchStats(statsMatching,aliasMatching:untyped):untyped =
-  let 
-    (humanCount {.inject.},computerCount {.inject.}) = countKinds()
-    kindMatches {.inject.} = statsMatching
-    playerHandleMatches = aliasMatching
-  # echo kindMatches
-  # echo playerHandleMatches
-  if playerHandleMatches.len > 0: playerHandleMatches else: kindMatches
-
-proc matchingStats:seq[GameStats[string,PlayerKind]] =
-  matchStats(
-    gameStats.filterIt(
-      it.playerKinds.count(Human) == humanCount and 
-      it.playerKinds.count(Computer) == computerCount),
-    kindMatches.filterIt(playerHandlesMatch it.aliases))
-
-proc noneMatchingStats:seq[GameStats[string,PlayerKind]] =
-  matchStats(
-    gameStats.filterIt(
-      it.playerKinds.count(Human) != humanCount or 
-      it.playerKinds.count(Computer) != computerCount),
-    kindMatches.filterIt(not playerHandlesMatch it.aliases))
-
 proc statsBatchSpans:seq[Span] =
-  let (loneAlias,matches) = (getLoneAlias(),matchingStats())
-  if gameStats.len > 0 and matches.len > 0:
-    let 
-      turns = matches.mapIt(it.turnCount).sum
-      avgTurns = turns div matches.len
-      computerWins = matches.countIt it.winner == "computer"
-      humanWins = matches.len - computerWins
-      handle = if loneAlias.len > 0: loneAlias else: "Human"
-      computerPercent = ((computerWins.toFloat/matches.len.toFloat)*100)
-        .formatFloat(ffDecimal,2)
-      humanPercent = ((humanWins.toFloat/matches.len.toFloat)*100)
-        .formatFloat(ffDecimal,2)
-    result = @[
-      newSpan("Statistics ",robotoGreen),
-      newSpan(if mouseOn statsBatch: "  -   click to reset\n" else: "\n",robotoWhite),
-      newSpan("\n",robotolh7),
-      newSpan("Games: ",robotoPurple),
-      newSpan($(matches.len),robotoYellow),
-      newSpan("  |  Turns: ",robotoPurple),
-      newSpan($turns,robotoYellow),
-      newSpan("  |  Avg turns: ",robotoPurple),
-      newSpan($avgTurns&"\n",robotoYellow),
-      newSpan(handle&" wins: ",robotoPurple),
-      newSpan($humanWins,robotoYellow),
-      newSpan("  |  ",robotoPurple),
-      newSpan(humanPercent&"%\n",robotoYellow),
-      newSpan("Computer wins: ",robotoPurple),
-      newSpan($computerWins,robotoYellow),
-      newSpan("  |  ",robotoPurple),
-      newSpan(computerPercent&"%",robotoYellow),
-    ]
+  if gameStats.len > 0:
+    let stats = getMatchingStats()
+    if stats.hasData:
+      result = @[
+        newSpan("Statistics ",robotoGreen),
+        newSpan(if mouseOn statsBatch: "  -   click to reset\n" else: "\n",robotoWhite),
+        newSpan("\n",robotolh7),
+        newSpan("Games: ",robotoPurple),
+        newSpan($(stats.games),robotoYellow),
+        newSpan("  |  Turns: ",robotoPurple),
+        newSpan($stats.turns,robotoYellow),
+        newSpan("  |  Avg turns: ",robotoPurple),
+        newSpan($stats.avgTurns&"\n",robotoYellow),
+        newSpan(stats.handle&" wins: ",robotoPurple),
+        newSpan($stats.humanWins,robotoYellow),
+        newSpan("  |  ",robotoPurple),
+        newSpan(stats.humanPercent&"%\n",robotoYellow),
+        newSpan("Computer wins: ",robotoPurple),
+        newSpan($stats.computerWins,robotoYellow),
+        newSpan("  |  ",robotoPurple),
+        newSpan(stats.computerPercent&"%",robotoYellow),
+      ]
 
 proc updateStatsBatch* =
   statsBatch.setSpans statsBatchSpans()
@@ -362,15 +273,10 @@ proc drawStats*(b:var Boxy) =
     if (mouseOver and spanEmpty) or (not mouseOver and not spanEmpty):
       statsBatch.setSpanText(if mouseOn statsBatch: "  -   click to reset\n" else: "\n",1)
       statsBatch.update = true
-      # updateStatsBatch()
     b.drawDynamicImage statsBatch
 
 template mouseOnStatsBatch*:bool =
   mouseOn statsBatch
-
-func readReportedVisits(turnReports:seq[TurnReport]):array[1..60,int] =
-  for square in turnReports.mapIt(it.moves.mapIt(it.toSquare)).flatMap.filterIt(it != 0):
-    inc result[square]
 
 proc readVisitsFile(path:string):array[1..60,int] =
   if fileExists path:
@@ -385,17 +291,9 @@ func allSquareVisits(reportVisits,fileVisits:array[1..60,int]):array[1..60,int] 
     
 proc writeSquareVisitsTo(path:string) =
   var squareVisits:seq[string]
-  for i,visits in allSquareVisits(turnReports.readReportedVisits,readVisitsFile path):
+  for i,visits in allSquareVisits(turnReports.reportedVisitsCount,readVisitsFile path):
     squareVisits.add squares[i].name&" Nr."&($i)&": "&($visits)
   writeFile(path,squareVisits.join "\n")
-
-proc reportedCashedCards:CashedCards =
-  let titles = collect:
-    for report in turnReports:
-      for card in report.cards.cashed: card.title
-  for title in titles:
-    if title notin result.mapIt it.title:
-      result.add (title,titles.count title)
 
 proc readCashedCardsFrom(path:string):CashedCards =
   if fileExists path:
@@ -416,21 +314,6 @@ proc writeCashedCardsTo(path:string) =
     allCashedCards(path)
     .mapIt(it.title&": "&($it.count))
     .join "\n"
-  )
-
-template winner:untyped =
-  if turnReport.playerBatch.kind == Computer: "computer"
-  elif playerHandles[turnReport.playerBatch.color.ord].isAlpha:
-    playerHandles[turnReport.playerBatch.color.ord]
-  else: "human"
-
-proc newGameStats:GameStats[string,PlayerKind] = 
-  GameStats[string,PlayerKind](
-    turnCount:turnReport.turnNr,
-    playerKinds:playerKinds,
-    aliases:playerHandles,
-    winner:winner,
-    cash:cashToWin
   )
 
 func aliasToChars(alias:string):Alias =

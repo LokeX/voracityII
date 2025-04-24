@@ -2,7 +2,6 @@ from math import sum
 import game
 import sequtils
 import eval
-import reports
 import random
 import strutils
 import times
@@ -25,12 +24,55 @@ var
   killDialogSquare* = -1
   updateKeybar*:bool
   updatePieces*:bool
+  updateKillMatrix*:bool
   updateUndrawnBlues*:bool
+  turnReportUpdate*:bool
+  turnReportBatchesInit*:bool
+  resetReportsUpdate*:bool
   soundToPlay*:seq[string]
   configState* = None
 
 template playSound(s:string) =
   soundToPlay.add s
+
+proc initTurnReport* =
+  turnReport = TurnReport()
+  turnReport.turnNr = turnPlayer.turnNr+1
+  turnReportBatchesInit = true
+  # initReportBatchesTurn()
+
+proc updateTurnReport*[T](item:T) =
+  when typeOf(T) is Move: 
+    turnReport.moves.add item
+  when typeof(T) is Dice: 
+    turnReport.diceRolls.add item
+  when typeof(T) is PlayerColor: 
+    turnReport.kills.add item
+    updateKillMatrix = true
+  # writeTurnReportUpdate()
+  turnReportUpdate = true
+  
+proc updateTurnReportCards*(blues:seq[BlueCard],playedCard:PlayedCard) =
+  case playedCard
+  of Drawn: turnReport.cards.drawn.add blues
+  of Played: turnReport.cards.played.add blues
+  of Cashed: turnReport.cards.cashed.add blues
+  of Discarded: turnReport.cards.discarded.add blues
+  # writeTurnReportUpdate()
+  turnReportUpdate = true
+
+proc echoTurn(report:TurnReport) =
+  for fn,item in turnReport.fieldPairs:
+    when typeOf(item) is tuple:
+      for n,i in item.fieldPairs: 
+        echo n,": ",$i
+    else: 
+      echo fn,": ",$item
+
+proc recordTurnReport* =
+  turnReport.cards.hand = turnPlayer.hand
+  echoTurn turnReport
+  turnReports.add turnReport
 
 proc setupNewGame* =
   configState = SetupGame
@@ -69,11 +111,6 @@ proc playCashPlansTo*(deck:var Deck) =
     playSound "coins-to-table-2"
     if initialCash < cashToWin and turnPlayer.cash >= cashToWin:
       configState = GameWon
-      # writeGamestats()
-      # playSound "applause-2"
-      # setMenuTo NewGameMenu
-      # updateKeybar = true
-      # showMenu = true
     else:
       turn.undrawnBlues += cashedPlans.mapIt(
         if it.squares.required.len == 1: 2 else: 1
@@ -259,7 +296,6 @@ proc move*(square:int) =
   elif configState == StatGame: 
     move()
   else: runMoveAnimation = true
-    # animateMove()
 
 proc endGame =
   if turnPlayer.kind == Human:
@@ -270,7 +306,8 @@ proc startNewGame =
   configState = StartGame
   inc turn.nr
   players = newPlayers()
-  resetReports()
+  resetReportsUpdate = true
+  # resetReports()
 
 proc nextTurn =
   playSound "page-flip-2"
@@ -396,11 +433,3 @@ proc aiTakeTurn*() =
   of PostMove: postMovePhase()
   of EndTurn: endTurnPhase()
   turnPlayer.update = true
-
-# please, for the love of God: don't even breethe on it!
-# proc aiRightMouse* =
-#   if phase == EndTurn: 
-#     if showMenu: 
-#       endTurn()
-      # showMenu = not showMenu
- 

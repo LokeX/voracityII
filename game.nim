@@ -3,9 +3,38 @@ from math import sum
 import strutils
 import sequtils
 import random
+import sugar
+from misc import flatmap
 import os
 
 type
+  Move* = tuple[pieceNr,die,fromSquare,toSquare,eval:int]
+  CashedCards* = seq[tuple[title:string,count:int]]  
+  PlayedCard* = enum Drawn,Played,Cashed,Discarded
+  Alias* = array[8,char]
+  GameStats*[T,U] = object
+    turnCount*:int
+    playerKinds*:array[6,U]
+    aliases*:array[6,T]
+    winner*:T
+    cash*:int
+  MatchingStats* = object
+    hasData*:bool
+    games*:int
+    turns*:int
+    avgTurns*:int
+    computerWins*:int
+    humanWins*:int
+    handle*:string
+    computerPercent*:string
+    humanPercent*:string
+  TurnReport* = object
+    turnNr*:int
+    playerBatch*:tuple[color:PlayerColor,kind:PlayerKind]
+    diceRolls*:seq[Dice]
+    moves*:seq[Move]
+    cards*:tuple[drawn,played,cashed,discarded,hand:seq[BlueCard]]
+    kills*:seq[PlayerColor]
   MoveSelection* = tuple
     hoverSquare,fromSquare,toSquare:int
     toSquares:seq[int]
@@ -83,6 +112,9 @@ var
   players*:seq[Player]
   moveSelection*:MoveSelection = (-1,-1,-1,@[],false)
   diceRolls*:seq[Dice]
+  turnReports*:seq[TurnReport]
+  turnReport*:TurnReport
+  gameStats*:seq[GameStats[string,PlayerKind]]
 
 func parseProtoCards(lines:sink seq[string]):seq[ProtoCard] =
   var 
@@ -321,6 +353,93 @@ proc nextPlayerTurn* =
   else: inc turn.player
   turn.undrawnBlues = turnPlayer.nrOfPiecesOnBars
   blueDeck.lastDrawn = ""
+
+proc getLoneAlias:string =
+  if (let aliases = playerHandles.filterIt(it.len > 0).deduplicate; aliases.len > 0):
+    if aliases.count(aliases[0]) == aliases.len:
+      result = aliases[0]
+
+func aliasCounts(handles:openArray[string]):seq[(string,int)] =
+  handles.filterIt(it.len > 0).deduplicate.mapIt (it,handles.count it)
+
+proc playerHandlesMatch(aliases:openArray[string]):bool =
+  for (alias,count) in aliases.aliasCounts:
+    if count != playerHandles.count alias:
+      return false
+  true
+
+proc countKinds:(int,int) =
+  for kind in playerKinds:
+    if kind == Human:
+      inc result[0]
+    elif kind == Computer:
+      inc result[1]
+
+template matchStats(statsMatching,aliasMatching:untyped):untyped =
+  let 
+    (humanCount {.inject.},computerCount {.inject.}) = countKinds()
+    kindMatches {.inject.} = statsMatching
+    playerHandleMatches = aliasMatching
+  if playerHandleMatches.len > 0: playerHandleMatches else: kindMatches
+
+proc matchingStats:seq[GameStats[string,PlayerKind]] =
+  matchStats(
+    gameStats.filterIt(
+      it.playerKinds.count(Human) == humanCount and 
+      it.playerKinds.count(Computer) == computerCount),
+    kindMatches.filterIt(playerHandlesMatch it.aliases))
+
+proc noneMatchingStats*:seq[GameStats[string,PlayerKind]] =
+  matchStats(
+    gameStats.filterIt(
+      it.playerKinds.count(Human) != humanCount or 
+      it.playerKinds.count(Computer) != computerCount),
+    kindMatches.filterIt(not playerHandlesMatch it.aliases))
+
+proc getMatchingStats*:MatchingStats =
+  if gameStats.len > 0: 
+    let 
+      loneAlias = getLoneAlias()
+      matches = matchingStats()
+    if matches.len > 0:
+      result.hasData = true
+      result.games = matches.len
+      result.turns = matches.mapIt(it.turnCount).sum
+      result.avgTurns = result.turns div matches.len
+      result.computerWins = matches.countIt it.winner == "computer"
+      result.humanWins = matches.len - result.computerWins
+      result.handle = if loneAlias.len > 0: loneAlias else: "Human"
+      result.computerPercent = ((result.computerWins.toFloat/matches.len.toFloat)*100)
+        .formatFloat(ffDecimal,2)
+      result.humanPercent = ((result.humanWins.toFloat/matches.len.toFloat)*100)
+        .formatFloat(ffDecimal,2)
+
+template winner:untyped =
+  if turnReport.playerBatch.kind == Computer: "computer"
+  elif playerHandles[turnReport.playerBatch.color.ord].len > 0:
+    playerHandles[turnReport.playerBatch.color.ord]
+  else: "human"
+
+proc newGameStats*:GameStats[string,PlayerKind] = 
+  GameStats[string,PlayerKind](
+    turnCount:turnReport.turnNr,
+    playerKinds:playerKinds,
+    aliases:playerHandles,
+    winner:winner,
+    cash:cashToWin
+  )
+
+proc reportedCashedCards*:CashedCards =
+  let titles = collect:
+    for report in turnReports:
+      for card in report.cards.cashed: card.title
+  for title in titles:
+    if title notin result.mapIt it.title:
+      result.add (title,titles.count title)
+
+func reportedVisitsCount*(turnReports:seq[TurnReport]):array[1..60,int] =
+  for square in turnReports.mapIt(it.moves.mapIt(it.toSquare)).flatMap.filterIt(it != 0):
+    inc result[square]
 
 proc playerHandlesToFile*(playerHandles:openArray[string]) =
   writeFile(handlesFile,playerHandles.mapIt(if it.len > 0: it else: "n/a").join "\n")

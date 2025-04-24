@@ -1,4 +1,4 @@
-Moonshine: 61
+Moonshine: 62
 Borderless: 34
 Cold meds: 42
 Projects: 26
@@ -9,7 +9,7 @@ Occupational hazard: 23
 Stiffs: 17
 Pimp: 22
 Financier: 13
-Prescriptions: 23
+Prescriptions: 24
 Drugdealer: 29
 Lucky bastard: 33
 Protection: 23
@@ -17,12 +17,12 @@ Demolition: 49
 Containment: 42
 White collars: 12
 Advisory board: 44
-Color revolutionary: 26
+Color revolutionary: 27
 Express demands: 24
-Transactionalist: 15
+Transactionalist: 16
 Broken bones: 25
 Human resources: 43
-Polterabend: 60
+Polterabend: 61
 Faulty towers: 26
 Financing: 24
 Rock solid claims: 39
@@ -32,8 +32,8 @@ Hooters: 25
 Et spiritus sancti: 35
 Choireboys: 27
 Knocked out: 36
-Agent: 34
-Debt to society: 28
+Agent: 35
+Debt to society: 29
 Heartless: 17
 Lipstick on a pig: 25
 Meat grinder: 16
@@ -43,13 +43,13 @@ Bouncing: 39
 Usery: 36
 Transitions: 12
 Razia: 14
-Loads of stuff: 36
+Loads of stuff: 37
 Grapevine: 33
 Recycling: 16
 Rentals: 10
 Deadly cargo: 27
-Globalist: 24
-Homebrew: 24
+Globalist: 25
+Homebrew: 25
 Gangbangers: 15
 Ludomania: 29
 Healthplan: 25
@@ -65,9 +65,9 @@ Knock knock: 33
 Lawfare: 34
 Blood diamants: 14
 Brotherhood: 26
-Rentseeker: 24
+Rentseeker: 25
 Ramtheft: 24
-Small arms: 30
+Small arms: 31
 Burglary: 52
 Sing a long song: 48
 Slumlord: 15
@@ -78,26 +78,26 @@ Safe bet: 22
 High society: 32
 Blood suckers: 16
 Acquittal: 27
-Legalese: 48
-Nose job: 23
+Legalese: 49
+Nose job: 24
 VIP Lounge: 21
 Laundry: 15
 Terrorist: 19
-Outsider: 35
+Outsider: 36
 Trance: 38
 Burial at sea: 18
 Informer: 11
 Infiltration: 16
 Redemption: 32
 Bootlegging: 31
-Secret weapon: 29
+Secret weapon: 30
 Bail: 25
 Higher powers: 32
 Stove away: 19
 Lord of War: 9
 Aiding and abetting: 9
 Bodyguard: 16
-Jetsetter: 13
+Jetsetter: 14
 Judicial murder: 13
 Open house: 17
 Circle jerk: 14
@@ -105,5 +105,5 @@ Spy: 6
 Grand designs: 34
 Bodycount: 6
 Broman escorte: 9
-Addictions: 5
+Addictions: 6
 Home invasion: 4

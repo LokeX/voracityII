@@ -13,7 +13,6 @@ const
   posPercent = [1.0,0.3,0.3,0.3,0.3,0.3,0.3,0.15,0.14,0.12,0.10,0.08,0.05]
 
 type
-  Move* = tuple[pieceNr,die,fromSquare,toSquare,eval:int]
   EvalBoard* = array[61,int]
   Hypothetic* = tuple
     board:array[61,int]
