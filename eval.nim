@@ -154,6 +154,7 @@ func evalSquare(hypothetical:Hypothetic,square:int):int =
     blueSquareValues = hypothetical.blueVals squares
     baseSquareVals = squares.mapIt(hypothetical.board[it].toFloat)
     squarePercent = hypothetical.posPercentages squares
+
   toSeq(0..posPercent.high)
   .mapIt(((baseSquareVals[it]+blueSquareValues[it].toFloat)*squarePercent[it]).toInt)
   .sum
@@ -209,6 +210,13 @@ proc evalBluesThreaded*(hypothetical:Hypothetic):seq[BlueCard] =
       result.add card
       result[^1].eval = sync evals[i] #hypothetical.evalBlue(card)
     result.sort (a,b) => b.eval - a.eval
+
+# proc evalBluesThreaded*(hypothetical:Hypothetic):seq[BlueCard] =
+#   let evals = hypothetical.cards.map(it => hypothetical.evalBlue it)
+#   for i,card in hypothetical.cards:
+#     result.add card
+#     result[^1].eval = evals[i] #hypothetical.evalBlue(card)
+#   result.sort (a,b) => b.eval - a.eval
 
 func friendlyFireBest(hypothetical:Hypothetic,move:Move):bool =
   var hypoMove = hypothetical
@@ -274,7 +282,7 @@ func selectCards(selected,unselected:sink seq[BlueCard],covers:sink seq[int]):se
       values = toSeq(0..covers.high).mapIt squareCounts[it]+covers[it]
       index = values.maxIndex
       # index = squareCounts.maxIndex
-    printSelectionReport
+    # printSelectionReport
     selected.add unselected[index]
     unselected.del index
     covers.del index
@@ -293,7 +301,7 @@ func sortUncoveredBlues(hypothetical:Hypothetic):seq[BlueCard] =
     let 
       uncoveredCards = hypothetical.cards.filterIt(not hypothetical.pieces.covers it)
       covers = uncoveredCards.mapIt hypothetical.pieces.covers it.squares.required
-    printCoveredReport
+    # printCoveredReport
     selectCards(coveredCards,uncoveredCards,covers)
   else: hypothetical.cards
 
@@ -363,6 +371,12 @@ proc move*(hypothetical:Hypothetic,dice:openArray[int]):Move =
       .map(bestMove => sync bestMove)
       .reduce (a,b) => (if a.eval >= b.eval: a else: b)
 
+# proc move*(hypothetical:Hypothetic,dice:openArray[int]):Move = 
+#   result = hypothetical.movesSeededWith(dice)
+#     .map(genericMove => hypothetical.bestMoveFrom genericMove)
+#     # .map(bestMove => bestMove)
+#     .reduce (a,b) => (if a.eval >= b.eval: a else: b)
+
 proc diceMoves(hypothetical:Hypothetic):seq[Move] =
   taskPoolsAs tp:
     result = toSeq(1..6)
@@ -371,8 +385,16 @@ proc diceMoves(hypothetical:Hypothetic):seq[Move] =
       .map(genericMove => tp.spawn hypothetical.bestMoveFrom genericMove)
       .map(move => sync move)
 
+# proc diceMoves(hypothetical:Hypothetic):seq[Move] =
+#   result = toSeq(1..6)
+#     .map(die => hypothetical.movesSeededWith([die,die]))
+#     .flatMap
+#     .map(genericMove => hypothetical.bestMoveFrom genericMove)
+#     # .map(move => move)
+
 proc bestDiceMoves*(hypothetical:Hypothetic):seq[Move] =
   let moves = hypothetical.diceMoves
+  # echo moves
   for die in 1..6:
     let dieMoves = moves.filterIt it.die == die
     result.add dieMoves[dieMoves.mapIt(it.eval).maxIndex]

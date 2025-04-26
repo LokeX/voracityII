@@ -614,7 +614,7 @@ proc cycle =
       bgRect.w = scaledWidth.toFloat
       oldBg = -1
   if turnPlayer.kind == Computer and not moveAnimationActive() and aiTurn():
-    aiTakeTurn()
+    aiTakeTurnPhase()
 
 proc timer = 
   if showVolume > 0: showVolume -= 0.4
@@ -690,6 +690,7 @@ updateStatsBatch()
 if fileExists(settingsFile): 
   settingsFromFile()
 else: settingsToFile()
+echo playerHandles.mapIt it&"\n"
 setVolume vol
 addCall call
 addCall dialogCall # we add dialog second - or it will be drawn beneath the board

@@ -29,6 +29,7 @@ var
   turnReportUpdate*:bool
   turnReportBatchesInit*:bool
   resetReportsUpdate*:bool
+  gameWon*:bool
   soundToPlay*:seq[string]
   configState* = None
 
@@ -71,7 +72,7 @@ proc echoTurn(report:TurnReport) =
 
 proc recordTurnReport* =
   turnReport.cards.hand = turnPlayer.hand
-  echoTurn turnReport
+  # echoTurn turnReport
   turnReports.add turnReport
 
 proc setupNewGame* =
@@ -109,8 +110,14 @@ proc playCashPlansTo*(deck:var Deck) =
     updateTurnReportCards(cashedPlans,Cashed)
     turnPlayer.update = true
     playSound "coins-to-table-2"
+    echo $turnPlayer.color," cashed: ",cashedPlans
+    echo $turnPlayer.color," cash: ",turnPlayer.cash
+    echo "turn.nr: ",turn.nr
+    echo "configState: ",configState
     if initialCash < cashToWin and turnPlayer.cash >= cashToWin:
       configState = GameWon
+      echo "game won : ",turnPlayer.cash
+      gameWon = true
     else:
       turn.undrawnBlues += cashedPlans.mapIt(
         if it.squares.required.len == 1: 2 else: 1
@@ -302,10 +309,11 @@ proc endGame =
     recordTurnReport()
   setupNewGame()
 
-proc startNewGame =
+proc startNewGame* =
   configState = StartGame
   inc turn.nr
   players = newPlayers()
+  # echo players
   resetReportsUpdate = true
   # resetReports()
 
@@ -345,6 +353,7 @@ var
 template phaseIs*:untyped = phase
 
 proc drawCards =
+  echo $turnPlayer.color," draw cards"
   playCashPlansTo blueDeck
   while turn.undrawnBlues > 0:
     drawCardFrom blueDeck
@@ -355,11 +364,14 @@ proc drawCards =
     hypo.cards = hypo.evalBluesThreaded
     turnPlayer.hand = hypo.cards
   phase = Reroll
+  echo "nr of cards: ",turnPlayer.hand.len
 
 proc reroll(hypothetical:Hypothetic): bool =
   let 
+    time = cpuTime()
     bestDiceMoves = hypothetical.bestDiceMoves()
     bestDice = bestDiceMoves.mapIt(it.die)
+  echo "roll eval time: ",cpuTime()-time
   updateTurnReport diceRoll
   isDouble() and diceRoll[1].ord notIn bestDice[^2..^1]
 
@@ -373,7 +385,12 @@ func betterThan(move:Move,hypothetical:Hypothetic):bool =
   move.eval.toFloat >= hypothetical.evalPos().toFloat*0.85
 
 proc moveAi =
-  let (isWinningMove,move) = hypo.aiMove([diceRoll[1].ord,diceRoll[2].ord])
+  echo turnPlayer.pieces
+  echo $turnPlayer.color," move"
+  let 
+    time = cpuTime()
+    (isWinningMove,move) = hypo.aiMove([diceRoll[1].ord,diceRoll[2].ord])
+  echo "move eval time: ",cpuTime()-time
   if isWinningMove or move.betterThan hypo:
     if turnPlayer.skipped > 0: 
       turnPlayer.skipped = 0
@@ -387,18 +404,25 @@ proc moveAi =
   phase = PostMove
 
 proc startTurn = 
+  echo ""
+  echo $turnPlayer.color," start turn: ",turn.nr
   hypo = hypotheticalInit(turnPlayer)
   phase = Draw
 
 proc rerollPhase =
+  echo $turnPlayer.color," roll dice"
   if configState == StatGame:
+    # echo "dice statgame"
+    # echo "ispausing: ",diceReroll.isPausing
     if not diceReroll.isPausing or hypo.reroll:
+      # echo "roll dice"
       rollDice()
       diceReroll.isPausing = true
     else:
       diceReroll.isPausing = false
       phase = AiMove
-  if diceReroll.isPausing and cpuTime() - diceReroll.pauseStartTime >= 0.25:
+      # echo "phase: ",phase
+  elif diceReroll.isPausing and cpuTime() - diceReroll.pauseStartTime >= 0.25:
     diceReroll.isPausing = false
     rollTheDice = true
     # startDiceRoll(computerRoll)
@@ -409,6 +433,7 @@ proc rerollPhase =
     phase = AiMove
 
 proc postMovePhase =
+  echo $turnPlayer.color," post move"
   moveSelection.fromSquare = -1
   drawCards()
   # recordTurnReport()
@@ -416,6 +441,8 @@ proc postMovePhase =
 
 proc endTurn* = 
   # showMenu = false
+  # echo $turnPlayer.color," cash: ",turnPlayer.cash
+  echo $turnPlayer.color," end turn"
   phase = Await
   nextGameState()
 
@@ -424,7 +451,8 @@ proc endTurnPhase =
     endTurn()
   else: changeMenuState = MenuOn
 
-proc aiTakeTurn*() =
+proc aiTakeTurnPhase*() =
+  # echo "aitakephase: ",phase
   case phase
   of Await: startTurn()
   of Draw: drawCards()

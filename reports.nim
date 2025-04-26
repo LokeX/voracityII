@@ -237,9 +237,13 @@ let (robotoPurple,robotoYellow,robotoGreen,robotoWhite,robotolh7) = block:
   (robotoPurple,robotoYellow,robotoGreen,robotoWhite,robotolh7)
 
 proc statsBatchSpans:seq[Span] =
+  echo "stat spans: "
   if gameStats.len > 0:
+    echo "nr of stat games: ",gameStats.len
     let stats = getMatchingStats()
+    # echo "matching stats: ",stats.len
     if stats.hasData:
+      echo "stats has data"
       result = @[
         newSpan("Statistics ",robotoGreen),
         newSpan(if mouseOn statsBatch: "  -   click to reset\n" else: "\n",robotoWhite),
@@ -374,7 +378,9 @@ proc writeGamestats* =
   writeSquareVisitsTo visitsFile
   writeCashedCardsTo cashedFile
   if players.anyHuman and players.anyComputer:
+    echo "nr of stat games: ",gameStats.len
     gameStats.add newGameStats()
+    echo "nr of stat games: ",gameStats.len
     updateStatsBatch()
     writeGameStatsTo statsFile
 

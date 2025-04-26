@@ -331,6 +331,8 @@ proc newPlayers*:seq[Player] =
     randomPosition = rand(5)
     playerSlots:array[6,Player]
   for player in players:
+    # echo "player:"
+    # echo player
     while playerSlots[randomPosition].cash != 0: 
       randomPosition = rand(5)
     playerSlots[randomPosition] = Player(
@@ -340,7 +342,8 @@ proc newPlayers*:seq[Player] =
       cash:startCash,
       agro:rand 1..100
     )
-  playerSlots.filterIt it.kind != None
+  result = playerSlots.filterIt it.kind != None
+  # echo result
 
 proc nextPlayerTurn* =
   turn.diceMoved = false
@@ -355,52 +358,61 @@ proc nextPlayerTurn* =
   blueDeck.lastDrawn = ""
 
 proc getLoneAlias:string =
-  if (let aliases = playerHandles.filterIt(it.len > 0).deduplicate; aliases.len > 0):
-    if aliases.count(aliases[0]) == aliases.len:
-      result = aliases[0]
+  for i in 0..playerHandles.high:
+    if playerKinds[i] == Human and playerHandles[i].len > 0:
+      if result.len > 0: 
+        if result != playerHandles[i]: 
+          return ""
+      else: result = playerHandles[i]
 
-func aliasCounts(handles:openArray[string]):seq[(string,int)] =
-  handles.filterIt(it.len > 0).deduplicate.mapIt (it,handles.count it)
+type
+  AliasCounts = seq[tuple[alias:string,count:int]]
+  KindCounts = array[PlayerKind,int]
+  Stats = GameStats[string,PlayerKind]
 
-proc playerHandlesMatch(aliases:openArray[string]):bool =
-  for (alias,count) in aliases.aliasCounts:
-    if count != playerHandles.count alias:
-      return false
+proc aliasCounts(aliases:openArray[string]):AliasCounts =
+  for i,alias in aliases:
+    if playerKinds[i] == Human and alias.len > 0 and result.allIt(it.alias != alias):
+      result.add (alias,playerHandles.count alias)
+
+proc kindCounts(kinds:openArray[PlayerKind]):KindCounts =
+  for kind in kinds:
+    inc result[kind]
+
+proc match(stats:Stats,aliasCounts:AliasCounts):bool =
+  for (alias,count) in aliasCounts:
+    if stats.aliases.count(alias) != count: 
+      return
   true
 
-proc countKinds:(int,int) =
-  for kind in playerKinds:
-    if kind == Human:
-      inc result[0]
-    elif kind == Computer:
-      inc result[1]
+proc match(stats:Stats,kindCounts:KindCounts):bool =
+  for i,count in kindCounts:
+    if stats.playerKinds.count(PlayerKind(i)) != count:
+      return
+  true
 
-template matchStats(statsMatching,aliasMatching:untyped):untyped =
+template selectWith(selector,selectionCode:untyped) =
   let 
-    (humanCount {.inject.},computerCount {.inject.}) = countKinds()
-    kindMatches {.inject.} = statsMatching
-    playerHandleMatches = aliasMatching
-  if playerHandleMatches.len > 0: playerHandleMatches else: kindMatches
+    kindCounts {.inject.} = playerKinds.kindCounts
+    aliasCounts {.inject.} = playerHandles.aliasCounts
+  for selector in gameStats:
+    selectionCode
 
-proc matchingStats:seq[GameStats[string,PlayerKind]] =
-  matchStats(
-    gameStats.filterIt(
-      it.playerKinds.count(Human) == humanCount and 
-      it.playerKinds.count(Computer) == computerCount),
-    kindMatches.filterIt(playerHandlesMatch it.aliases))
+proc statsMatches:seq[Stats] =
+  selectWith stats:
+    if stats.match(kindCounts) and stats.match(aliasCounts):
+      result.add stats
 
-proc noneMatchingStats*:seq[GameStats[string,PlayerKind]] =
-  matchStats(
-    gameStats.filterIt(
-      it.playerKinds.count(Human) != humanCount or 
-      it.playerKinds.count(Computer) != computerCount),
-    kindMatches.filterIt(not playerHandlesMatch it.aliases))
+proc noneMatchingStats*:seq[Stats] =
+  selectWith stats:
+    if not stats.match(kindCounts) or not stats.match(aliasCounts):
+      result.add stats
 
 proc getMatchingStats*:MatchingStats =
   if gameStats.len > 0: 
     let 
       loneAlias = getLoneAlias()
-      matches = matchingStats()
+      matches = statsMatches()
     if matches.len > 0:
       result.hasData = true
       result.games = matches.len
@@ -456,3 +468,5 @@ proc playerHandlesFromFile:array[6,string] =
 proc initPlayers* =
   playerHandles = playerHandlesFromFile()
   players = newDefaultPlayers()
+
+randomize()
