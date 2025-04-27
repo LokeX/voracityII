@@ -237,11 +237,8 @@ let (robotoPurple,robotoYellow,robotoGreen,robotoWhite,robotolh7) = block:
   (robotoPurple,robotoYellow,robotoGreen,robotoWhite,robotolh7)
 
 proc statsBatchSpans:seq[Span] =
-  echo "stat spans: "
   if gameStats.len > 0:
-    echo "nr of stat games: ",gameStats.len
     let stats = getMatchingStats()
-    # echo "matching stats: ",stats.len
     if stats.hasData:
       echo "stats has data"
       result = @[

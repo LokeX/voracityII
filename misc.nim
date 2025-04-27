@@ -5,6 +5,20 @@ import os
 import taskpools,cpuinfo
 export spawn
 
+func timeFmt*[T:int or float](t:T):string =
+  let
+    time = when typeOf(T) is float: t.toInt else: t
+    remSecs = time mod 3600
+    timeUnitVals = [
+      time div 3600,
+      remSecs div 60,
+      remsecs mod 60,
+    ]
+  timeUnitVals
+    .filterIt(it > 0)
+    .mapIt(if it < 10: "0"&($it) else: $it)
+    .join ":"
+
 template exclude*[T:seq or array or openArray](things:T,excludeThing:untyped):untyped =
   var included = when typeof(things) is seq: 
     things else: @things  

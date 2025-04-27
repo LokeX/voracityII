@@ -1,65 +1,65 @@
-Moonshine: 64
+Moonshine: 65
 Borderless: 36
 Cold meds: 44
 Projects: 28
 Outstanding: 35
 Hooked: 40
-Underhanded: 51
+Underhanded: 52
 Occupational hazard: 23
 Stiffs: 19
 Pimp: 22
 Financier: 13
-Prescriptions: 27
+Prescriptions: 28
 Drugdealer: 29
 Lucky bastard: 33
 Protection: 27
 Demolition: 51
-Containment: 47
+Containment: 48
 White collars: 12
 Advisory board: 44
-Color revolutionary: 31
-Express demands: 26
-Transactionalist: 16
+Color revolutionary: 32
+Express demands: 27
+Transactionalist: 17
 Broken bones: 26
 Human resources: 44
-Polterabend: 69
+Polterabend: 70
 Faulty towers: 26
-Financing: 26
-Rock solid claims: 42
-Duty free: 52
+Financing: 27
+Rock solid claims: 43
+Duty free: 53
 Sweethearts: 11
 Hooters: 25
-Et spiritus sancti: 38
+Et spiritus sancti: 39
 Choireboys: 29
-Knocked out: 37
+Knocked out: 38
 Agent: 37
-Debt to society: 32
+Debt to society: 33
 Heartless: 17
-Lipstick on a pig: 26
+Lipstick on a pig: 27
 Meat grinder: 18
 Concuctions: 30
 Foreign aid: 42
 Bouncing: 41
-Usery: 39
+Usery: 40
 Transitions: 14
 Razia: 15
-Loads of stuff: 41
-Grapevine: 33
+Loads of stuff: 42
+Grapevine: 34
 Recycling: 18
 Rentals: 11
-Deadly cargo: 29
+Deadly cargo: 30
 Globalist: 25
-Homebrew: 30
+Homebrew: 31
 Gangbangers: 16
 Ludomania: 30
 Healthplan: 28
-Specimens: 21
+Specimens: 22
 Insurgency: 30
 Diamonds are...: 26
 Side effects: 17
 Chicks in cages: 48
 Golden chains: 21
-Up yours: 28
+Up yours: 29
 Flay'em: 23
 Knock knock: 34
 Lawfare: 35
@@ -70,15 +70,15 @@ Ramtheft: 25
 Small arms: 32
 Burglary: 52
 Sing a long song: 49
-Slumlord: 15
+Slumlord: 16
 Deadweight: 21
 Mayor: 27
 Coup: 15
 Safe bet: 22
 High society: 32
-Blood suckers: 17
+Blood suckers: 18
 Acquittal: 28
-Legalese: 53
+Legalese: 55
 Nose job: 25
 VIP Lounge: 21
 Laundry: 16
@@ -100,10 +100,10 @@ Bodyguard: 17
 Jetsetter: 15
 Judicial murder: 15
 Open house: 17
-Circle jerk: 15
+Circle jerk: 16
 Spy: 6
 Grand designs: 35
 Bodycount: 7
-Broman escorte: 10
+Broman escorte: 11
 Addictions: 6
 Home invasion: 6

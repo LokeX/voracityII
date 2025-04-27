@@ -17,7 +17,6 @@ var
   singlePiece*:SinglePiece
   dialogBarMoves*:seq[Move]
   changeMenuState* = NoAction
-  # turnOffMenu*:bool
   runMoveAnimation*:bool
   rollTheDice*:bool
   runSelectBar*:bool
@@ -110,10 +109,10 @@ proc playCashPlansTo*(deck:var Deck) =
     updateTurnReportCards(cashedPlans,Cashed)
     turnPlayer.update = true
     playSound "coins-to-table-2"
-    echo $turnPlayer.color," cashed: ",cashedPlans
-    echo $turnPlayer.color," cash: ",turnPlayer.cash
-    echo "turn.nr: ",turn.nr
-    echo "configState: ",configState
+    # echo $turnPlayer.color," cashed: ",cashedPlans
+    # echo $turnPlayer.color," cash: ",turnPlayer.cash
+    # echo "turn.nr: ",turn.nr
+    # echo "configState: ",configState
     if initialCash < cashToWin and turnPlayer.cash >= cashToWin:
       configState = GameWon
       echo "game won : ",turnPlayer.cash
@@ -315,6 +314,7 @@ proc startNewGame* =
   players = newPlayers()
   # echo players
   resetReportsUpdate = true
+  gameWon = false
   # resetReports()
 
 proc nextTurn =
@@ -349,11 +349,12 @@ var
   hypo:Hypothetic
   phase*:Phase
   diceReroll:DiceReroll
+  bestDiceMoves:seq[Move]
 
 template phaseIs*:untyped = phase
 
 proc drawCards =
-  echo $turnPlayer.color," draw cards"
+  # echo $turnPlayer.color," draw cards"
   playCashPlansTo blueDeck
   while turn.undrawnBlues > 0:
     drawCardFrom blueDeck
@@ -364,33 +365,41 @@ proc drawCards =
     hypo.cards = hypo.evalBluesThreaded
     turnPlayer.hand = hypo.cards
   phase = Reroll
-  echo "nr of cards: ",turnPlayer.hand.len
+  # echo "nr of cards: ",turnPlayer.hand.len
 
 proc reroll(hypothetical:Hypothetic): bool =
-  let 
-    time = cpuTime()
+  # let time = cpuTime()
+  if bestDiceMoves.len == 0:
     bestDiceMoves = hypothetical.bestDiceMoves()
-    bestDice = bestDiceMoves.mapIt(it.die)
-  echo "roll eval time: ",cpuTime()-time
+  let bestDice = bestDiceMoves.mapIt(it.die)
+  # echo "roll eval time: ",cpuTime()-time
   updateTurnReport diceRoll
   isDouble() and diceRoll[1].ord notIn bestDice[^2..^1]
 
+proc bestDieMove(dice:openArray[int]):Move =
+  var dieIndex:array[2,int]
+  let bestDice = bestDiceMoves.mapIt(it.die)
+  for i in 0..dice.high:
+    dieIndex[i] = bestDice.find dice[i]
+  bestDiceMoves[max dieIndex]
+  
 proc aiMove(hypothetical:Hypothetic,dice:openArray[int]):(bool,Move) =
   if(
     let winMove = hypothetical.winningMove dice; 
     winMove.pieceNr != -1
-  ):(true,winMove) else: (false,hypothetical.move dice)
+  ):(true,winMove) else: (false,bestDieMove dice)
+  # ):(true,winMove) else: (false,hypothetical.move dice)
 
 func betterThan(move:Move,hypothetical:Hypothetic):bool =
   move.eval.toFloat >= hypothetical.evalPos().toFloat*0.85
 
 proc moveAi =
-  echo turnPlayer.pieces
-  echo $turnPlayer.color," move"
+  # echo turnPlayer.pieces
+  # echo $turnPlayer.color," move"
   let 
-    time = cpuTime()
+    # time = cpuTime()
     (isWinningMove,move) = hypo.aiMove([diceRoll[1].ord,diceRoll[2].ord])
-  echo "move eval time: ",cpuTime()-time
+  # echo "move eval time: ",cpuTime()-time
   if isWinningMove or move.betterThan hypo:
     if turnPlayer.skipped > 0: 
       turnPlayer.skipped = 0
@@ -407,10 +416,11 @@ proc startTurn =
   echo ""
   echo $turnPlayer.color," start turn: ",turn.nr
   hypo = hypotheticalInit(turnPlayer)
+  bestDiceMoves.setLen 0
   phase = Draw
 
 proc rerollPhase =
-  echo $turnPlayer.color," roll dice"
+  # echo $turnPlayer.color," roll dice"
   if configState == StatGame:
     # echo "dice statgame"
     # echo "ispausing: ",diceReroll.isPausing
@@ -430,10 +440,11 @@ proc rerollPhase =
     diceReroll.isPausing = true
     diceReroll.pauseStartTime = cpuTime()
   elif not diceReroll.isPausing: 
+    # bestDiceMoves.setLen 0
     phase = AiMove
 
 proc postMovePhase =
-  echo $turnPlayer.color," post move"
+  # echo $turnPlayer.color," post move"
   moveSelection.fromSquare = -1
   drawCards()
   # recordTurnReport()

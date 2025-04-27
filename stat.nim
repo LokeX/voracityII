@@ -2,33 +2,28 @@ import play
 import game
 import sequtils
 import times
-import os
+import strutils
+import misc
 
-players = newDefaultPlayers()
-for player in players.mitems:
-  player.kind = Computer
-players = newPlayers()
-startNewGame()
-for player in players:
-  echo $player.color
-  echo $player.kind
-
-blueDeck.resetDeck
-for card in blueDeck.drawPile.mapIt it.title:
-  echo card
-
-# for i in 0..1:
+for i in 0..playerKinds.high:
+  playerKinds[i] = Computer
 let time = cpuTime()
-startNewGame()
-configState = StatGame
-while not gameWon:
-  # if phaseIs == EndTurn:
-  #   echo "turnPlayer.color: ",$turnPlayer.color
-  #   echo "turnPlayer.cash: ",turnPlayer.cash
-# while configState != GameWon:
-  echo phaseIs
-  aiTakeTurnPhase()
-  # if phase == EndTurn:
-  #   sleep 1000  
 
-echo cpuTime()-time
+for _ in 1..2:
+  setupNewGame()
+  startNewGame()
+  configState = StatGame
+  while not gameWon:
+    aiTakeTurnPhase()
+  gameStats.add newGameStats()
+
+proc statsStr:string =
+  let stats = getMatchingStats()
+  result.add "Time: "&timeFmt(cpuTime()-time)&"\n"
+  result.add "Games: "&($stats.games)&"\n"
+  result.add "Turns: "&($stats.turns)&"\n"
+  result.add "avgTurns: "
+  result.add formatFloat(float(stats.turns)/float(stats.games),ffDecimal,2)&"\n"
+
+echo statsStr()
+

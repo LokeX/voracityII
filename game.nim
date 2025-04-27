@@ -8,6 +8,7 @@ from misc import flatmap
 import os
 
 type
+  PlayerKind* = enum Human,Computer,None
   Move* = tuple[pieceNr,die,fromSquare,toSquare,eval:int]
   CashedCards* = seq[tuple[title:string,count:int]]  
   PlayedCard* = enum Drawn,Played,Cashed,Discarded
@@ -18,6 +19,9 @@ type
     aliases*:array[6,T]
     winner*:T
     cash*:int
+  AliasCounts = seq[tuple[alias:string,count:int]]
+  KindCounts = array[PlayerKind,int]
+  Stats = GameStats[string,PlayerKind]
   MatchingStats* = object
     hasData*:bool
     games*:int
@@ -62,7 +66,6 @@ type
   Deck* = object 
     fullDeck*,drawPile*,discardPile*:seq[BlueCard]
     lastDrawn*:string
-  PlayerKind* = enum Human,Computer,None
   Pieces* = array[5,int]
   Player* = object
     color*:PlayerColor
@@ -365,11 +368,6 @@ proc getLoneAlias:string =
           return ""
       else: result = playerHandles[i]
 
-type
-  AliasCounts = seq[tuple[alias:string,count:int]]
-  KindCounts = array[PlayerKind,int]
-  Stats = GameStats[string,PlayerKind]
-
 proc aliasCounts(aliases:openArray[string]):AliasCounts =
   for i,alias in aliases:
     if playerKinds[i] == Human and alias.len > 0 and result.allIt(it.alias != alias):
@@ -420,24 +418,24 @@ proc getMatchingStats*:MatchingStats =
       result.avgTurns = result.turns div matches.len
       result.computerWins = matches.countIt it.winner == "computer"
       result.humanWins = matches.len - result.computerWins
-      result.handle = if loneAlias.len > 0: loneAlias else: "Human"
+      result.handle = if loneAlias.len > 0: loneAlias else: $turnPlayer.kind
       result.computerPercent = ((result.computerWins.toFloat/matches.len.toFloat)*100)
         .formatFloat(ffDecimal,2)
       result.humanPercent = ((result.humanWins.toFloat/matches.len.toFloat)*100)
         .formatFloat(ffDecimal,2)
 
-template winner:untyped =
-  if turnReport.playerBatch.kind == Computer: "computer"
-  elif playerHandles[turnReport.playerBatch.color.ord].len > 0:
-    playerHandles[turnReport.playerBatch.color.ord]
-  else: "human"
+# template winner:untyped =
+#   if turnReport.playerBatch.kind == Computer: "computer"
+#   elif playerHandles[turnReport.playerBatch.color.ord].len > 0:
+#     playerHandles[turnReport.playerBatch.color.ord]
+#   else: "human"
 
 proc newGameStats*:GameStats[string,PlayerKind] = 
   GameStats[string,PlayerKind](
     turnCount:turnReport.turnNr,
     playerKinds:playerKinds,
     aliases:playerHandles,
-    winner:winner,
+    winner:($turnPlayer.kind).toLower,
     cash:cashToWin
   )
 

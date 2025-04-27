@@ -1,60 +1,60 @@
-Bar Nr.1: 104
+Bar Nr.1: 106
 Gas Station Nr.2: 11
-Bank Nr.3: 59
-Town Hall Nr.4: 519
+Bank Nr.3: 61
+Town Hall Nr.4: 525
 Highway Nr.5: 226
-Barracks Nr.6: 433
-Church Nr.7: 327
-Villa Nr.8: 278
-Embassey Nr.9: 280
-Courthouse Nr.10: 351
-Airport Nr.11: 381
-Casino Nr.12: 167
-Jeweler Nr.13: 181
-Bank Nr.14: 55
+Barracks Nr.6: 439
+Church Nr.7: 329
+Villa Nr.8: 279
+Embassey Nr.9: 281
+Courthouse Nr.10: 356
+Airport Nr.11: 385
+Casino Nr.12: 168
+Jeweler Nr.13: 183
+Bank Nr.14: 56
 Gas Station Nr.15: 47
-Bar Nr.16: 567
-Highway Nr.17: 157
-Bar Nr.18: 252
-Disco Nr.19: 328
-Bar Nr.20: 296
-Brothel Nr.21: 712
-Realestate Nr.22: 202
-Shop Nr.23: 21
+Bar Nr.16: 573
+Highway Nr.17: 159
+Bar Nr.18: 254
+Disco Nr.19: 333
+Bar Nr.20: 298
+Brothel Nr.21: 720
+Realestate Nr.22: 203
+Shop Nr.23: 22
 Bank Nr.24: 30
-Hospital Nr.25: 230
-Undertaker Nr.26: 217
+Hospital Nr.25: 232
+Undertaker Nr.26: 218
 Gas Station Nr.27: 22
-Bar Nr.28: 157
-Highway Nr.29: 170
-McLeans Nr.30: 746
-Condo Nr.31: 104
-Condo Nr.32: 65
-Lawyers Nr.33: 383
+Bar Nr.28: 158
+Highway Nr.29: 171
+McLeans Nr.30: 752
+Condo Nr.31: 105
+Condo Nr.32: 69
+Lawyers Nr.33: 386
 Shop Nr.34: 42
-Bar Nr.35: 237
-Prison Nr.36: 235
+Bar Nr.35: 238
+Prison Nr.36: 240
 Gas Station Nr.37: 10
-Bank Nr.38: 27
-Debt Inc Nr.39: 330
-Bar Nr.40: 256
-Highway Nr.41: 236
-Shop Nr.42: 60
-Entreprenour Nr.43: 260
+Bank Nr.38: 28
+Debt Inc Nr.39: 336
+Bar Nr.40: 258
+Highway Nr.41: 241
+Shop Nr.42: 61
+Entreprenour Nr.43: 261
 Shop Nr.44: 34
-Pharmacy Nr.45: 403
-Bar Nr.46: 211
+Pharmacy Nr.45: 407
+Bar Nr.46: 213
 Gas Station Nr.47: 4
-Brewery Nr.48: 340
-Harbour Nr.49: 345
+Brewery Nr.48: 346
+Harbour Nr.49: 348
 Shop Nr.50: 27
-Bar Nr.51: 437
-Bank Nr.52: 34
-Highway Nr.53: 188
-Bar Nr.54: 187
-Import inc Nr.55: 211
-Slum Nr.56: 62
-Alley Nr.57: 297
+Bar Nr.51: 439
+Bank Nr.52: 35
+Highway Nr.53: 191
+Bar Nr.54: 189
+Import inc Nr.55: 214
+Slum Nr.56: 64
+Alley Nr.57: 298
 Slum Nr.58: 48
-Slum Nr.59: 40
-Police Nr.60: 206
+Slum Nr.59: 41
+Police Nr.60: 207
