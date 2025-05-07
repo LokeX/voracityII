@@ -443,13 +443,20 @@ proc reportedCashedCards*:CashedCards =
   let titles = collect:
     for report in turnReports:
       for card in report.cards.cashed: card.title
-  for title in titles:
-    if title notin result.mapIt it.title:
+  for title in titles.deduplicate:
+    # if title notin result.mapIt it.title:
       result.add (title,titles.count title)
 
 func reportedVisitsCount*(turnReports:seq[TurnReport]):array[1..60,int] =
-  for square in turnReports.mapIt(it.moves.mapIt(it.toSquare)).flatMap.filterIt(it != 0):
-    inc result[square]
+  for report in turnReports:
+    for move in report.moves:
+      inc result[move.toSquare]
+  # for square in turnReports.mapIt(it.moves.mapIt(it.toSquare)).flatMap.filterIt(it != 0):
+  #   inc result[square]
+
+# func reportedVisitsCount*(turnReports:seq[TurnReport]):array[1..60,int] =
+#   for square in turnReports.mapIt(it.moves.mapIt(it.toSquare)).flatMap.filterIt(it != 0):
+#     inc result[square]
 
 proc playerHandlesToFile*(playerHandles:openArray[string]) =
   writeFile(handlesFile,playerHandles.mapIt(if it.len > 0: it else: "n/a").join "\n")

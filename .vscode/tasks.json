@@ -10,10 +10,11 @@
       "args": [
         "c",
         "-r",
-        "-d:useMalloc",
+        // "-d:useMalloc",
         "-d:release",
+        "--mm:orc",
         // "--app:gui",
-        "--opt:speed",
+        // "--opt:speed",
         // "--floatChecks:off",
         // "--overflowChecks:off",
         // "--nanChecks:off",

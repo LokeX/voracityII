@@ -1,4 +1,5 @@
 from math import sum
+import misc
 import game
 import sequtils
 import eval
@@ -17,6 +18,7 @@ var
   singlePiece*:SinglePiece
   dialogBarMoves*:seq[Move]
   changeMenuState* = NoAction
+  recordStats* = true
   runMoveAnimation*:bool
   rollTheDice*:bool
   runSelectBar*:bool
@@ -33,33 +35,35 @@ var
   configState* = None
 
 template playSound(s:string) =
-  soundToPlay.add s
+  if configState != StatGame:
+    soundToPlay.add s
 
 proc initTurnReport* =
   turnReport = TurnReport()
   turnReport.turnNr = turnPlayer.turnNr+1
   turnReportBatchesInit = true
-  # initReportBatchesTurn()
 
 proc updateTurnReport*[T](item:T) =
-  when typeOf(T) is Move: 
-    turnReport.moves.add item
-  when typeof(T) is Dice: 
-    turnReport.diceRolls.add item
-  when typeof(T) is PlayerColor: 
-    turnReport.kills.add item
-    updateKillMatrix = true
-  # writeTurnReportUpdate()
-  turnReportUpdate = true
+  execIf recordStats:
+    when typeOf(T) is Move: 
+      turnReport.moves.add item
+    when typeof(T) is Dice: 
+      turnReport.diceRolls.add item
+    when typeof(T) is PlayerColor: 
+      turnReport.kills.add item
+      updateKillMatrix = true
+    # writeTurnReportUpdate()
+    turnReportUpdate = true
   
 proc updateTurnReportCards*(blues:seq[BlueCard],playedCard:PlayedCard) =
-  case playedCard
-  of Drawn: turnReport.cards.drawn.add blues
-  of Played: turnReport.cards.played.add blues
-  of Cashed: turnReport.cards.cashed.add blues
-  of Discarded: turnReport.cards.discarded.add blues
-  # writeTurnReportUpdate()
-  turnReportUpdate = true
+  execIf recordStats:
+    case playedCard
+    of Drawn: turnReport.cards.drawn.add blues
+    of Played: turnReport.cards.played.add blues
+    of Cashed: turnReport.cards.cashed.add blues
+    of Discarded: turnReport.cards.discarded.add blues
+    # writeTurnReportUpdate()
+    turnReportUpdate = true
 
 proc echoTurn(report:TurnReport) =
   for fn,item in turnReport.fieldPairs:
@@ -70,9 +74,10 @@ proc echoTurn(report:TurnReport) =
       echo fn,": ",$item
 
 proc recordTurnReport* =
-  turnReport.cards.hand = turnPlayer.hand
-  # echoTurn turnReport
-  turnReports.add turnReport
+  execIf recordStats:
+    turnReport.cards.hand = turnPlayer.hand
+    # echoTurn turnReport
+    turnReports.add turnReport
 
 proc setupNewGame* =
   configState = SetupGame
@@ -307,9 +312,12 @@ proc endGame =
   if turnPlayer.kind == Human:
     recordTurnReport()
   setupNewGame()
+  soundToPlay.setLen 0
 
 proc startNewGame* =
   configState = StartGame
+  initTurnReport()
+  turnReports.setLen 0
   inc turn.nr
   players = newPlayers()
   # echo players
@@ -322,7 +330,9 @@ proc nextTurn =
   updateTurnReportCards(turnPlayer.discardCards blueDeck, Discarded)
   recordTurnReport()
   diceRolls.setLen 0
+  # dialogBarMoves.setLen 0  # Clear dialogBarMoves
   nextPlayerTurn()
+  # turnReport = TurnReport()  # Reset turnReport for new turn
   initTurnReport()
   if anyHuman players: changeMenuState = MenuOff
   playCashPlansTo blueDeck
@@ -349,6 +359,7 @@ var
   hypo:Hypothetic
   phase*:Phase
   diceReroll:DiceReroll
+  # bestDiceMoves:array[6,Move]
   bestDiceMoves:seq[Move]
 
 template phaseIs*:untyped = phase
@@ -362,19 +373,20 @@ proc drawCards =
   hypo.cards = turnPlayer.hand
   hypo.pieces = turnPlayer.pieces
   if hypo.cards.len > 3:
-    hypo.cards = hypo.evalBluesThreaded
+    hypo.cards = hypo.evalBlues
     turnPlayer.hand = hypo.cards
   phase = Reroll
   # echo "nr of cards: ",turnPlayer.hand.len
 
 proc reroll(hypothetical:Hypothetic): bool =
-  # let time = cpuTime()
-  if bestDiceMoves.len == 0:
-    bestDiceMoves = hypothetical.bestDiceMoves()
-  let bestDice = bestDiceMoves.mapIt(it.die)
-  # echo "roll eval time: ",cpuTime()-time
-  updateTurnReport diceRoll
-  isDouble() and diceRoll[1].ord notIn bestDice[^2..^1]
+  if isDouble():
+    if bestDiceMoves.len == 0: 
+      bestDiceMoves = hypothetical.bestDiceMoves()
+    # let bestDice = bestDiceMoves.mapIt(it.die)
+    updateTurnReport diceRoll
+    # diceRoll[1].ord notIn bestDice[^2..^1]
+    bestDiceMoves[0..4].anyIt diceRoll[1].ord == it.die
+  else: false
 
 proc bestDieMove(dice:openArray[int]):Move =
   var dieIndex:array[2,int]
@@ -382,12 +394,36 @@ proc bestDieMove(dice:openArray[int]):Move =
   for i in 0..dice.high:
     dieIndex[i] = bestDice.find dice[i]
   bestDiceMoves[max dieIndex]
-  
+
+func cashTotal(hypothetical:Hypothetic,move:Move):int =
+  let cashReward = hypothetical.player(move).plans.cashable.mapIt(it.cash).sum
+  cashReward+hypothetical.cash-(if move.fromSquare == 0: piecePrice else: 0)
+
+proc winningMove*(hypothetical:Hypothetic,dice:openArray[int]):Move =
+  if bestDiceMoves.len > 0: 
+    for i,move in bestDiceMoves:
+      if move.die == dice[0] and hypothetical.cashTotal(move) >= cashToWin:
+        return bestDiceMoves[i]
+  else: 
+    for move in hypothetical.movesResolvedWith dice:
+      if hypothetical.cashTotal(move) >= cashToWin: 
+        return move
+  result.pieceNr = -1
+
 proc aiMove(hypothetical:Hypothetic,dice:openArray[int]):(bool,Move) =
-  if(
-    let winMove = hypothetical.winningMove dice; 
-    winMove.pieceNr != -1
-  ):(true,winMove) else: (false,bestDieMove dice)
+  if(let winMove = hypothetical.winningMove dice; winMove.pieceNr != -1):
+    # echo "after winning move: "
+    # echo GC_getStatistics()
+    (true,winMove) 
+  else: 
+    # echo "after winning move: "
+    # echo GC_getStatistics()
+    (
+      false,
+      if bestDiceMoves.len > 0: 
+        bestDieMove dice 
+      else: hypothetical.move dice
+    )
   # ):(true,winMove) else: (false,hypothetical.move dice)
 
 func betterThan(move:Move,hypothetical:Hypothetic):bool =
@@ -396,25 +432,35 @@ func betterThan(move:Move,hypothetical:Hypothetic):bool =
 proc moveAi =
   # echo turnPlayer.pieces
   # echo $turnPlayer.color," move"
+  # echo "before move analysis:"
+  # echo GC_getStatistics()
   let 
     # time = cpuTime()
     (isWinningMove,move) = hypo.aiMove([diceRoll[1].ord,diceRoll[2].ord])
   # echo "move eval time: ",cpuTime()-time
+  # echo "after move analysis:"
+  # echo GC_getStatistics()
   if isWinningMove or move.betterThan hypo:
     if turnPlayer.skipped > 0: 
       turnPlayer.skipped = 0
     moveSelection.fromSquare = move.fromSquare
+    # echo "before move:"
+    # echo GC_getStatistics()
     move move.toSquare
+    # echo "after move:"
+    # echo GC_getStatistics()
   else:
     inc turnPlayer.skipped
-    echo "ai skips move:"
+    echo $turnPlayer.color," skips move"
     # echo "currentPosEval: ",currentPosEval
     # echo "moveEval: ",move.eval
   phase = PostMove
 
 proc startTurn = 
-  echo ""
-  echo $turnPlayer.color," start turn: ",turn.nr
+  # echo ""
+  # if configState == StatGame:
+  #   echo "game nr: ",gameStats.len
+  # echo $turnPlayer.color," start turn: ",turn.nr
   hypo = hypotheticalInit(turnPlayer)
   bestDiceMoves.setLen 0
   phase = Draw
@@ -453,7 +499,7 @@ proc postMovePhase =
 proc endTurn* = 
   # showMenu = false
   # echo $turnPlayer.color," cash: ",turnPlayer.cash
-  echo $turnPlayer.color," end turn"
+  # echo $turnPlayer.color," end turn"
   phase = Await
   nextGameState()
 

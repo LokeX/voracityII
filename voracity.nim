@@ -556,8 +556,8 @@ proc aiTurn(): bool =
 proc resetReports* =
   for batch in reportBatches.mitems:
     batch.setSpans @[]
-  initTurnReport()
-  turnReports.setLen 0
+  # initTurnReport()
+  # turnReports.setLen 0
   selectedBatch = -1
   killMatrixPainter.update = true
 

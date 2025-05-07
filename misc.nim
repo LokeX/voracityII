@@ -2,8 +2,9 @@ import sequtils
 import strutils
 import sugar
 import os
-import taskpools,cpuinfo
-export spawn
+import times
+# import taskpools,cpuinfo
+# export spawn
 
 func timeFmt*[T:int or float](t:T):string =
   let
@@ -14,10 +15,31 @@ func timeFmt*[T:int or float](t:T):string =
       remSecs div 60,
       remsecs mod 60,
     ]
-  timeUnitVals
-    .filterIt(it > 0)
+  func timeUnits:seq[int] =
+    for idx in 0..timeUnitVals.high:
+      if timeUnitVals[idx] > 0:
+        return @timeUnitVals[idx..timeUnitVals.high]
+  timeUnits()
     .mapIt(if it < 10: "0"&($it) else: $it)
     .join ":"
+
+template echoStats*(s:string,code:untyped):untyped =
+  debugEcho ""
+  debugEcho s
+  debugEcho "start:"
+  let 
+    time = cpuTime()
+    mem = getOccupiedMem()
+  debugEcho GC_getStatistics()
+  code
+  debugEcho s
+  debugEcho "finished:"
+  debugEcho GC_getStatistics()
+  debugEcho "occupied diff: ",insertSep($(getOccupiedMem()-mem),'.',3)," bytes"
+  debugEcho "time: ",cpuTime()-time
+
+template execIf*(cond,code:untyped):untyped =
+  if cond: code
 
 template exclude*[T:seq or array or openArray](things:T,excludeThing:untyped):untyped =
   var included = when typeof(things) is seq: 
@@ -26,11 +48,11 @@ template exclude*[T:seq or array or openArray](things:T,excludeThing:untyped):un
     included.del index
   included
 
-template taskPoolsAs*(pool,codeBlock:untyped) =
-  var pool = Taskpool.new(num_threads = countProcessors())
-  codeBlock
-  pool.syncAll
-  pool.shutdown
+# template taskPoolsAs*(pool,codeBlock:untyped) =
+#   var pool = Taskpool.new(num_threads = 128)
+#   codeBlock
+#   pool.syncAll
+#   pool.shutdown
 
 proc seqToFile*[T](list:seq[T],path:string) =
   let file = open(path,fmWrite)
