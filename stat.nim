@@ -54,9 +54,9 @@ proc statsStr:string =
 for i in 0..playerKinds.high:
   playerKinds[i] = Computer
 
-# recordStats = false
+recordStats = false
 
-for i in 1..10:
+for i in 1..100:
   setupNewGame()
   startNewGame()
   configState = StatGame
@@ -65,7 +65,10 @@ for i in 1..10:
   while not gameWon:
     # let p = phase
     # echoStats "phase = "&($p):
+      echo phase
       aiTakeTurnPhase()
+      # echo turnReport
+      soundToPlay.setLen 0
   if recordStats:
     gameStats.add newGameStats()
     addVisits turnReports.reportedVisitsCount 

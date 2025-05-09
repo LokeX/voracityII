@@ -1,0 +1,512 @@
+mission:
+Color revolutionary
+{4,9,19,21}
+400000
+mission:
+Jetsetter
+{4,11,25,43}
+400000
+mission:
+Drugdealer
+{19,30,45,57}
+400000
+mission:
+Lord of War
+{6,49,55,57}
+400000
+mission:
+Pimp
+{11,21,30,57}
+400000
+mission:
+Financier
+{6,13,21,45}
+400000
+mission:
+Terrorist
+{6,7,9,11}
+400000
+mission:
+Spy
+{4,6,9,60}
+400000
+mission:
+Rentseeker
+{10,22,33,39}
+400000
+mission:
+Transactionalist
+{4,21,25,45}
+400000
+mission:
+Globalist
+{6,11,49,55}
+400000
+mission:
+Circle jerk
+{4,10,33,36}
+400000
+job:
+VIP Lounge
+{9,12,19}
+200000
+job:
+White collars
+{12,13,33}
+200000
+job:
+Addictions
+{12,48,60}
+200000
+job:
+Coup
+{6,6,60}
+250000
+job:
+Open house
+{8,22,26}
+200000
+job:
+Transitions
+{25,36,45}
+200000
+job:
+Blood diamants
+{8,11,13}
+200000
+job:
+Heartless
+{11,25,26}
+200000
+job:
+Express demands
+{11,45,55}
+200000
+job:
+Bootlegging
+{48,49,55}
+200000
+job:
+Grapevine
+{4,30,48}
+200000
+job:
+Acquittal
+{10,33,36}
+200000
+job:
+Debt to society
+{33,36,39}
+200000
+job:
+Knocked out
+{19,45,48}
+200000
+job:
+Lawfare
+{4,10,33}
+200000
+job:
+Advisory board
+{30,33,43}
+200000
+job:
+Side effects
+{26,33,45}
+200000
+job:
+Gangbangers
+{4,21,60}
+200000
+job:
+Higher powers
+{4,7,10}
+200000
+job:
+Insurgency
+{6,9,11}
+200000
+job:
+Knock knock
+{30,39,8}
+200000
+job:
+Redemption
+{7,21,57}
+200000
+job:
+High society
+{8,21,48}
+200000
+job:
+Occupational hazard
+{25,30,43}
+200000
+job:
+Burial at sea
+{26,30,49}
+200000
+job:
+Stove away
+{9,26,49}
+200000
+job:
+Nose job
+{8,25,30}
+200000
+job:
+Sweethearts
+{12,13,21}
+200000
+job:
+Broman escorte
+{10,36,60}
+200000
+plan:
+Mayor
+{4,4}
+150000
+plan:
+Chicks in cages
+{19,21}
+100000
+plan:
+Meat grinder
+{55,57}
+100000
+plan:
+Lipstick on a pig
+{13,19}
+100000
+plan:
+Safe bet
+{4,12}
+100000
+plan:
+Golden chains
+{13,30}
+100000
+plan:
+Ludomania
+{8,12}
+100000
+plan:
+Deadweight
+{26,45}
+100000
+plan:
+Broken bones
+{25,30}
+100000
+plan:
+Choireboys
+{7,57}
+100000
+plan:
+Containment
+{30,49}
+100000
+plan:
+Informer
+{57,60}
+100000
+plan:
+Bodyguard
+{60,4}
+100000
+plan:
+Specimens
+{25,36}
+100000
+plan:
+Deadly cargo
+{55,6}
+100000
+plan:
+Foreign aid
+{49,6}
+100000
+plan:
+Small arms
+{6,57}
+100000
+plan:
+Flay'em
+{10,39}
+100000
+plan:
+Up yours
+{30,36}
+100000
+plan:
+Hooters
+{21,25}
+100000
+plan:
+Agent
+{4,9}
+100000
+plan:
+Trance
+{45,19}
+100000
+plan:
+Bouncing
+{30,19}
+100000
+plan:
+Brotherhood
+{7,9}
+100000
+plan:
+Outstanding
+{22,39}
+100000
+plan:
+Healthplan
+{4,25}
+100000
+plan:
+Hooked
+{21,57}
+100000
+plan:
+Infiltration
+{60,6}
+100000
+plan:
+Judicial murder
+{10,10}
+150000
+plan:
+Prescriptions
+{45,57}
+100000
+plan:
+Diamonds are...
+{13,21}
+100000
+plan:
+Borderless
+{49,55}
+100000
+plan:
+Grand designs
+{43,4}
+100000
+plan:
+Rock solid claims
+{30,39}
+100000
+plan:
+Recycling
+{26,7}
+100000
+plan:
+Secret weapon
+{9,6}
+100000
+plan:
+Human resources
+{21,11}
+100000
+plan:
+Et spiritus sancti
+{48,7}
+100000
+plan:
+Legalese
+{33,39}
+100000
+plan:
+Bail
+{33,36}
+100000
+plan:
+Stiffs
+{21,26}
+100000
+deed:
+Loads of stuff
+{49}[23,34,42,44,50]
+85000
+deed:
+Razia
+{60}[23,34,42,44,50]
+85000
+deed:
+Moonshine
+{48}[1,16,18,20,28,35,40,46,51,54]
+70000
+deed:
+Polterabend
+{21}[1,16,18,20,28,35,40,46,51,54]
+70000
+deed:
+Aiding and abetting
+{60}[56,58,59]
+85000
+deed:
+Projects
+{43}[56,58,59]
+85000
+deed:
+Concuctions
+{45}[56,58,59]
+85000
+deed:
+Homebrew
+{48}[31,32]
+100000
+deed:
+Faulty towers
+{43}[31,32]
+95000
+deed:
+Usery
+{39}[31,32]
+95000
+deed:
+Rentals
+{39}[56,58,59]
+85000
+deed:
+Protection
+{30}[23,34,42,44,50]
+85000
+deed:
+Bodycount
+{26}[56,58,59]
+85000
+deed:
+Blood suckers
+{25}[3,14,24,38,52]
+75000
+deed:
+Slumlord
+{22}[56,58,59]
+85000
+deed:
+Laundry
+{12}[3,14,24,38,52]
+75000
+deed:
+Financing
+{22}[3,14,24,38,52]
+75000
+deed:
+Outsider
+{36}
+50000
+deed:
+Underhanded
+{22}
+50000
+deed:
+Home invasion
+{8}
+50000
+deed:
+Lucky bastard
+{12}
+50000
+deed:
+Demolition
+{43}
+50000
+deed:
+Duty free
+{11}
+50000
+deed:
+Cold meds
+{45}
+50000
+deed:
+Ramtheft
+{13}
+50000
+deed:
+Sing a long song
+{10}
+50000
+news:
+Mauled by antifascist
+{57,25}
+pics\\news\\fitti6.jpg
+news:
+Commissioned
+{4,10}
+pics\\news\\prettycool.jpg
+news:
+Swatted
+{30,36}
+pics\\news\\panser2.jpg
+news:
+Capital punishment
+{36,0}
+pics\\news\\fitti8.jpg
+news:
+VIP escorts
+{21,12}
+pics\\news\\prettycool.jpg
+news:
+White collar crime
+{33,36}
+pics\\news\\alienface.jpg
+news:
+Lay down the law
+{10,36}
+pics\\news\\trumle.jpg
+news:
+Boozers
+{48,60}
+pics\\news\\fitti2.jpg
+news:
+Resocialization
+{36,4}
+pics\\news\\fitti3.jpg
+news:
+Call of duty
+{6,26}
+pics\\news\\gollum.jpg
+event:
+Busted
+{36,60}
+pics\\events\\jail.jpg
+event:
+Get out of Dodge
+{11,49}
+pics\\events\\hop.jpg
+event:
+Detention
+{10,36,60}
+pics\\events\\afh.jpg
+event:
+Funeral
+{7,26}
+pics\\events\\udv.jpg
+event:
+Prospects
+{30}
+pics\\events\\tomrer.jpg
+event:
+Hungover
+{25,45,48}
+pics\\events\\sladder.jpg
+event:
+Sour piss
+{-1}
+pics\\events\\gammel.jpg
+event:
+Happy hour
+{-1}
+pics\\events\\happy.jpg
+event:
+Massacre
+{-1}
+pics\\events\\blod.jpg
+event:
+Deja vue
+{-1}
+pics\\events\\deja.jpg

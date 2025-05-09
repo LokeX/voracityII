@@ -114,7 +114,6 @@ var
   playerHandles*:array[6,string]
   players*:seq[Player]
   moveSelection*:MoveSelection = (-1,-1,-1,@[],false)
-  diceRolls*:seq[Dice]
   turnReports*:seq[TurnReport]
   turnReport*:TurnReport
   gameStats*:seq[GameStats[string,PlayerKind]]

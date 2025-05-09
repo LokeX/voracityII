@@ -36,6 +36,7 @@ var
 
 template playSound(s:string) =
   if configState != StatGame:
+    echo "playing sound"
     soundToPlay.add s
 
 proc initTurnReport* =
@@ -329,7 +330,7 @@ proc nextTurn =
   playSound "page-flip-2"
   updateTurnReportCards(turnPlayer.discardCards blueDeck, Discarded)
   recordTurnReport()
-  diceRolls.setLen 0
+  # diceRolls.setLen 0
   # dialogBarMoves.setLen 0  # Clear dialogBarMoves
   nextPlayerTurn()
   # turnReport = TurnReport()  # Reset turnReport for new turn
@@ -447,6 +448,7 @@ proc moveAi =
     # echo "before move:"
     # echo GC_getStatistics()
     move move.toSquare
+    # echo move
     # echo "after move:"
     # echo GC_getStatistics()
   else:

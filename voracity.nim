@@ -562,6 +562,9 @@ proc resetReports* =
   killMatrixPainter.update = true
 
 proc cycle = 
+  if turnReport.diceRolls.len < diceRolls.len:
+    updateTurnReport diceRolls[^1]
+    diceRolls.del diceRolls.high
   if resetReportsUpdate:
     resetReports()
     resetReportsUpdate = false
@@ -619,8 +622,6 @@ proc cycle =
 proc timer = 
   if showVolume > 0: showVolume -= 0.4
   showCursor = not showCursor
-  if turnPlayer.kind == Human and turnReport.diceRolls.len < diceRolls.len:
-    updateTurnReport diceRolls[^1]
   if turn.nr > 0 and not moveAnimation.active and mouseOnBatchPlayerNr != -1:
     if mouseOnBatchColor.gotReport:
       if (let moves = reportAnimationMoves(); moves.len > 0):

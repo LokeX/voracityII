@@ -1,12 +1,9 @@
 from algorithm import sort,sorted,sortedByIt
 from math import pow,sum
-# from strutils import join
-import game
 import sequtils
 import sugar
-# import taskpools
-# import cpuInfo
-import misc except reversed
+import strutils
+import random
 
 const
   highwayVal* = 2000
@@ -14,6 +11,37 @@ const
   posPercent = [1.0,0.3,0.3,0.3,0.3,0.3,0.3,0.15,0.14,0.12,0.10,0.08,0.05]
 
 type
+  Board = array[61,tuple[nr:int,name:string]]
+  PlayerColor = enum Red,Green,Blue,Yellow,Black,White
+  PlayerKind = enum Human,Computer,None
+  ProtoCard = array[4,string]
+  PlanSquares = tuple[required,oneInMany:seq[int]]
+  CardKind* = enum Deed,Plan,Job,Event,News,Mission
+  BlueCard* = object
+    title*:string
+    case cardKind*:CardKind
+    of Plan,Mission,Job,Deed:
+      squares*:PlanSquares
+      cash*:int
+      eval*:int
+      covered*:bool
+    of Event,News:
+      moveSquares*:seq[int]
+      bgPath*:string
+  Deck* = object 
+    fullDeck*,drawPile*,discardPile*:seq[BlueCard]
+    lastDrawn*:string
+  Pieces* = array[5,int]
+  Player* = object
+    color*:PlayerColor
+    kind*:PlayerKind
+    turnNr*:int
+    pieces*:Pieces
+    hand*:seq[BlueCard]
+    cash*:int
+    agro*:int
+    skipped*:int
+    update*:bool
   EvalBoard* = array[61,int]
   Hypothetic* = tuple
     board:array[61,int]
@@ -23,12 +51,104 @@ type
     cash:int
     skipped:int
 
-# var tp = Taskpool.new(num_threads = countProcessors() div 2)
+const 
+  defaultPlayerKinds* = @[Human,Computer,None,None,None,None]
+  cashToWin* = 1_000_000
+  piecePrice* = 10_000
+  startCash* = 50_000
+  
+  highways* = [5,17,29,41,53]
+  gasStations* = [2,15,27,37,47]
+  bars* = [1,16,18,20,28,35,40,46,51,54]
 
-# template syncem:untyped =
-#   tp.syncAll
+proc newBoard*(path:string):Board =
+  var count = 0
+  result[0] = (0,"Removed")
+  for name in lines path:
+    inc count
+    result[count] = (count,name)
 
-func countBars*(hypothetical:Hypothetic):int = 
+proc newDeck*(path:string):Deck
+
+var 
+  blueDeck* = newDeck "blues.txt"
+  board* = newBoard "board.txt"
+  playerKinds*:array[6,PlayerKind]
+  players*:seq[Player]
+
+func parseProtoCards(lines:sink seq[string]):seq[ProtoCard] =
+  var 
+    cardLine:int
+    protoCard:ProtoCard 
+  for line in lines:
+    protocard[cardLine] = line
+    if cardLine == 3:
+      result.add protoCard
+      cardLine = 0
+    else: inc cardLine
+
+func parseCardSquares(str:string,brackets:array[2,char]):seq[int] =
+  let (f,l) = (str.find(brackets[0]),str.find(brackets[1]))
+  if -1 in [f,l]: @[] else: str[f+1..l-1].split(',').mapIt it.parseInt
+
+func parseCardKindFrom(kind:string):CardKind =
+  try: CardKind(CardKind.mapIt(($it).toLower).find kind[0..kind.high-1].toLower) 
+  except: raise newException(CatchableError,"Error, parsing CardKind: "&kind)
+
+func newBlueCards(protoCards:seq[ProtoCard]):seq[BlueCard] =
+  var card:BlueCard
+  for protoCard in protoCards:
+    card = BlueCard(title:protoCard[1],cardKind:parseCardKindFrom protoCard[0])
+    if card.cardKind in [Event,News]:
+      card.moveSquares = parseCardSquares(protoCard[2],['{','}'])
+      card.bgPath = protoCard[3]
+    else:
+      card.squares = (
+        parseCardSquares(protoCard[2],['{','}']),
+        parseCardSquares(protoCard[2],['[',']']),
+      )
+      card.cash = protoCard[3].parseInt
+    result.add card
+
+proc newDeck*(path:string):Deck =
+  result = Deck(fullDeck:path.lines.toSeq.parseProtoCards.newBlueCards)
+  result.drawPile = result.fullDeck
+  result.drawPile.shuffle
+
+proc shufflePiles(deck:var Deck) =
+  deck.drawPile.add deck.discardPile
+  deck.discardPile.setLen 0
+  deck.drawPile.shuffle
+
+proc drawFrom*(hand:var seq[BlueCard],deck:var Deck) =
+  if deck.drawPile.len == 0:
+    deck.shufflePiles
+  hand.add deck.drawPile.pop
+  deck.lastDrawn = hand[^1].title
+
+proc playTo(hand:var seq[BlueCard],deck:var Deck,card:int) =
+  deck.discardPile.add hand[card]
+  hand.del card
+
+proc discardCards(player:var Player,deck:var Deck):seq[BlueCard] =
+  while player.hand.len > 3:
+    result.add player.hand[player.hand.high]
+    player.hand.playTo deck,player.hand.high
+
+func adjustToSquareNr(adjustSquare:int):int =
+  if adjustSquare > 60: adjustSquare - 60 else: adjustSquare
+
+func moveToSquare(fromSquare:int,die:int):int = 
+  adjustToSquareNr fromSquare+die
+
+func moveToSquares(fromSquare,die:int):seq[int] =
+  if fromsquare != 0: result.add moveToSquare(fromSquare,die)
+  else: result.add highways.mapIt moveToSquare(it,die)
+  if fromSquare in highways or fromsquare == 0:      
+    result.add gasStations.mapIt moveToSquare(it,die)
+  result = result.filterIt(it != fromSquare).deduplicate
+
+func countBars(hypothetical:Hypothetic):int = 
   hypothetical.pieces.countIt(it in bars)
 
 func cardVal(hypothetical:Hypothetic): int =
@@ -178,16 +298,6 @@ func posPercentages(hypothetical:Hypothetic,squares:openArray[int]):array[12,flo
     else:
       result[i] = posPercent[i].pow freePieces.toFloat
 
-# func evalSquare(hypothetical:Hypothetic,square:int):int =
-#   let 
-#     squares = toSeq(square..<square+posPercent.high).mapIt adjustToSquareNr it
-#     blueSquareValues = hypothetical.blueVals squares
-#     baseSquareVals = squares.mapIt(hypothetical.board[it].toFloat)
-#     squarePercent = hypothetical.posPercentages squares
-#   toSeq(0..<posPercent.high)
-#   .mapIt(((baseSquareVals[it]+blueSquareValues[it].toFloat)*squarePercent[it]).toInt)
-#   .sum
-
 func squareNrs(square:int):array[12,int] =
   var i:int
   for idx in square..<square+posPercent.high:
@@ -233,10 +343,6 @@ func evalPos*(hypothetical:Hypothetic):int =
   evals.sum
 
 func evalBlue(hypothetical:Hypothetic,card:BlueCard):int =
-  # var hypo = hypothetical
-  # hypo.cards.setLen 0
-  # hypo.cards.add card
-  # hypo.evalPos
   evalPos (
     hypothetical.board,
     hypothetical.pieces,
@@ -246,14 +352,6 @@ func evalBlue(hypothetical:Hypothetic,card:BlueCard):int =
     hypothetical.skipped
   )
 
-# proc evalBlues*(hypothetical:Hypothetic):seq[BlueCard] =
-#   let evals = hypothetical.cards.map it => tp.spawn hypothetical.evalBlue it
-#   for i,card in hypothetical.cards:
-#     result.add card
-#     result[^1].eval = sync evals[i] #hypothetical.evalBlue(card)
-#   result.sort (a,b) => b.eval - a.eval
-#   syncem
-
 proc evalBlues*(hypothetical:Hypothetic):seq[BlueCard] =
   let evals = hypothetical.cards.mapIt hypothetical.evalBlue it
   result = hypothetical.cards
@@ -261,168 +359,6 @@ proc evalBlues*(hypothetical:Hypothetic):seq[BlueCard] =
     # result.add card
     result[i].eval = evals[i] #hypothetical.evalBlue(card)
   result.sort (a,b) => b.eval - a.eval
-
-# proc evalBlues*(hypothetical:Hypothetic):seq[BlueCard] =
-#   let evals = hypothetical.cards.mapIt hypothetical.evalBlue it
-#   for i,card in hypothetical.cards:
-#     result.add card
-#     result[^1].eval = evals[i] #hypothetical.evalBlue(card)
-#   result.sort (a,b) => b.eval - a.eval
-
-func friendlyFireBest(hypothetical:Hypothetic,move:Move):bool =
-  var hypoMove = hypothetical
-  hypoMove.pieces[move.pieceNr] = move.toSquare
-  let eval = hypoMove.evalPos
-  hypoMove.pieces[move.pieceNr] = 0
-  let killEval = hypoMove.evalPos
-  killEval > eval
-  
-func friendlyFireAdviced*(hypothetical:Hypothetic,move:Move):bool =
-  move.fromSquare != 0 and
-  move.toSquare notIn highways and
-  move.toSquare notIn gasStations and
-  hypothetical.piecesOn(move.toSquare) == 1 and 
-  hypothetical.allPlayersPieces.countIt(it == move.toSquare) == 1 and
-  hypothetical.requiredPiecesOn(move.toSquare) < 2 and
-  hypothetical.friendlyFireBest(move)
-
-template requiredCardSquares(cards:untyped):untyped =
-  cards.mapIt(it.squares.required.deduplicate).flatMap
-
-func countSquaresIn(cardSquares,requiredSquares:seq[int]):int =
-  cardSquares.mapIt(requiredSquares.count it).sum
-
-template squareCountsIn(cards,requiredSquares:untyped):untyped =
-  cards.mapIt it.squares.required.deduplicate.countSquaresIn requiredSquares
-
-# template printSelectionReport =
-#   debugEcho ""
-#   debugEcho "selecting cards by square:"
-#   debugEcho ""
-#   debugEcho "selected cards: "
-#   debugEcho selected.mapIt(it.title).join "\n"
-#   debugEcho "unselected cards:"
-#   debugEcho unselected.mapIt(it.title).join "\n"
-#   if selected.len == 0:
-#     debugEcho "unselected required: "
-#   else:
-#     debugEcho "selected required: "
-#   debugEcho requiredSquares
-#   debugEcho "squareCounts: "
-#   debugEcho squareCounts
-#   debugEcho "max index: ",index
-#   debugEcho "max index contains = ",squareCounts[index]
-#   debugEcho "passing new sequences:"
-    # debugEcho "covers: "
-    # debugEcho covers
-    # debugEcho "values: "
-    # debugEcho values
-
-func selectCards(selected,unselected:sink seq[BlueCard],covers:sink seq[int]):seq[BlueCard] =
-  if unselected.len < 2 or selected.len > 2: selected & unselected
-  else:
-    let 
-      requiredSquares = 
-        if selected.len == 0: unselected.requiredCardSquares
-        else: selected.requiredCardSquares
-      squareCounts = 
-        if selected.len == 0:
-          let counts = unselected.squareCountsIn requiredSquares
-          toseq(0..counts.high).mapIt counts[it]-unselected[it].squares.required.len
-        else: unselected.squareCountsIn requiredSquares
-      values = toSeq(0..covers.high).mapIt squareCounts[it]+covers[it]
-      index = values.maxIndex
-      # index = squareCounts.maxIndex
-    # printSelectionReport
-    selected.add unselected[index]
-    unselected.del index
-    covers.del index
-    selectCards(selected,unselected,covers)
-
-# template printCoveredReport =
-#   debugEcho "sort uncovered blues: "
-#   debugEcho "covered cards: "
-#   debugEcho coveredCards.mapIt(it.title).join "\n"
-#   debugEcho "uncovered cards: "
-#   debugEcho uncoveredCards.mapIt(it.title).join "\n"
-
-func sortUncoveredBlues(hypothetical:Hypothetic):seq[BlueCard] =
-  let coveredCards = hypothetical.cards.filterIt hypothetical.pieces.covers it
-  if coveredCards.len < 3: 
-    let 
-      uncoveredCards = hypothetical.cards.filterIt(not hypothetical.pieces.covers it)
-      covers = uncoveredCards.mapIt hypothetical.pieces.covers it.squares.required
-    # printCoveredReport
-    selectCards(coveredCards,uncoveredCards,covers)
-  else: hypothetical.cards
-
-func threeBest(cards:seq[BlueCard]):seq[BlueCard] =
-  if cards.len > 3: 
-    cards[0..2]
-  else: 
-    cards
- 
-func evalMove*(hypothetical:Hypothetic,pieceNr,toSquare:int):int =
-  var pieces = hypothetical.pieces
-  if hypothetical.friendlyFireAdviced (pieceNr,0,pieces[pieceNr],toSquare,0):
-    pieces[pieceNr] = 0 
-  else: pieces[pieceNr] = toSquare
-  (hypothetical.board,pieces,
-  hypothetical.allPlayersPieces,
-  hypothetical.cards.threeBest,
-  hypothetical.cash,
-  hypothetical.skipped).evalPos
-
-func bestMoveFrom(hypothetical:Hypothetic,generic:Move):Move =
-  let squares = moveToSquares(generic.fromSquare,generic.die)
-  if squares.len > 0:
-    result = generic
-    result.toSquare = squares[0]
-    result.eval = hypothetical.evalMove(result.pieceNr,squares[0])
-    for i in 1..squares.high:  
-      if (let eval = hypothetical.evalMove(result.pieceNr,squares[i]); eval > result.eval):
-        (result.toSquare,result.eval) = (squares[i],eval)
-  
-func movesSeededWith(hypothetical:Hypothetic,dice:openArray[int]):seq[Move] =
-  for die in dice.deduplicate:
-    for pieceNr,fromSquare in hypothetical.pieces.deduplicate:
-      if fromSquare != 0 or hypothetical.cash >= piecePrice:
-        result.add (pieceNr,die,fromSquare,0,0)
-
-func resolveSeedMoves(hypothetical:Hypothetic,moves:sink seq[Move]):seq[Move] =
-  result = move moves
-  for move in moves:
-    for i,toSquare in moveToSquares(move.fromSquare,move.die):
-      result[i].toSquare = toSquare
-
-func movesResolvedWith*(hypothetical:Hypothetic,dice:openArray[int]):seq[Move] =
-  hypothetical.resolveSeedMoves(hypothetical.movesSeededWith dice)
-
-func player*(hypothetical:Hypothetic,move:Move):Player =
-  var pieces = hypothetical.pieces
-  pieces[move.pieceNr] = move.toSquare
-  Player(
-    pieces:pieces,
-    hand:hypothetical.cards
-  )
-
-# proc move*(hypothetical:Hypothetic,dice:openArray[int]):Move = 
-#   result = hypothetical.movesSeededWith(dice)
-#     .map(genericMove => tp.spawn hypothetical.bestMoveFrom genericMove)
-#     .map(bestMove => sync bestMove)
-#     .reduce (a,b) => (if a.eval >= b.eval: a else: b)
-#   syncem
-
-proc move*(hypothetical:Hypothetic,dice:openArray[int]):Move = 
-  result = hypothetical.movesSeededWith(dice)
-    .map(genericMove => hypothetical.bestMoveFrom genericMove)
-    .map(bestMove => bestMove)
-    .reduce (a,b) => (if a.eval >= b.eval: a else: b)
-
-proc bestDiceMoves*(hypothetical:Hypothetic):seq[Move] =
-  for die in 1..6:
-    result.add hypothetical.move [die,die]
-  result.sort (a,b) => a.eval-b.eval
 
 func allPlayersPieces(players:seq[Player]):seq[int] =
   for player in players:
@@ -443,7 +379,7 @@ proc boardInit(player:Player):EvalBoard =
     @[],
     player.hand,
     player.cash,
-    turn.nr
+    0
   )
  
 proc hypotheticalInit*(player:Player):Hypothetic = (
@@ -455,27 +391,54 @@ proc hypotheticalInit*(player:Player):Hypothetic = (
   player.skipped
 )
 
-proc sortBlues*(player:Player):seq[BlueCard] =
-  var hypo = player.hypotheticalInit#.evalBlues
-  hypo.cards = hypo.evalBlues
-  if hypo.cards.len > 3: 
-    hypo.sortUncoveredBlues
-  else: hypo.cards
+proc newDefaultPlayers*:seq[Player] =
+  for i,kind in playerKinds:
+    result.add Player(
+      kind:kind,
+      color:PlayerColor(i),
+      pieces:highways
+    )
 
-func pieceNrsOnBars(player:Player):seq[int] =
-  for nr,square in player.pieces:
-    if square in bars: result.add nr
+proc initPlayers* =
+  players = newDefaultPlayers()
 
-proc eventMovesEval*(player:Player,event:BlueCard):seq[Move] =
-  let hypothetical = player.hypotheticalInit
-  for pieceNr in player.pieceNrsOnBars:
-    for toSquare in event.moveSquares:
-      result.add (
-        pieceNr,
-        -1,
-        hypothetical.pieces[pieceNr],
-        toSquare,
-        hypothetical.evalMove(pieceNr,toSquare)
-      )
-  result.sort (a,b) => b.eval-a.eval
+#-------------------------------------------------------------------
+# Test run from here
+#-------------------------------------------------------------------
 
+initPlayers()
+var
+  player = players[0]
+  hypo = player.hypotheticalInit
+  count:int
+
+while true:
+  inc count
+  echo count
+
+  #------------------------------------
+  # Draw some cards to evaluate
+  #------------------------------------
+  for _ in 1..6:
+    player.hand.drawFrom blueDeck
+    if player.hand[^1].cardKind in [News,Event]:  # Drop cards that cannot be evaluated
+      player.hand.playTo(blueDeck,player.hand.high)
+  player.hand.playTo(blueDeck,0) # Ensure some variation
+
+  #----------------------------------------------------
+  # Evaluate the cards and reproduce our problem
+  #----------------------------------------------------
+  hypo = player.hypotheticalInit
+  discard hypo.evalBlues # Without this call the program maintains steady state
+
+  #------------------------------------------------------------------
+  # Reduce the player hand to 3 cards - or we will run out
+  #------------------------------------------------------------------
+  let discs = player.discardCards blueDeck
+
+  echo "discard:"
+  echo discs.mapIt(it.title).join "\n"
+
+  # echo "hand:"
+  # echo player.hand.mapIt(it.title).join "\n"
+      

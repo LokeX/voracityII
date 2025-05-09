@@ -136,6 +136,7 @@ var
   playerBatches*:array[6,Batch]
   showCursor*:bool
 
+  diceRolls*:seq[Dice]
   dieRollFrame* = maxRollFrames
   moveAnimation*:MoveAnimation
   dieEdit:int
