@@ -10,7 +10,7 @@ import sugar
 
 type
   ChangeMenuState* = enum MenuOn,MenuOff,NoAction
-  ConfigState* = enum None,StartGame,SetupGame,GameWon,StatGame
+  ConfigState* = enum None,StartGame,SetupGame,GameWon
   SinglePiece = tuple[playerNr,pieceNr:int]
   EventMoveFmt* = tuple[fromSquare,toSquare:string]
 
@@ -33,9 +33,10 @@ var
   gameWon*:bool
   soundToPlay*:seq[string]
   configState* = None
+  statGame*:bool
 
 template playSound(s:string) =
-  if configState != StatGame:
+  if not statGame:
     echo "playing sound"
     soundToPlay.add s
 
@@ -255,7 +256,7 @@ proc killPieceAndMove*(confirmedKill:string) =
     updateTurnReport players[singlePiece.playerNr].color
     playSound "Gunshot"
     playSound "Deanscream-2"
-  if configState == StatGame: move()
+  if statGame: move()
   else: runMoveAnimation = true
 
 proc hostileFireEval(player:Player,pieceNr,toSquare:int):int =
@@ -305,7 +306,7 @@ proc move*(square:int) =
     if turnPlayer.kind == Human:
       killDialogSquare = square
     else: aiKillDecision()
-  elif configState == StatGame: 
+  elif statGame: 
     move()
   else: runMoveAnimation = true
 
@@ -346,7 +347,7 @@ proc nextGameState* =
       startNewGame()
     else: 
       nextTurn()
-    if configState == StatGame: rollDice()
+    if statGame: rollDice()
     else: rollTheDice = true
     # startDiceRoll(if turnPlayer.kind == Human: humanRoll else: computerRoll)
   playSound "carhorn-1"
@@ -459,17 +460,17 @@ proc moveAi =
   phase = PostMove
 
 proc startTurn = 
-  # echo ""
-  # if configState == StatGame:
-  #   echo "game nr: ",gameStats.len
-  # echo $turnPlayer.color," start turn: ",turn.nr
+  if statGame:
+    echo ""
+    echo "game nr: ",gameStats.len
+    echo $turnPlayer.color," start turn: ",turn.nr
   hypo = hypotheticalInit(turnPlayer)
   bestDiceMoves.setLen 0
   phase = Draw
 
 proc rerollPhase =
   # echo $turnPlayer.color," roll dice"
-  if configState == StatGame:
+  if statGame:
     # echo "dice statgame"
     # echo "ispausing: ",diceReroll.isPausing
     if not diceReroll.isPausing or hypo.reroll:

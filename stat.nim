@@ -54,12 +54,13 @@ proc statsStr:string =
 for i in 0..playerKinds.high:
   playerKinds[i] = Computer
 
-recordStats = false
+# recordStats = false
+statGame = true
 
 for i in 1..100:
   setupNewGame()
   startNewGame()
-  configState = StatGame
+  # configState = StatGame
   echo "game nr: ",i
   echo getFreeMem()
   while not gameWon:
