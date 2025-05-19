@@ -127,7 +127,8 @@ func covers(pieces,squares:openArray[int],count:int):int =
   else: 
     var maxVal:int
     for coverPiece in coverPieces:
-      maxVal = max(maxVal,pieces.filterIt(it != coverPiece)
+      maxVal = max(maxVal,
+        pieces.filterIt(it != coverPiece)
         .covers(squares[idx+1..squares.high],count+1))
     maxVal
 
@@ -141,6 +142,16 @@ func coversOneIn(pieces,squares:openArray[int]):bool =
       if piece.covers square:
         return true
 
+import os,strutils
+proc getParams:seq[int] =
+  for prm in commandLineParams():
+    try: result.add prm.parseInt
+    except:discard
+    if result.len == 2:
+      break
+  
+echo "params:"
+echo getParams()
 
 let
   pieces = highways

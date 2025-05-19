@@ -9,6 +9,8 @@ import times
 import sugar
 
 type
+  Phase* = enum Await,Draw,Reroll,AiMove,PostMove,EndTurn
+  DiceReroll = tuple[isPausing:bool,pauseStartTime:float]
   ChangeMenuState* = enum MenuOn,MenuOff,NoAction
   ConfigState* = enum None,StartGame,SetupGame,GameWon
   SinglePiece = tuple[playerNr,pieceNr:int]
@@ -34,6 +36,12 @@ var
   soundToPlay*:seq[string]
   configState* = None
   statGame*:bool
+  autoEndTurn* = true
+  hypo:Hypothetic
+  phase*:Phase
+  diceReroll:DiceReroll
+  bestDiceMoves:seq[Move]
+
 
 template playSound(s:string) =
   if not statGame:
@@ -148,7 +156,6 @@ proc endBarMoveSelection*(selection:string) =
 
 proc barMove(moveEvent:BlueCard):bool =
   dialogBarMoves = turnPlayer.eventMovesEval moveEvent
-  # echo dialogBarMoves.mapIt(it.eventMoveFmt).mapIt(it.fromSquare&"\n"&it.toSquare).join("\n")
   if dialogBarMoves.len > 0:
     if dialogBarMoves.len == 1 or turnPlayer.kind == Computer:
       moveSelection.event = true
@@ -156,7 +163,6 @@ proc barMove(moveEvent:BlueCard):bool =
       moveSelection.toSquare = dialogBarMoves[0].toSquare
       return true
     else: runSelectBar = true
-      # selectBar()
 
 proc playNews =
   updatePieces = true
@@ -322,7 +328,6 @@ proc startNewGame* =
   turnReports.setLen 0
   inc turn.nr
   players = newPlayers()
-  # echo players
   resetReportsUpdate = true
   gameWon = false
   # resetReports()
@@ -331,10 +336,7 @@ proc nextTurn =
   playSound "page-flip-2"
   updateTurnReportCards(turnPlayer.discardCards blueDeck, Discarded)
   recordTurnReport()
-  # diceRolls.setLen 0
-  # dialogBarMoves.setLen 0  # Clear dialogBarMoves
   nextPlayerTurn()
-  # turnReport = TurnReport()  # Reset turnReport for new turn
   initTurnReport()
   if anyHuman players: changeMenuState = MenuOff
   playCashPlansTo blueDeck
@@ -352,18 +354,6 @@ proc nextGameState* =
     # startDiceRoll(if turnPlayer.kind == Human: humanRoll else: computerRoll)
   playSound "carhorn-1"
 
-type
-  Phase* = enum Await,Draw,Reroll,AiMove,PostMove,EndTurn
-  DiceReroll = tuple[isPausing:bool,pauseStartTime:float]
-
-var
-  autoEndTurn* = true
-  hypo:Hypothetic
-  phase*:Phase
-  diceReroll:DiceReroll
-  # bestDiceMoves:array[6,Move]
-  bestDiceMoves:seq[Move]
-
 template phaseIs*:untyped = phase
 
 proc drawCards =
@@ -378,15 +368,12 @@ proc drawCards =
     hypo.cards = hypo.evalBlues
     turnPlayer.hand = hypo.cards
   phase = Reroll
-  # echo "nr of cards: ",turnPlayer.hand.len
 
-proc reroll(hypothetical:Hypothetic): bool =
+proc reroll(hypothetical:Hypothetic):bool =
   if isDouble():
     if bestDiceMoves.len == 0: 
       bestDiceMoves = hypothetical.bestDiceMoves()
-    # let bestDice = bestDiceMoves.mapIt(it.die)
     updateTurnReport diceRoll
-    # diceRoll[1].ord notIn bestDice[^2..^1]
     bestDiceMoves[0..4].anyIt diceRoll[1].ord == it.die
   else: false
 
@@ -414,19 +401,13 @@ proc winningMove*(hypothetical:Hypothetic,dice:openArray[int]):Move =
 
 proc aiMove(hypothetical:Hypothetic,dice:openArray[int]):(bool,Move) =
   if(let winMove = hypothetical.winningMove dice; winMove.pieceNr != -1):
-    # echo "after winning move: "
-    # echo GC_getStatistics()
     (true,winMove) 
-  else: 
-    # echo "after winning move: "
-    # echo GC_getStatistics()
-    (
-      false,
-      if bestDiceMoves.len > 0: 
-        bestDieMove dice 
-      else: hypothetical.move dice
-    )
-  # ):(true,winMove) else: (false,hypothetical.move dice)
+  else: (
+    false,
+    if bestDiceMoves.len > 0: 
+      bestDieMove dice 
+    else: hypothetical.move dice
+  )
 
 func betterThan(move:Move,hypothetical:Hypothetic):bool =
   move.eval.toFloat >= hypothetical.evalPos().toFloat*0.85
@@ -434,24 +415,12 @@ func betterThan(move:Move,hypothetical:Hypothetic):bool =
 proc moveAi =
   # echo turnPlayer.pieces
   # echo $turnPlayer.color," move"
-  # echo "before move analysis:"
-  # echo GC_getStatistics()
-  let 
-    # time = cpuTime()
-    (isWinningMove,move) = hypo.aiMove([diceRoll[1].ord,diceRoll[2].ord])
-  # echo "move eval time: ",cpuTime()-time
-  # echo "after move analysis:"
-  # echo GC_getStatistics()
+  let (isWinningMove,move) = hypo.aiMove([diceRoll[1].ord,diceRoll[2].ord])
   if isWinningMove or move.betterThan hypo:
     if turnPlayer.skipped > 0: 
       turnPlayer.skipped = 0
     moveSelection.fromSquare = move.fromSquare
-    # echo "before move:"
-    # echo GC_getStatistics()
     move move.toSquare
-    # echo move
-    # echo "after move:"
-    # echo GC_getStatistics()
   else:
     inc turnPlayer.skipped
     echo $turnPlayer.color," skips move"

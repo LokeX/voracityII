@@ -69,8 +69,11 @@ func covers(pieces,squares:openArray[int],count:int):int =
   else: 
     var maxCovers:int
     for coverPiece in coverPieces:
-      maxCovers = max(maxCovers,pieces.filterIt(it != coverPiece)
-        .covers(squares[idx+1..squares.high],count+1))
+      maxCovers = max(
+        maxCovers,
+        pieces.filterIt(it != coverPiece)
+        .covers(squares[idx+1..squares.high],count+1)
+      )
     maxCovers
 
 func covers(pieces,squares:openArray[int]):int = 
@@ -139,33 +142,60 @@ func oneInMoreBonus(hypothetical:Hypothetic,blueCard:BlueCard,square:int):int =
       of 1:reward
       else:0
   elif hypothetical.piecesOn(requiredSquare) > 0: result = reward
- 
+
 func blueVals(hypothetical:Hypothetic,squares:openArray[int]):array[12,int] =
   for card in hypothetical.cards:
     if hypothetical.pieces.covers card:
       if card.squares.required.len > 1:
         let
           requiredSquares = card.squares.required.deduplicate
-          piecesOn = requiredSquares.mapIt hypothetical.pieces.count it
-          requiredPiecesOn = requiredSquares.mapIt card.squares.required.count it
-          piecesVsRequired = 
-            toSeq(0..requiredSquares.high)
-            .mapIt piecesOn[it] - requiredPiecesOn[it]
-          bonus = 
-            (hypothetical.rewardValue(card) div card.squares.required.len)*
-            (toSeq(0..requiredSquares.high)
-            .mapIt(min(piecesOn[it],requiredPiecesOn[it])).sum+1)
-        for si,square in squares:
-          if (let squareIndex = requiredSquares.find square; squareIndex > -1):
-            if piecesVsRequired[squareIndex] < 1:
-              result[si] += bonus
+          squareIndexes = requiredSquares.mapIt squares.find it
+        if squareIndexes.anyIt it != -1:
+          let
+            piecesOn = requiredSquares.mapIt hypothetical.pieces.count it
+            requiredPiecesOn = requiredSquares.mapIt card.squares.required.count it
+            requiredIndexes = toSeq(0..requiredSquares.high)
+            piecesVsRequired = requiredIndexes.mapIt piecesOn[it] - requiredPiecesOn[it]
+            bonus = 
+              (hypothetical.rewardValue(card) div card.squares.required.len)*
+              (requiredIndexes.mapIt(min(piecesOn[it],requiredPiecesOn[it])).sum+1)
+          for idx in requiredIndexes:
+            if squareIndexes[idx] != -1 and piecesVsRequired[idx] < 1:
+              result[squareIndexes[idx]] += bonus
+      elif card.squares.oneInMany.len == 0:
+        if (let idx = squares.find(card.squares.required[0]); idx > -1):
+          result[idx] += hypothetical.rewardValue(card)*2
       else:
-        for si,square in squares:
-          if card.squares.oneInMany.len == 0 and square == card.squares.required[0]:
-            result[si] += hypothetical.rewardValue(card)*2 #+(hypothetical.distract*2)
-          elif (square == card.squares.required[0] or square in card.squares.oneInMany):
-            if card.squares.oneInMany.len > 0:
-              result[si] += hypothetical.oneInMoreBonus(card,square)
+        for idx,square in squares:
+          if (square == card.squares.required[0] or square in card.squares.oneInMany):
+            result[idx] += hypothetical.oneInMoreBonus(card,square)
+
+# func blueVals(hypothetical:Hypothetic,squares:openArray[int]):array[12,int] =
+#   for card in hypothetical.cards:
+#     if hypothetical.pieces.covers card:
+#       if card.squares.required.len > 1:
+#         let
+#           requiredSquares = card.squares.required.deduplicate
+#           piecesOn = requiredSquares.mapIt hypothetical.pieces.count it
+#           requiredPiecesOn = requiredSquares.mapIt card.squares.required.count it
+#           piecesVsRequired = 
+#             toSeq(0..requiredSquares.high)
+#             .mapIt piecesOn[it] - requiredPiecesOn[it]
+#           bonus = 
+#             (hypothetical.rewardValue(card) div card.squares.required.len)*
+#             (toSeq(0..requiredSquares.high)
+#             .mapIt(min(piecesOn[it],requiredPiecesOn[it])).sum+1)
+#         for si,square in squares:
+#           if (let squareIndex = requiredSquares.find square; squareIndex > -1):
+#             if piecesVsRequired[squareIndex] < 1:
+#               result[si] += bonus
+#       else:
+#         for si,square in squares:
+#           if card.squares.oneInMany.len == 0 and square == card.squares.required[0]:
+#             result[si] += hypothetical.rewardValue(card)*2 #+(hypothetical.distract*2)
+#           elif (square == card.squares.required[0] or square in card.squares.oneInMany):
+#             if card.squares.oneInMany.len > 0:
+#               result[si] += hypothetical.oneInMoreBonus(card,square)
 
 func posPercentages(hypothetical:Hypothetic,squares:openArray[int]):array[12,float] =
   var freePieces:int

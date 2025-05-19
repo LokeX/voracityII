@@ -6,22 +6,27 @@ import times
 # import taskpools,cpuinfo
 # export spawn
 
-func timeFmt*[T:int or float](t:T):string =
+func timeHMS*[T:int or float](secs:T):array[3,int] =
   let
-    time = when typeOf(T) is float: t.toInt else: t
+    time = when typeOf(T) is float: secs.toInt else: secs
     remSecs = time mod 3600
-    timeUnitVals = [
-      time div 3600,
-      remSecs div 60,
-      remsecs mod 60,
-    ]
-  func timeUnits:seq[int] =
-    for idx in 0..timeUnitVals.high:
-      if timeUnitVals[idx] > 0:
-        return @timeUnitVals[idx..timeUnitVals.high]
-  timeUnits()
-    .mapIt(if it < 10: "0"&($it) else: $it)
-    .join ":"
+  result = [
+    time div 3600,
+    remSecs div 60,
+    remsecs mod 60,
+  ]
+
+func timeFmt*[T:int or float](secs:T):string =
+  let timeUnitVals = timeHMS secs
+  var first = true
+  for idx,timeUnit in timeUnitVals:
+    if timeUnit > 0:
+      if timeUnit < 10: 
+        if first: first = false
+        else: result.add "0"
+      result.add $timeUnit
+      if idx < timeUnitVals.high: 
+        result.add ":"
 
 template echoStats*(s:string,code:untyped):untyped =
   debugEcho ""

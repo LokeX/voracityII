@@ -5,7 +5,6 @@ import play
 import times
 import megasound
 import dialog
-# import ai
 import menu
 import batch
 import sugar
