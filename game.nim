@@ -257,7 +257,7 @@ func indexFromColor*(players:seq[Player],playerColor:PlayerColor):int =
   result = -1
 
 func knownBluesIn(discardPile,hand:seq[BlueCard]):seq[BlueCard] =
-  result.add discardPile
+  result.add discardPile.filterIt it.cardKind notin [News,Event]
   result.add hand
 
 func require(cards:seq[BlueCard],square:int): seq[BlueCard] =

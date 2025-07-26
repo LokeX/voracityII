@@ -13,7 +13,7 @@
         // "-d:useMalloc",
         "-d:release",
         "--mm:markAndSweep",
-        "--app:gui",
+        // "--app:gui",
         // "--opt:speed",
         // "--floatChecks:off",
         // "--overflowChecks:off",

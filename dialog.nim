@@ -7,14 +7,13 @@ from graphics import moveToSquaresPainter
 const
   thisDialog = "dialog"
   robotoRegular* = "fonts\\Roboto-Regular_1.ttf"
-  menuPos:tuple[x,y:int] = (875,275)
 
 var 
   selectorBorder*:Border = (0,10,color(1,0,0))
   menuBatchInit* = BatchInit(
     kind:MenuBatch,
     name:"dialog",
-    pos:(menuPos.x,scaledHeight),
+    pos:(875,275),
     padding:(20,20,20,20),
     hAlign:CenterAlign,
     font:(robotoRegular,25.0,color(1,1,0)),
@@ -38,13 +37,12 @@ proc startDialog*(entries:seq[string],selRange:HSlice[int,int],call:proc(s:strin
   returnSelection = call
   pushCalls()
   excludeInputCallsExcept thisDialog
-  dialogBatch.setPos(menuPos.x,scaledHeight)
   dialogBatch.isActive = true
   dialogBatch.update = true
+  dialogBatch.dynamicMove(Up,60)
 
 proc endDialog(selected:string) =
   square = -1
-  dialogBatch.setPos(menuPos.x,scaledHeight)
   dialogBatch.isActive = false
   popCalls()
   returnSelection selected
@@ -78,16 +76,6 @@ proc mouseMoved =
       if dialogEntries[dialogBatch.selection].startsWith "from":
         moveSelection.fromSquare = square #yeah, it's a hack
 
-proc cycle =  
-  if dialogBatch != nil and dialogBatch.isActive and 
-    (let (_,y) = dialogBatch.pos; y != menuPos.y):
-    if y > menuPos.y:
-      dialogBatch.setShallowPos(menuPos.x,y-60)
-    else: 
-      dialogBatch.setShallowPos(menuPos.x,y+1)
-      if dialogBatch.pos.y == menuPos.y:
-        dialogBatch.setPos(menuPos.x,menuPos.y)
-
 var 
   dialogCall* = Call(
     reciever:thisDialog,
@@ -95,7 +83,6 @@ var
     keyboard:keyboard,
     mouse:mouse,
     mouseMoved:mouseMoved,
-    cycle:cycle,
     active:false
   )
 

@@ -196,26 +196,11 @@ proc writeTurnReportUpdate* =
 template gotReport*(player:PlayerColor):bool =
   reportBatches[player].spansLength > 0
 
-proc startAnimation(batch:var Batch) =
-  batch.setShallowPos(
-    batch.rect.x.toInt,
-    (batch.rect.y-batch.rect.h).toInt
-  )
-
-proc animate(batch:var Batch) =
-  if batch.rect.y.toInt < rby:
-    batch.setShallowPos(rbx,(batch.rect.y+30).toInt)
-    batch.update = true
-  elif batch.rect.y.toInt > rby:
-    batch.setPos(rbx,rby)
-    batch.update = true
-
 proc drawReport*(b:var Boxy,playerColor:PlayerColor) =
   if selectedBatch == -1 or playerColor != PlayerColor(selectedBatch):
     selectedBatch = playerColor.ord
-    reportBatches[playerColor].startAnimation
-  if reportBatches[playerColor].rect.y.toInt != rby:
-    animate reportBatches[playerColor]
+    reportBatches[playerColor].dynamicMove(Down,30)
+    reportBatches[playerColor].update = true
   b.drawDynamicImage reportBatches[playerColor]
 
 let (robotoPurple,robotoYellow,robotoGreen,robotoWhite,robotolh7) = block:

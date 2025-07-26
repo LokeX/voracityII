@@ -183,3 +183,14 @@ dealloc i
 echo getOccupiedMem()
 
 # i[] = 1
+
+type Eq = object
+  x,y:int
+  s:string
+
+var
+  a = Eq(x:30,y:30,s:"yes")
+  b= Eq(x:30,y:30,s:"no")
+
+echo a == b
+

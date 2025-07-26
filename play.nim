@@ -15,13 +15,18 @@ type
   ConfigState* = enum None,StartGame,SetupGame,GameWon
   SinglePiece = tuple[playerNr,pieceNr:int]
   EventMoveFmt* = tuple[fromSquare,toSquare:string]
+  # Config = tuple
+  #   startGame:proc()
+  #   setupGame:proc()
+  #   gameWon:proc()
 
 var
   singlePiece*:SinglePiece
   dialogBarMoves*:seq[Move]
   changeMenuState* = NoAction
   recordStats* = true
-  runMoveAnimation*:bool
+  runMoveAnimation*:proc()
+  # runMoveAnimation*:bool
   rollTheDice*:bool
   runSelectBar*:bool
   killDialogSquare* = -1
@@ -41,7 +46,23 @@ var
   phase*:Phase
   diceReroll:DiceReroll
   bestDiceMoves:seq[Move]
+  # config*:Config
 
+# template configStartGame() =
+#   if config.startGame != nil:
+#     config.startGame
+
+# template configSetupGame() =
+#   if config.setupGame != nil:
+#     config.setupGame
+
+# template configGameWon() =
+#   if config.gameWon != nil:
+#     config.gameWon
+
+template moveAnimation =
+  if runMoveAnimation != nil:
+    runMoveAnimation()
 
 template playSound(s:string) =
   if not statGame:
@@ -263,7 +284,9 @@ proc killPieceAndMove*(confirmedKill:string) =
     playSound "Gunshot"
     playSound "Deanscream-2"
   if statGame: move()
-  else: runMoveAnimation = true
+  else: 
+    moveAnimation
+    # runMoveAnimation = true
 
 proc hostileFireEval(player:Player,pieceNr,toSquare:int):int =
   var hypoPlayer = player
@@ -314,7 +337,9 @@ proc move*(square:int) =
     else: aiKillDecision()
   elif statGame: 
     move()
-  else: runMoveAnimation = true
+  else: 
+    moveAnimation
+    # runMoveAnimation = true
 
 proc endGame =
   if turnPlayer.kind == Human:

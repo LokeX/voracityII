@@ -6,6 +6,7 @@ export boxy
 export windy
 
 type
+  Direction* = enum Up,Down,Right,Left
   Area* = tuple[x1,y1,x2,y2:int]
   AreaHandle* = ref object of RootObj
     name*:string
@@ -19,6 +20,7 @@ type
       updateImage*:proc(context:T):Image
       context*:T
     update*:bool
+    animRect:proc:Rect
   KeyState = tuple[down,released,toggle:bool]
   SpecialKeys = tuple[ctrl,shift,alt:bool]
   KeyEvent* = object of RootObj
@@ -108,11 +110,6 @@ proc setNewFont*[T:Typeface or string](typeFace:T,size:float = 12.0,color:Color 
   result.paint = color
   result.size = size
 
-# func setNewFont*(typeFace:Typeface,size:float = 12.0,color:Color = color(1,1,1)):Font =
-#   result = newFont(typeFace)
-#   result.paint = color
-#   result.size = size
-
 proc addImage*(key:string,img:Image) = bxy.addImage(key,img)
   
 func keyReleased*(event:KeyEvent):bool = event.keyState.released
@@ -144,7 +141,7 @@ proc mouseOn*(area:Area):bool =
   let (mx,my) = scaledMousePos()
   area.x1 <= mx and area.y1 <= my and mx <= area.x2 and my <= area.y2
 
-proc mouseOn*(handle:AreaHandle):bool = mouseOn handle.area
+template mouseOn*(handle:AreaHandle):bool = mouseOn handle.area
 
 func imageArea*(area:Area,img:Image):Area =
   (area.x1,area.y1,area.x1+img.width,area.y1+img.height)
@@ -178,10 +175,59 @@ func rectangle*(rx,ry,rw,rh:int):Rect = Rect(
   h:rh.toFloat
 )
 
-# proc updateImageArea*[T](dynImg:DynamicImage[T],wh:IVec2) =
-#   dynImg.area.x2 = dynImg.area.x1+wh[0]
-#   dynImg.area.y2 = dynImg.area.y1+wh[1]
-#   dynImg.rect = dynImg.area.toRect
+proc initMove(r:Rect,direction:Direction,frames:int):proc:Rect =
+  var zr = r
+  case direction:
+  of Up: zr.y = scaledHeight.toFloat+zr.h
+  of Down: zr.y -= zr.h
+  of Left: zr.x = scaledWidth.toFloat-zr.w
+  of Right: zr.x -= zr.w
+  return
+    proc:Rect =
+      case direction:
+      of Up: 
+        zr.y -= frames.toFloat
+        if zr.y <= r.y: zr.y = r.y
+      of Down: 
+        zr.y += frames.toFloat
+        if zr.y >= r.y: zr.y = r.y
+      of Left: 
+        zr.x -= frames.toFloat
+        if zr.x <= r.x: zr.x = r.x
+      of Right: 
+        zr.x += frames.toFloat
+        if zr.x >= r.x: zr.x = r.x
+      zr
+
+proc initZoom*(r:Rect,frames:int):proc:Rect =
+  var
+    zw = if r.w > r.h: r.w / r.h else: 1.0
+    zh = if zw == 1.0: r.h / r.w else: 1.0
+  zw *= r.w / frames.toFloat
+  zh *= r.h / frames.toFloat
+  var zr = Rect(
+    x:r.x+(r.w / 2),
+    y:r.y+(r.h / 2),
+    w:zw,
+    h:zh
+  )
+  return 
+    proc:Rect =
+      zr.x -= zw
+      if zr.x-zw <= r.x: return r
+      zr.y -= zh
+      if zr.y-zw <= r.y: return r
+      zr.w += (zw*2)
+      if zr.w+(zw*2) >= r.w: return r
+      zr.h += (zh*2)
+      if zr.h+(zh*2) >= r.h: return r
+      zr
+
+proc dynamicZoom*[T](dynImg:var DynamicImage[T],frames:int) =
+  dynImg.animRect = dynImg.rect.initZoom frames
+
+proc dynamicMove*[T](dynImg:var DynamicImage[T],direction:Direction,frames:int) =
+  dynImg.animRect = dynImg.rect.initMove(direction,frames)
 
 proc drawDynamicImage*[T](b:var Boxy,dynImg:DynamicImage[T]) =
   if dynImg.update: 
@@ -192,10 +238,15 @@ proc drawDynamicImage*[T](b:var Boxy,dynImg:DynamicImage[T]) =
     dynImg.area.x2 = dynImg.area.x1+wh[0]
     dynImg.area.y2 = dynImg.area.y1+wh[1]
     dynImg.rect = dynImg.area.toRect
-    # updateImageArea(dynImg,b.getImageSize dynImg.name)
     dynImg.update = false
-  b.drawImage(dynImg.name,dynImg.rect)
-
+  if dynImg.animRect == nil:
+    b.drawImage(dynImg.name,dynImg.rect)
+  else:
+    let animRect = dynImg.animRect()
+    b.drawImage(dynImg.name,animRect)
+    if dynImg.rect == animRect:
+      dynImg.animRect = nil
+    
 proc keyState(b:Button):KeyState =
   (window.buttonDown[b],window.buttonReleased[b],window.buttonToggle[b])
 

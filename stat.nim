@@ -4,9 +4,20 @@ import times
 import strutils
 import misc
 import os
+import algorithm
 
-proc getParams:seq[int]
-proc setSettings(prms:openArray[int]):tuple[nrOfGames,nrOfPlayers:int]
+proc getParams:seq[int] =
+  for prm in commandLineParams():
+    try: result.add prm.parseInt
+    except:discard
+    if result.len == 2:
+      break
+
+proc setSettings(prms:openArray[int]):tuple[nrOfGames,nrOfPlayers:int] =
+  (result.nrOfGames,result.nrOfPlayers) = (100,6)
+  if prms.len == 1:
+    result.nrOfGames = prms[0]
+  elif prms.len > 1: (result.nrOfGames,result.nrOfPlayers) = (prms[0],prms[1])
 
 const 
   fileName = "dat\\statlog.txt"
@@ -33,7 +44,7 @@ proc addCards(cards:CashedCards) =
 
 proc cashedCardsStr:string =
   result.add "Cashed cards:\n"
-  for card in cashedCards:
+  for card in cashedCards.sortedByIt it.count:
     result.add card.title&": "&($card.count)&"\n"
 
 proc addVisits(visits:array[1..60,int]) =
@@ -53,25 +64,12 @@ proc statsStr(time:float):string =
   result.add "avgTurns: "
   result.add formatFloat(float(stats.turns)/float(stats.games),ffDecimal,2)&"\n"
 
-proc getParams:seq[int] =
-  for prm in commandLineParams():
-    try: result.add prm.parseInt
-    except:discard
-    if result.len == 2:
-      break
-
-proc setSettings(prms:openArray[int]):tuple[nrOfGames,nrOfPlayers:int] =
-  (result.nrOfGames,result.nrOfPlayers) = (100,6)
-  if prms.len == 1:
-    result.nrOfGames = prms[0]
-  elif prms.len > 1: (result.nrOfGames,result.nrOfPlayers) = (prms[0],prms[1])
-
-
 for i in 0..playerKinds.high:
   if i < settings.nrOfPlayers:
     playerKinds[i] = Computer
   else: playerKinds[i] = None
 statGame = true
+
 for i in 1..settings.nrOfGames:
   setupNewGame()
   startNewGame()
@@ -84,6 +82,7 @@ for i in 1..settings.nrOfGames:
     gameStats.add newGameStats()
     addVisits turnReports.reportedVisitsCount 
     addCards reportedCashedCards()
+
 if recordStats:
   let
     cards = cashedCardsStr()

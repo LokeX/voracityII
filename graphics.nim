@@ -375,12 +375,12 @@ func squareDistance(fromSquare,toSquare:int):int =
   else: (toSquare+60)-fromSquare
 
 func animationSquares(fromSquare,toSquare:int):seq[int] =
-  var count = fromSquare
+  var square = fromSquare
   for _ in 1..squareDistance(fromSquare,toSquare):
-    result.add count
-    inc count
-    if count > 60: 
-      count = 1
+    result.add square
+    inc square
+    if square > 60: 
+      square = 1
 
 proc startMoveAnimation*(color:PlayerColor,fromSquare,toSquare:int) =
   moveAnimation.fromsquare = fromSquare
@@ -650,8 +650,22 @@ proc drawCardSquares(b:var Boxy,blue:BlueCard) =
       cardSquaresPainter.context = blue
     b.drawDynamicImage cardSquaresPainter
 
+# var 
+#   zoomLastDrawn:proc:Rect
+#   zoomRect:Rect
+#   zooming = false
+
 proc paintCards*(b:var Boxy,deck:Deck,cards:seq[BlueCard],show:Reveal = Front) =
+  # if not mouseOn drawPileArea: zooming = false
   if show == Front and deck.lastDrawn.len > 0 and mouseOn drawPileArea:
+    # if zooming: 
+    #   if zoomLastDrawn == nil:
+    #     zoomLastDrawn = initZoom popUpCardRect
+    #   zoomRect = zoomLastDrawn()
+    # b.drawImage(deck.lastDrawn,zoomRect)
+    # if zooming and popUpCardRect == zoomRect:
+    #   zoomLastDrawn = nil
+    #   zooming = false
     b.drawImage(deck.lastDrawn,popUpCardRect)
     if (let cardNr = deck.fullDeck.mapIt(it.title).find(deck.lastDrawn); cardNr != -1):
       b.drawCardSquares deck.fullDeck[cardNr]
@@ -737,6 +751,7 @@ proc newPlayerBatches*:array[6,Batch] =
     setup = batchSetup playerNr
     result[playerNr] = setup.playerBatch yOffset
     result[playerNr].update = true
+    result[playerNr].dynamicMove(Right,10)
 
 randomize()
 

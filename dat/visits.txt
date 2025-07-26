@@ -1,60 +1,60 @@
 Bar Nr.1: 108
-Gas Station Nr.2: 11
+Gas Station Nr.2: 12
 Bank Nr.3: 65
-Town Hall Nr.4: 550
-Highway Nr.5: 233
-Barracks Nr.6: 460
-Church Nr.7: 344
-Villa Nr.8: 293
-Embassey Nr.9: 296
-Courthouse Nr.10: 370
-Airport Nr.11: 400
-Casino Nr.12: 180
-Jeweler Nr.13: 185
-Bank Nr.14: 59
-Gas Station Nr.15: 47
-Bar Nr.16: 595
-Highway Nr.17: 168
-Bar Nr.18: 268
-Disco Nr.19: 345
-Bar Nr.20: 310
-Brothel Nr.21: 747
-Realestate Nr.22: 213
-Shop Nr.23: 24
+Town Hall Nr.4: 562
+Highway Nr.5: 238
+Barracks Nr.6: 468
+Church Nr.7: 355
+Villa Nr.8: 298
+Embassey Nr.9: 301
+Courthouse Nr.10: 379
+Airport Nr.11: 405
+Casino Nr.12: 186
+Jeweler Nr.13: 191
+Bank Nr.14: 60
+Gas Station Nr.15: 48
+Bar Nr.16: 605
+Highway Nr.17: 170
+Bar Nr.18: 271
+Disco Nr.19: 349
+Bar Nr.20: 316
+Brothel Nr.21: 756
+Realestate Nr.22: 216
+Shop Nr.23: 26
 Bank Nr.24: 32
-Hospital Nr.25: 244
+Hospital Nr.25: 249
 Undertaker Nr.26: 223
-Gas Station Nr.27: 23
-Bar Nr.28: 163
-Highway Nr.29: 177
-McLeans Nr.30: 771
-Condo Nr.31: 110
-Condo Nr.32: 75
-Lawyers Nr.33: 411
+Gas Station Nr.27: 24
+Bar Nr.28: 166
+Highway Nr.29: 181
+McLeans Nr.30: 789
+Condo Nr.31: 113
+Condo Nr.32: 78
+Lawyers Nr.33: 425
 Shop Nr.34: 42
-Bar Nr.35: 251
-Prison Nr.36: 258
+Bar Nr.35: 258
+Prison Nr.36: 264
 Gas Station Nr.37: 11
-Bank Nr.38: 28
-Debt Inc Nr.39: 357
-Bar Nr.40: 268
-Highway Nr.41: 249
-Shop Nr.42: 63
-Entreprenour Nr.43: 272
+Bank Nr.38: 29
+Debt Inc Nr.39: 371
+Bar Nr.40: 278
+Highway Nr.41: 253
+Shop Nr.42: 65
+Entreprenour Nr.43: 276
 Shop Nr.44: 35
-Pharmacy Nr.45: 422
-Bar Nr.46: 231
+Pharmacy Nr.45: 430
+Bar Nr.46: 235
 Gas Station Nr.47: 5
-Brewery Nr.48: 360
-Harbour Nr.49: 365
+Brewery Nr.48: 368
+Harbour Nr.49: 372
 Shop Nr.50: 27
-Bar Nr.51: 458
+Bar Nr.51: 465
 Bank Nr.52: 39
-Highway Nr.53: 197
-Bar Nr.54: 195
-Import inc Nr.55: 225
-Slum Nr.56: 67
-Alley Nr.57: 309
-Slum Nr.58: 50
+Highway Nr.53: 198
+Bar Nr.54: 196
+Import inc Nr.55: 230
+Slum Nr.56: 68
+Alley Nr.57: 312
+Slum Nr.58: 52
 Slum Nr.59: 44
-Police Nr.60: 213
+Police Nr.60: 219

@@ -240,7 +240,7 @@ proc showCards(b:var Boxy) =
     else: 
       cards = cashedCards()
       color = players[max(mouseOnBatchPlayerNr,pinnedBatchNr)].color
-      header = $color&"player's cashed cards"
+      header = $color&" player's cashed cards"
   else: 
     cards = turnPlayer.hand
     show = if turnPlayer.kind == Human or reveal: Front else: Back
@@ -391,7 +391,9 @@ proc rightMouse =
     updatePieces = true
     # piecesImg.update = true
   elif not showMenu:
+    echo "setting menu visibility"
     showMenu = true
+    mainMenu.dynamicZoom 30
   else: nextGameState()
 
 proc aiRightMouse* =
@@ -493,13 +495,17 @@ proc configStartGame =
   showMenu = false
   configState = None
 
-proc gameWon =
+proc configGameWon =
   writeGamestats()
   playSound "applause-2"
   setMenuTo NewGameMenu
   updateKeybar = true
   showMenu = true
   configState = None
+
+# config.startGame = configStartGame
+# config.setupGame = configSetupGame
+# config.gameWon = configGameWon
 
 proc selectBarMoveDest(selection:string) =
   let 
@@ -582,9 +588,9 @@ proc cycle =
     showMenu = true
   if changeMenuState != NoAction:
     changeMenuState = NoAction
-  if runMoveAnimation:
-    runMoveAnimation = false
-    animateMove()
+  # if runMoveAnimation:
+  #   runMoveAnimation = false
+  #   animateMove()
   if rollTheDice:
     startDiceRoll(if turnPlayer.kind == Human: humanRoll else: computerRoll)
     rollTheDice = false
@@ -599,7 +605,7 @@ proc cycle =
   elif configState == SetupGame:
     configSetupGame()
   elif configState == GameWon:
-    gameWon()
+    configGameWon()
   if updateUndrawnBlues:
     nrOfUndrawnBluesPainter.update = true
     updateUndrawnBlues = false
@@ -675,6 +681,7 @@ var
     timer:timerCall()
   )
 
+runMoveAnimation = animateMove
 blueDeck.initGraphics
 addImage("logo",paintLogo())
 addImage("barman",paintBarman())
