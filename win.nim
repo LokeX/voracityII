@@ -201,26 +201,35 @@ proc initMove(r:Rect,direction:Direction,frames:int):proc:Rect =
 
 proc initZoom*(r:Rect,frames:int):proc:Rect =
   var
-    zw = if r.w > r.h: r.w / r.h else: 1.0
-    zh = if zw == 1.0: r.h / r.w else: 1.0
-  zw *= r.w / frames.toFloat
-  zh *= r.h / frames.toFloat
+    # zw = if r.w > r.h: r.w / r.h else: 1.0
+    # zh = if zw == 1.0: r.h / r.w else: 1.0
+    zw = r.w / frames.toFloat
+    zh = r.h / frames.toFloat
   var zr = Rect(
     x:r.x+(r.w / 2),
     y:r.y+(r.h / 2),
     w:zw,
     h:zh
   )
+  # echo "org rect: ",zr
   return 
     proc:Rect =
       zr.x -= zw
-      if zr.x-zw <= r.x: return r
+      if zr.x-zw <= r.x: 
+        # echo "x done"
+        return r
       zr.y -= zh
-      if zr.y-zw <= r.y: return r
+      if zr.y-zh <= r.y: 
+        # echo "y done"
+        return r
       zr.w += (zw*2)
-      if zr.w+(zw*2) >= r.w: return r
+      if zr.w+(zw*2) >= r.w: 
+        # echo "w done"
+        return r
       zr.h += (zh*2)
-      if zr.h+(zh*2) >= r.h: return r
+      if zr.h+(zh*2) >= r.h: 
+        # echo "h done"
+        return r
       zr
 
 proc dynamicZoom*[T](dynImg:var DynamicImage[T],frames:int) =

@@ -650,23 +650,28 @@ proc drawCardSquares(b:var Boxy,blue:BlueCard) =
       cardSquaresPainter.context = blue
     b.drawDynamicImage cardSquaresPainter
 
-# var 
-#   zoomLastDrawn:proc:Rect
-#   zoomRect:Rect
-#   zooming = false
+var 
+  zoomLastDrawn:proc:Rect
+  zoomRect:Rect
+  zoomDone = false
 
 proc paintCards*(b:var Boxy,deck:Deck,cards:seq[BlueCard],show:Reveal = Front) =
-  # if not mouseOn drawPileArea: zooming = false
+  if zoomDone and not mouseOn drawPileArea:
+    zoomDone = false
+    zoomLastDrawn = nil
   if show == Front and deck.lastDrawn.len > 0 and mouseOn drawPileArea:
-    # if zooming: 
-    #   if zoomLastDrawn == nil:
-    #     zoomLastDrawn = initZoom popUpCardRect
-    #   zoomRect = zoomLastDrawn()
-    # b.drawImage(deck.lastDrawn,zoomRect)
-    # if zooming and popUpCardRect == zoomRect:
-    #   zoomLastDrawn = nil
-    #   zooming = false
-    b.drawImage(deck.lastDrawn,popUpCardRect)
+    if not zoomDone:
+      if zoomLastDrawn == nil:
+        zoomLastDrawn = initZoom(popUpCardRect,30)
+        echo "init zoom"
+      zoomRect = zoomLastDrawn()
+      echo zoomRect
+    b.drawImage(deck.lastDrawn,zoomRect)
+    if popUpCardRect == zoomRect:
+      zoomLastDrawn = nil
+      zoomDone = true
+      # echo "zoom done"
+    # b.drawImage(deck.lastDrawn,popUpCardRect)
     if (let cardNr = deck.fullDeck.mapIt(it.title).find(deck.lastDrawn); cardNr != -1):
       b.drawCardSquares deck.fullDeck[cardNr]
   if deck.discardPile.len > 0:
