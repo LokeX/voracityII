@@ -745,7 +745,7 @@ proc playerBatchTxt(playerNr: int): seq[string] =
     "Cash: "&(insertSep($players[playerNr].cash, '.'))
   ]
 
-proc drawPlayerBatches*(b: var Boxy) =
+proc drawPlayerBatches*(b:var Boxy) =
   for batchNr, _ in players:
     if players[batchNr].update:
       playerBatches[batchNr].setSpanTexts playerBatchTxt batchNr
@@ -753,7 +753,7 @@ proc drawPlayerBatches*(b: var Boxy) =
       players[batchNr].update = false
     b.drawBatch playerBatches[batchNr]
 
-proc batchSetup(playerNr: int): BatchSetup =
+proc batchSetup(playerNr:int):BatchSetup =
   let player = players[playerNr]
   result.name = $player.color
   result.bgColor = player.color
@@ -769,7 +769,7 @@ proc batchSetup(playerNr: int): BatchSetup =
     result.padding = (20, 20, 12, 10)
   result.entries = playerBatchTxt playerNr
 
-proc newPlayerBatches*: array[6, Batch] =
+proc newPlayerBatches*:array[6,Batch] =
   var
     yOffset = pby
     setup: BatchSetup

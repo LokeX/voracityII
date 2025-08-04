@@ -409,12 +409,12 @@ proc endGame =
   soundToPlay.setLen 0
 
 proc startNewGame* =
-  setConfigStateTo StartGame
   # configState = StartGame
   initTurnReport()
   turnReports.setLen 0
   inc turn.nr
   players = newPlayers()
+  setConfigStateTo StartGame
   # resetReportsUpdate = true
   reportUpdateReset()
   gameWon = false
