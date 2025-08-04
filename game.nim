@@ -107,6 +107,7 @@ proc newDeck*(path:string):Deck
 
 var 
   diceRoll*:Dice = [DieFace3,DieFace4]
+  # diceRolls*:seq[Dice]
   turn*:Turn
   blueDeck* = newDeck "decks\\blues.txt"
   board* = newBoard "dat\\board.txt"
@@ -155,11 +156,14 @@ func newBlueCards(protoCards:seq[ProtoCard]):seq[BlueCard] =
 proc newDeck*(path:string):Deck =
   result = Deck(fullDeck:path.lines.toSeq.parseProtoCards.newBlueCards)
   result.drawPile = result.fullDeck
+  randomize()
   result.drawPile.shuffle
+  echo result.drawPile.mapIt it.title&"\n"
 
 proc resetDeck*(deck:var Deck) =
   deck.discardPile.setLen 0
   deck.drawPile = deck.fullDeck
+  randomize()
   deck.drawPile.shuffle
   deck.lastDrawn = ""
 

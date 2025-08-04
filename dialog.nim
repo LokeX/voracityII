@@ -14,9 +14,9 @@ var
     kind:MenuBatch,
     name:"dialog",
     pos:(875,275),
-    padding:(20,20,20,20),
+    padding:(50,50,20,20),
     hAlign:CenterAlign,
-    font:(robotoRegular,25.0,color(1,1,0)),
+    font:(robotoRegular,26.0,color(1,1,0)),
     bgColor:color(0,0,0),
     opacity:25,
     selectorLine:(color(1,1,1),color(0,0,100),selectorBorder),
@@ -39,7 +39,7 @@ proc startDialog*(entries:seq[string],selRange:HSlice[int,int],call:proc(s:strin
   excludeInputCallsExcept thisDialog
   dialogBatch.isActive = true
   dialogBatch.update = true
-  dialogBatch.dynamicMove(Up,60)
+  dialogBatch.dynMove(Up,13)
 
 proc endDialog(selected:string) =
   square = -1

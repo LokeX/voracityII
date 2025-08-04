@@ -12,6 +12,7 @@ type
     name*:string
     area*:Area
     rect*:Rect
+    center*:Vec2
     isActive*:bool = true
   DynamicImage*[T] = ref object of AreaHandle
     when T is void:
@@ -20,7 +21,11 @@ type
       updateImage*:proc(context:T):Image
       context*:T
     update*:bool
-    animRect:proc:Rect
+    angle*:float32
+    scale*:float32 = 1.0
+    rotate*:proc:float32
+    zoom*:proc:float32
+    move*:proc:Rect
   KeyState = tuple[down,released,toggle:bool]
   SpecialKeys = tuple[ctrl,shift,alt:bool]
   KeyEvent* = object of RootObj
@@ -175,68 +180,70 @@ func rectangle*(rx,ry,rw,rh:int):Rect = Rect(
   h:rh.toFloat
 )
 
-proc initMove(r:Rect,direction:Direction,frames:int):proc:Rect =
-  var zr = r
+func rectCenter*(r:Rect):Vec2 =
+  result.x = r.x+(r.w/2)
+  result.y = r.y+(r.h/2)
+
+proc moveImage*(r:Rect,direction:Direction,frames:int):proc:Rect =
+  var 
+    zr = r
+    ff:float
   case direction:
-  of Up: zr.y = scaledHeight.toFloat+zr.h
-  of Down: zr.y -= zr.h
-  of Left: zr.x = scaledWidth.toFloat-zr.w
-  of Right: zr.x -= zr.w
+  of Up: 
+    zr.y = scaledHeight.toFloat+zr.h
+    ff = (zr.y-r.y)/frames.toFloat
+  of Down: 
+    zr.y -= zr.h
+    ff = (r.y-zr.y)/frames.toFloat
+  of Left: 
+    zr.x = scaledWidth.toFloat-zr.w
+    ff = (zr.x-r.x)/frames.toFloat
+  of Right: 
+    zr.x -= zr.w
+    ff = (r.x-zr.x)/frames.toFloat
   return
     proc:Rect =
       case direction:
       of Up: 
-        zr.y -= frames.toFloat
-        if zr.y <= r.y: zr.y = r.y
+        if zr.y < r.y: zr.y = r.y
+        else: zr.y -= ff
       of Down: 
-        zr.y += frames.toFloat
-        if zr.y >= r.y: zr.y = r.y
+        if zr.y > r.y: zr.y = r.y
+        else: zr.y += ff
       of Left: 
-        zr.x -= frames.toFloat
-        if zr.x <= r.x: zr.x = r.x
+        if zr.x < r.x: zr.x = r.x
+        else: zr.x -= ff
       of Right: 
-        zr.x += frames.toFloat
-        if zr.x >= r.x: zr.x = r.x
+        if zr.x > r.x: zr.x = r.x
+        else: zr.x += ff
       zr
-
-proc initZoom*(r:Rect,frames:int):proc:Rect =
+ 
+proc rotateImage*(frames:float32):proc:float32 =
+  const maxAngle = 132
   var
-    # zw = if r.w > r.h: r.w / r.h else: 1.0
-    # zh = if zw == 1.0: r.h / r.w else: 1.0
-    zw = r.w / frames.toFloat
-    zh = r.h / frames.toFloat
-  var zr = Rect(
-    x:r.x+(r.w / 2),
-    y:r.y+(r.h / 2),
-    w:zw,
-    h:zh
-  )
-  # echo "org rect: ",zr
+    angleFactor = maxAngle/frames
+    angle = angleFactor/2
   return 
-    proc:Rect =
-      zr.x -= zw
-      if zr.x-zw <= r.x: 
-        # echo "x done"
-        return r
-      zr.y -= zh
-      if zr.y-zh <= r.y: 
-        # echo "y done"
-        return r
-      zr.w += (zw*2)
-      if zr.w+(zw*2) >= r.w: 
-        # echo "w done"
-        return r
-      zr.h += (zh*2)
-      if zr.h+(zh*2) >= r.h: 
-        # echo "h done"
-        return r
-      zr
+    proc:float32 =
+      if angle > 0:
+        if angle < angleFactor:
+          angle = angleFactor
+        else: angle += angleFactor
+        if angle > maxAngle: angle = 0
+      angle
 
-proc dynamicZoom*[T](dynImg:var DynamicImage[T],frames:int) =
-  dynImg.animRect = dynImg.rect.initZoom frames
+proc zoomImage*(frames:float32):proc:float32 =
+  var
+    scaleFactor = 1/frames
+    scale:float32
+  return 
+    proc:float32 =
+      scale += scaleFactor
+      if scale > 1: scale = 1
+      scale
 
-proc dynamicMove*[T](dynImg:var DynamicImage[T],direction:Direction,frames:int) =
-  dynImg.animRect = dynImg.rect.initMove(direction,frames)
+proc dynMove*[T](dynImg:var DynamicImage[T],direction:Direction,frames:int) =
+  dynImg.move = dynImg.rect.moveImage(direction,frames)
 
 proc drawDynamicImage*[T](b:var Boxy,dynImg:DynamicImage[T]) =
   if dynImg.update: 
@@ -244,18 +251,28 @@ proc drawDynamicImage*[T](b:var Boxy,dynImg:DynamicImage[T]) =
     when T is void: b.addImage(dynImg.name,dynImg.updateImage())
     else: b.addImage(dynImg.name,dynImg.updateImage(dynImg.context))
     let wh = b.getImageSize dynImg.name
-    dynImg.area.x2 = dynImg.area.x1+wh[0]
-    dynImg.area.y2 = dynImg.area.y1+wh[1]
-    dynImg.rect = dynImg.area.toRect
+    # dynImg.area.x2 = dynImg.area.x1+wh[0]
+    # dynImg.area.y2 = dynImg.area.y1+wh[1]
+    # dynImg.rect = dynImg.area.toRect
+    dynImg.rect.w = wh[0].toFloat
+    dynImg.rect.h = wh[1].toFloat
+    dynImg.area = dynImg.rect.toArea
+    dynImg.center = dynImg.rect.rectCenter()
     dynImg.update = false
-  if dynImg.animRect == nil:
-    b.drawImage(dynImg.name,dynImg.rect)
-  else:
-    let animRect = dynImg.animRect()
-    b.drawImage(dynImg.name,animRect)
-    if dynImg.rect == animRect:
-      dynImg.animRect = nil
-    
+  if dynImg.move != nil:
+    var moveRect = dynImg.move() 
+    if dynImg.rect == moveRect: 
+      dynImg.move = nil
+      dynImg.rect = moveRect
+    dynImg.center = moveRect.rectCenter
+  if dynImg.rotate != nil:
+    dynImg.angle = dynImg.rotate()
+    if dynImg.angle == 0: dynImg.rotate = nil
+  if dynImg.zoom != nil:
+    dynImg.scale = dynImg.zoom()
+    if dynImg.scale == 1: dynImg.zoom = nil
+  b.drawImage(dynImg.name,dynImg.center,dynImg.angle,scale = dynImg.scale)
+
 proc keyState(b:Button):KeyState =
   (window.buttonDown[b],window.buttonReleased[b],window.buttonToggle[b])
 

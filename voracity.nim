@@ -131,7 +131,8 @@ proc paintKeybar:Image =
 let keybarPainter = DynamicImage[void](
   name:"keybar",
   updateImage:paintKeybar,
-  area:(225,935,0,0),
+  # area:(225,935,0,0),
+  rect:Rect(x:225,y:935),
   update:true
 )
 
@@ -203,7 +204,7 @@ proc cashedCards:seq[BlueCard] =
 proc reportAnimationMoves:seq[AnimationMove] =
   if selectedBatchColor == turnPlayer.color:
     result.add turnReport.moves.mapIt (it.fromSquare,it.toSquare)
-  else: 
+  elif selectedBatchColor.reports.len > 0: 
     result.add selectedBatchColor
     .reports[^1].moves
     .mapIt (it.fromSquare,it.toSquare)
@@ -388,12 +389,12 @@ proc leftMouse* =
 proc rightMouse =
   if moveSelection.fromSquare != -1:
     moveSelection.fromSquare = -1
-    updatePieces = true
-    # piecesImg.update = true
+    piecesImg.update = true
   elif not showMenu:
     echo "setting menu visibility"
     showMenu = true
-    mainMenu.dynamicZoom 30
+    # mainMenu.dynamicZoom 30
+    mainMenu.zoom = zoomImage 15
   else: nextGameState()
 
 proc aiRightMouse* =
@@ -424,7 +425,7 @@ proc mouse(m:KeyEvent) =
     elif turnPlayer.kind == Human:
       leftMouse()
       if turn.nr > 0 and mouseOnDice() and mayReroll(): 
-        startDiceRoll humanRoll
+        startDiceRoll()
   elif m.rightMousePressed and batchInputNr == -1: 
     if turn.nr > 0 and turnPlayer.kind == Computer: 
       aiRightMouse()
@@ -487,13 +488,13 @@ proc configSetupGame =
   setMenuTo SetupMenu
   showMenu = true
   playSound "carhorn-1"
-  configState = None
+  # configState = None
 
 proc configStartGame =
   playerBatches = newPlayerBatches()
   setMenuTo GameMenu
   showMenu = false
-  configState = None
+  # configState = None
 
 proc configGameWon =
   writeGamestats()
@@ -501,11 +502,7 @@ proc configGameWon =
   setMenuTo NewGameMenu
   updateKeybar = true
   showMenu = true
-  configState = None
-
-# config.startGame = configStartGame
-# config.setupGame = configSetupGame
-# config.gameWon = configGameWon
+  # configState = None
 
 proc selectBarMoveDest(selection:string) =
   let 
@@ -561,57 +558,19 @@ proc aiTurn(): bool =
 proc resetReports* =
   for batch in reportBatches.mitems:
     batch.setSpans @[]
-  # initTurnReport()
-  # turnReports.setLen 0
   selectedBatch = -1
   killMatrixPainter.update = true
 
+proc menuShow(show:bool) =
+  showMenu = show
+
+proc setConfigState(config:ConfigState) =
+  case config:
+  of StartGame: configStartGame()
+  of SetupGame: configSetupGame()
+  of GameWon: configGameWon()
+
 proc cycle = 
-  if turnReport.diceRolls.len < diceRolls.len:
-    updateTurnReport diceRolls[^1]
-    diceRolls.del diceRolls.high
-  if resetReportsUpdate:
-    resetReports()
-    resetReportsUpdate = false
-  if turnReportBatchesInit:
-    initReportBatchesTurn()
-    turnReportBatchesInit = false
-  if turnReportUpdate:
-    writeTurnReportUpdate()
-    turnReportUpdate = false
-  if updateKillMatrix:
-    killMatrixPainter.update = true
-    updateKillMatrix = false
-  if changeMenuState == MenuOff:
-    showMenu = false
-  elif changeMenuState == MenuOn:
-    showMenu = true
-  if changeMenuState != NoAction:
-    changeMenuState = NoAction
-  # if runMoveAnimation:
-  #   runMoveAnimation = false
-  #   animateMove()
-  if rollTheDice:
-    startDiceRoll(if turnPlayer.kind == Human: humanRoll else: computerRoll)
-    rollTheDice = false
-  if killDialogSquare > -1:
-    startKillDialog killDialogSquare
-    killDialogSquare = -1
-  if runSelectBar:
-    runSelectBar = false
-    selectBar()
-  if configState == StartGame:
-    configStartGame()
-  elif configState == SetupGame:
-    configSetupGame()
-  elif configState == GameWon:
-    configGameWon()
-  if updateUndrawnBlues:
-    nrOfUndrawnBluesPainter.update = true
-    updateUndrawnBlues = false
-  if updatePieces:
-    piecesImg.update = true
-    updatePieces = false
   if soundToPlay.len > 0:
     playSound soundToPlay[0]
     soundToPlay.delete 0
@@ -681,7 +640,21 @@ var
     timer:timerCall()
   )
 
-runMoveAnimation = animateMove
+template hookUpGamePlayInterface =
+  configState = setConfigState
+  killDialog = startKillDialog
+  runSelectBar = selectBar
+  rollTheDice = startDiceRoll
+  menuControl = menuShow
+  updatePieces = updatePiecesPainter
+  updateUndrawnBlues = undrawnPainterUpdate
+  updateKillMatrix = killMatrixUpdate
+  turnReportUpdate = writeTurnReportUpdate
+  turnReportBatchesInit = initReportBatchesTurn
+  resetReportsUpdate = resetReports
+  runMoveAnimation = animateMove
+
+hookUpGamePlayInterface()
 blueDeck.initGraphics
 addImage("logo",paintLogo())
 addImage("barman",paintBarman())
@@ -689,7 +662,6 @@ addImage("advicetext",paintSubText())
 addImage("volume",paintVolume())
 randomize()
 for i,kind in playerKindsFromFile(): 
-  echo kind
   playerKinds[i] = kind
 initPlayers()
 playerBatches = newPlayerBatches()
@@ -697,7 +669,6 @@ updateStatsBatch()
 if fileExists(settingsFile): 
   settingsFromFile()
 else: settingsToFile()
-echo playerHandles.mapIt it&"\n"
 setVolume vol
 addCall call
 addCall dialogCall # we add dialog second - or it will be drawn beneath the board

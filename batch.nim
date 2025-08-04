@@ -441,9 +441,9 @@ proc getSpanText*(batch:Batch,idx:int):string =
   if idx < batch.text.spans.len and idx >= 0:
     result = batch.text.spans[idx].text
 
-proc setShallowPos*(batch:Batch,x,y:int) =
-  batch.area.x1 = x
-  batch.area.y1 = y
+proc setShallowPos*(batch:Batch,x,y:float32) =
+  batch.rect.x = x
+  batch.rect.y = y
   batch.update = true
 
 proc setPos*(batch:Batch,x,y:int) =

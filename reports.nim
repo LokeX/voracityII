@@ -96,10 +96,14 @@ proc paintKillMatrix:Image =
 var 
   killMatrixPainter* = DynamicImage[void](
     name:"killMatrix",
-    area:(250+bx.toInt,250+by.toInt,0,0),
+    rect:Rect(x:250+bx,y:250+by),
+    # area:(250+bx.toInt,250+by.toInt,0,0),
     updateImage:paintKillMatrix,
     update:true
   )
+
+proc killMatrixUpdate* =
+  killMatrixPainter.update = true
 
 proc drawKillMatrix*(b:var Boxy) =
   b.drawDynamicImage killMatrixPainter
@@ -199,7 +203,7 @@ template gotReport*(player:PlayerColor):bool =
 proc drawReport*(b:var Boxy,playerColor:PlayerColor) =
   if selectedBatch == -1 or playerColor != PlayerColor(selectedBatch):
     selectedBatch = playerColor.ord
-    reportBatches[playerColor].dynamicMove(Down,30)
+    reportBatches[playerColor].dynMove(Down,15)
     reportBatches[playerColor].update = true
   b.drawDynamicImage reportBatches[playerColor]
 
