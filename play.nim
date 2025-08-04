@@ -162,11 +162,11 @@ proc recordTurnReport* =
     turnReports.add turnReport
 
 proc setupNewGame* =
-  setConfigStateTo SetupGame
   # configState = SetupGame
   turn = (0,0,false,0)
   blueDeck.resetDeck
   players = newDefaultPlayers()
+  setConfigStateTo SetupGame
 
 func pieceOnSquare(player:Player,square:int):int =
   for i,piece in player.pieces:
