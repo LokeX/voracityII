@@ -4,7 +4,6 @@ import strutils
 import sequtils
 import random
 import sugar
-from misc import flatmap
 import os
 
 type
@@ -12,33 +11,33 @@ type
   Move* = tuple[pieceNr,die,fromSquare,toSquare,eval:int]
   CashedCards* = seq[tuple[title:string,count:int]]  
   PlayedCard* = enum Drawn,Played,Cashed,Discarded
-  Alias* = array[8,char]
-  GameStats*[T,U] = object
-    turnCount*:int
-    playerKinds*:array[6,U]
-    aliases*:array[6,T]
-    winner*:T
-    cash*:int
-  AliasCounts = seq[tuple[alias:string,count:int]]
-  KindCounts = array[PlayerKind,int]
-  Stats = GameStats[string,PlayerKind]
-  MatchingStats* = object
-    hasData*:bool
-    games*:int
-    turns*:int
-    avgTurns*:int
-    computerWins*:int
-    humanWins*:int
-    handle*:string
-    computerPercent*:string
-    humanPercent*:string
-  TurnReport* = object
-    turnNr*:int
-    playerBatch*:tuple[color:PlayerColor,kind:PlayerKind]
-    diceRolls*:seq[Dice]
-    moves*:seq[Move]
-    cards*:tuple[drawn,played,cashed,discarded,hand:seq[BlueCard]]
-    kills*:seq[PlayerColor]
+  # Alias* = array[8,char]
+  # GameStats*[T,U] = object
+  #   turnCount*:int
+  #   playerKinds*:array[6,U]
+  #   aliases*:array[6,T]
+  #   winner*:T
+  #   cash*:int
+  # AliasCounts = seq[tuple[alias:string,count:int]]
+  # KindCounts = array[PlayerKind,int]
+  # Stats = GameStats[string,PlayerKind]
+  # MatchingStats* = object
+  #   hasData*:bool
+  #   games*:int
+  #   turns*:int
+  #   avgTurns*:int
+  #   computerWins*:int
+  #   humanWins*:int
+  #   handle*:string
+  #   computerPercent*:string
+  #   humanPercent*:string
+  # TurnReport* = object
+  #   turnNr*:int
+  #   playerBatch*:tuple[color:PlayerColor,kind:PlayerKind]
+  #   diceRolls*:seq[Dice]
+  #   moves*:seq[Move]
+  #   cards*:tuple[drawn,played,cashed,discarded,hand:seq[BlueCard]]
+  #   kills*:seq[PlayerColor]
   MoveSelection* = tuple
     hoverSquare,fromSquare,toSquare:int
     toSquares:seq[int]
@@ -107,7 +106,6 @@ proc newDeck*(path:string):Deck
 
 var 
   diceRoll*:Dice = [DieFace3,DieFace4]
-  # diceRolls*:seq[Dice]
   turn*:Turn
   blueDeck* = newDeck "decks\\blues.txt"
   board* = newBoard "dat\\board.txt"
@@ -115,9 +113,9 @@ var
   playerHandles*:array[6,string]
   players*:seq[Player]
   moveSelection*:MoveSelection = (-1,-1,-1,@[],false)
-  turnReports*:seq[TurnReport]
-  turnReport*:TurnReport
-  gameStats*:seq[GameStats[string,PlayerKind]]
+  # turnReports*:seq[TurnReport]
+  # turnReport*:TurnReport
+  # gameStats*:seq[GameStats[string,PlayerKind]]
 
 func parseProtoCards(lines:sink seq[string]):seq[ProtoCard] =
   var 
@@ -158,12 +156,11 @@ proc newDeck*(path:string):Deck =
   result.drawPile = result.fullDeck
   randomize()
   result.drawPile.shuffle
-  echo result.drawPile.mapIt it.title&"\n"
+  # echo result.drawPile.mapIt it.title&"\n"
 
 proc resetDeck*(deck:var Deck) =
   deck.discardPile.setLen 0
   deck.drawPile = deck.fullDeck
-  randomize()
   deck.drawPile.shuffle
   deck.lastDrawn = ""
 
@@ -293,7 +290,7 @@ func hasPieceOn*(player:Player,square:int):bool =
   for pieceSquare in player.pieces:
     if pieceSquare == square: return true
 
-func onBars*(player:Player):seq[int] = bars.filterIt player.hasPieceOn it
+func piecesOnBars*(player:Player):seq[int] = bars.filterIt player.hasPieceOn it
 
 func requiredSquaresOk*(player:Player,plan:BlueCard):bool =
   plan.squares.required.deduplicate
@@ -337,8 +334,6 @@ proc newPlayers*:seq[Player] =
     randomPosition = rand(5)
     playerSlots:array[6,Player]
   for player in players:
-    # echo "player:"
-    # echo player
     while playerSlots[randomPosition].cash != 0: 
       randomPosition = rand(5)
     playerSlots[randomPosition] = Player(
@@ -349,12 +344,10 @@ proc newPlayers*:seq[Player] =
       agro:rand 1..100
     )
   result = playerSlots.filterIt it.kind != None
-  # echo result
 
 proc nextPlayerTurn* =
   turn.diceMoved = false
   turnPlayer.turnNr = turn.nr
-  # batchUpdate[turn.player] = true
   turnPlayer.update = true
   if turn.player == players.high:
     inc turn.nr
@@ -363,103 +356,102 @@ proc nextPlayerTurn* =
   turn.undrawnBlues = turnPlayer.nrOfPiecesOnBars
   blueDeck.lastDrawn = ""
 
-proc getLoneAlias:string =
-  for i in 0..playerHandles.high:
-    if playerKinds[i] == Human and playerHandles[i].len > 0:
-      if result.len > 0: 
-        if result != playerHandles[i]: 
-          return ""
-      else: result = playerHandles[i]
+# proc getLoneAlias:string =
+#   for i in 0..playerHandles.high:
+#     if playerKinds[i] == Human and playerHandles[i].len > 0:
+#       if result.len > 0: 
+#         if result != playerHandles[i]: 
+#           return ""
+#       else: result = playerHandles[i]
 
-proc aliasCounts(aliases:openArray[string]):AliasCounts =
-  for i,alias in aliases:
-    if playerKinds[i] == Human and alias.len > 0 and result.allIt(it.alias != alias):
-      result.add (alias,playerHandles.count alias)
+# proc aliasCounts(aliases:openArray[string]):AliasCounts =
+#   for i,alias in aliases:
+#     if playerKinds[i] == Human and alias.len > 0 and result.allIt(it.alias != alias):
+#       result.add (alias,playerHandles.count alias)
 
-proc kindCounts(kinds:openArray[PlayerKind]):KindCounts =
-  for kind in kinds:
-    inc result[kind]
+# proc kindCounts(kinds:openArray[PlayerKind]):KindCounts =
+#   for kind in kinds:
+#     inc result[kind]
 
-proc match(stats:Stats,aliasCounts:AliasCounts):bool =
-  for (alias,count) in aliasCounts:
-    if stats.aliases.count(alias) != count: 
-      return
-  true
+# proc match(stats:Stats,aliasCounts:AliasCounts):bool =
+#   for (alias,count) in aliasCounts:
+#     if stats.aliases.count(alias) != count: 
+#       return
+#   true
 
-proc match(stats:Stats,kindCounts:KindCounts):bool =
-  for i,count in kindCounts:
-    if stats.playerKinds.count(PlayerKind(i)) != count:
-      return
-  true
+# proc match(stats:Stats,kindCounts:KindCounts):bool =
+#   for i,count in kindCounts:
+#     if stats.playerKinds.count(PlayerKind(i)) != count:
+#       return
+#   true
 
-template selectWith(selector,selectionCode:untyped) =
-  let 
-    kindCounts {.inject.} = playerKinds.kindCounts
-    aliasCounts {.inject.} = playerHandles.aliasCounts
-  for selector in gameStats:
-    selectionCode
+# template selectWith(selector,selectionCode:untyped) =
+#   let 
+#     kindCounts {.inject.} = playerKinds.kindCounts
+#     aliasCounts {.inject.} = playerHandles.aliasCounts
+#   for selector in gameStats:
+#     selectionCode
 
-proc statsMatches:seq[Stats] =
-  selectWith stats:
-    if stats.match(kindCounts) and stats.match(aliasCounts):
-      result.add stats
+# proc statsMatches:seq[Stats] =
+#   selectWith stats:
+#     if stats.match(kindCounts) and stats.match(aliasCounts):
+#       result.add stats
 
-proc noneMatchingStats*:seq[Stats] =
-  selectWith stats:
-    if not stats.match(kindCounts) or not stats.match(aliasCounts):
-      result.add stats
+# proc noneMatchingStats*:seq[Stats] =
+#   selectWith stats:
+#     if not stats.match(kindCounts) or not stats.match(aliasCounts):
+#       result.add stats
 
-proc getMatchingStats*:MatchingStats =
-  if gameStats.len > 0: 
-    let 
-      loneAlias = getLoneAlias()
-      matches = statsMatches()
-    if matches.len > 0:
-      result.hasData = true
-      result.games = matches.len
-      result.turns = matches.mapIt(it.turnCount).sum
-      result.avgTurns = result.turns div matches.len
-      result.computerWins = matches.countIt it.winner == "computer"
-      result.humanWins = matches.len - result.computerWins
-      result.handle = if loneAlias.len > 0: loneAlias else: $turnPlayer.kind
-      result.computerPercent = ((result.computerWins.toFloat/matches.len.toFloat)*100)
-        .formatFloat(ffDecimal,2)
-      result.humanPercent = ((result.humanWins.toFloat/matches.len.toFloat)*100)
-        .formatFloat(ffDecimal,2)
+# proc getMatchingStats*:MatchingStats =
+#   if gameStats.len > 0: 
+#     let 
+#       loneAlias = getLoneAlias()
+#       matches = statsMatches()
+#     if matches.len > 0:
+#       result.hasData = true
+#       result.games = matches.len
+#       result.turns = matches.mapIt(it.turnCount).sum
+#       result.avgTurns = result.turns div matches.len
+#       result.computerWins = matches.countIt it.winner == "computer"
+#       result.humanWins = matches.len - result.computerWins
+#       result.handle = if loneAlias.len > 0: loneAlias else: $turnPlayer.kind
+#       result.computerPercent = ((result.computerWins.toFloat/matches.len.toFloat)*100)
+#         .formatFloat(ffDecimal,2)
+#       result.humanPercent = ((result.humanWins.toFloat/matches.len.toFloat)*100)
+#         .formatFloat(ffDecimal,2)
 
-# template winner:untyped =
-#   if turnReport.playerBatch.kind == Computer: "computer"
-#   elif playerHandles[turnReport.playerBatch.color.ord].len > 0:
-#     playerHandles[turnReport.playerBatch.color.ord]
-#   else: "human"
+# proc newGameStats*:GameStats[string,PlayerKind] = 
+#   GameStats[string,PlayerKind](
+#     turnCount:turnReport.turnNr,
+#     playerKinds:playerKinds,
+#     aliases:playerHandles,
+#     winner:($turnPlayer.kind).toLower,
+#     cash:cashToWin
+#   )
 
-proc newGameStats*:GameStats[string,PlayerKind] = 
-  GameStats[string,PlayerKind](
-    turnCount:turnReport.turnNr,
-    playerKinds:playerKinds,
-    aliases:playerHandles,
-    winner:($turnPlayer.kind).toLower,
-    cash:cashToWin
-  )
-
-proc reportedCashedCards*:CashedCards =
-  let titles = collect:
-    for report in turnReports:
-      for card in report.cards.cashed: card.title
-  for title in titles.deduplicate:
-    # if title notin result.mapIt it.title:
-      result.add (title,titles.count title)
-
-func reportedVisitsCount*(turnReports:seq[TurnReport]):array[1..60,int] =
-  for report in turnReports:
-    for move in report.moves:
-      inc result[move.toSquare]
-  # for square in turnReports.mapIt(it.moves.mapIt(it.toSquare)).flatMap.filterIt(it != 0):
-  #   inc result[square]
+# proc reportedCashedCards*:CashedCards =
+#   let titles = collect:
+#     for report in turnReports:
+#       for card in report.cards.cashed: card.title
+#   for title in titles.deduplicate:
+#     result.add (title,titles.count title)
 
 # func reportedVisitsCount*(turnReports:seq[TurnReport]):array[1..60,int] =
-#   for square in turnReports.mapIt(it.moves.mapIt(it.toSquare)).flatMap.filterIt(it != 0):
-#     inc result[square]
+#   for report in turnReports:
+#     for move in report.moves:
+#       inc result[move.toSquare]
+
+# proc playerHandlesToFile*(playerHandles:openArray[string]) =
+#   writeFile(handlesFile,playerHandles.mapIt(if it.len > 0: it else: "n/a").join "\n")
+
+# proc playerHandlesFromFile:array[6,string] =
+#   if fileExists handlesFile:
+#     var count = 0
+#     for line in lines handlesFile:
+#       let lineStrip = line.strip
+#       if lineStrip != "n/a":
+#         result[count] = lineStrip
+#       inc count
 
 proc playerHandlesToFile*(playerHandles:openArray[string]) =
   writeFile(handlesFile,playerHandles.mapIt(if it.len > 0: it else: "n/a").join "\n")
@@ -477,4 +469,4 @@ proc initPlayers* =
   playerHandles = playerHandlesFromFile()
   players = newDefaultPlayers()
 
-randomize()
+# randomize()

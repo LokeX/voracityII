@@ -11,10 +11,17 @@ import sugar
 type
   Phase* = enum Await,Draw,Reroll,AiMove,PostMove,EndTurn
   DiceReroll = tuple[isPausing:bool,pauseStartTime:float]
-  # ChangeMenuState* = enum MenuOn,MenuOff,NoAction
   ConfigState* = enum StartGame,SetupGame,GameWon
   SinglePiece = tuple[playerNr,pieceNr:int]
   EventMoveFmt* = tuple[fromSquare,toSquare:string]
+  TurnReport* = object
+    turnNr*:int
+    playerBatch*:tuple[color:PlayerColor,kind:PlayerKind]
+    diceRolls*:seq[Dice]
+    moves*:seq[Move]
+    cards*:tuple[drawn,played,cashed,discarded,hand:seq[BlueCard]]
+    kills*:seq[PlayerColor]
+
 
 var
   # Interface controls
@@ -32,9 +39,6 @@ var
 
   # Interface flags
   recordStats* = true
-  # rollTheDice*:bool
-  # runSelectBar*:bool
-  # killDialogSquare* = -1
   updateKeybar*:bool
   gameWon*:bool
   statGame*:bool
@@ -46,15 +50,8 @@ var
   dialogBarMoves*:seq[Move]
   soundToPlay*:seq[string]
   phase*:Phase
-
-  # changeMenuState* = NoAction
-  # runMoveAnimation*:bool
-  # updatePieces*:bool
-  # updateKillMatrix*:bool
-  # updateUndrawnBlues*:bool
-  # turnReportUpdate*:bool
-  # turnReportBatchesInit*:bool
-  # resetReportsUpdate*:bool
+  turnReports*:seq[TurnReport]
+  turnReport*:TurnReport
 
   # Internals
   hypo:Hypothetic
@@ -116,23 +113,17 @@ template updatePiecesPainter =
 proc initTurnReport* =
   turnReport = TurnReport()
   turnReport.turnNr = turnPlayer.turnNr+1
-  # turnReportBatchesInit()
-  # turnReportBatchesInit = true
   initTurnReportBatches()
 
 proc updateTurnReport*[T](item:T) =
   execIf recordStats:
     when typeOf(T) is Move: 
       turnReport.moves.add item
-    when typeof(T) is Dice: 
-      turnReport.diceRolls.add item
+    # when typeof(T) is Dice: 
+    #   turnReport.diceRolls.add item
     when typeof(T) is PlayerColor: 
       turnReport.kills.add item
       killMatrixUpdate()
-      # updateKillMatrix = true
-    # writeTurnReportUpdate()
-    # turnReportUpdate = true
-    # turnReportUpdate()
     updateTurnReport()
   
 proc updateTurnReportCards*(blues:seq[BlueCard],playedCard:PlayedCard) =
@@ -142,8 +133,6 @@ proc updateTurnReportCards*(blues:seq[BlueCard],playedCard:PlayedCard) =
     of Played: turnReport.cards.played.add blues
     of Cashed: turnReport.cards.cashed.add blues
     of Discarded: turnReport.cards.discarded.add blues
-    # writeTurnReportUpdate()
-    # turnReportUpdate = true
     updateTurnReport()
 
 proc echoTurn(report:TurnReport) =
@@ -157,12 +146,9 @@ proc echoTurn(report:TurnReport) =
 proc recordTurnReport* =
   execIf recordStats:
     turnReport.cards.hand = turnPlayer.hand
-    # turnReport.diceRolls.add diceRolls
-    # echoTurn turnReport
     turnReports.add turnReport
 
 proc setupNewGame* =
-  # configState = SetupGame
   turn = (0,0,false,0)
   blueDeck.resetDeck
   players = newDefaultPlayers()
@@ -173,7 +159,7 @@ func pieceOnSquare(player:Player,square:int):int =
     if piece == square: return i
 
 proc barToMassacre(player:Player,players:seq[Player]):int =
-  if (let playerBars = turnPlayer.onBars; playerBars.len > 0):
+  if (let playerBars = turnPlayer.piecesOnBars; playerBars.len > 0):
     let 
       maxPieces = playerBars.mapIt(players.nrOfPiecesOn it).max
       barsWithMaxPieces = playerBars.filterIt(players.nrOfPiecesOn(it) == maxPieces)
@@ -188,7 +174,6 @@ proc playMassacre =
     playSound "Deanscream-2"
     playSound "Gunshot"
     updatePiecesPainter()
-    # updatePieces = true
 
 proc playCashPlansTo*(deck:var Deck) =
   let
@@ -198,13 +183,8 @@ proc playCashPlansTo*(deck:var Deck) =
     updateTurnReportCards(cashedPlans,Cashed)
     turnPlayer.update = true
     playSound "coins-to-table-2"
-    # echo $turnPlayer.color," cashed: ",cashedPlans
-    # echo $turnPlayer.color," cash: ",turnPlayer.cash
-    # echo "turn.nr: ",turn.nr
-    # echo "configState: ",configState
     if initialCash < cashToWin and turnPlayer.cash >= cashToWin:
       setConfigStateTo GameWon
-      # configState = GameWon
       echo "game won : ",turnPlayer.cash
       gameWon = true
     else:
@@ -212,7 +192,6 @@ proc playCashPlansTo*(deck:var Deck) =
         if it.squares.required.len == 1: 2 else: 1
       ).sum
       undrawnBluesUpdate()
-      # updateUndrawnBlues = true
 
 proc move*(square:int)
 proc eventMoveFmt*(move:Move):EventMoveFmt =
@@ -238,12 +217,9 @@ proc barMove(moveEvent:BlueCard):bool =
       moveSelection.fromSquare = dialogBarMoves[0].fromSquare
       moveSelection.toSquare = dialogBarMoves[0].toSquare
       return true
-    else: 
-      selectBar()
-      # runSelectBar = true
+    else: selectBar()
 
 proc playNews =
-  # updatePieces = true
   updatePiecesPainter()
   let news = turnPlayer.hand[^1]
   turnPlayer.hand.playTo blueDeck,turnPlayer.hand.high
@@ -293,11 +269,10 @@ proc drawCardFrom*(deck:var Deck) =
   updateTurnReportCards(@[blue],action)
   dec turn.undrawnBlues
   undrawnBluesUpdate()
-  # updateUndrawnBlues = true
   turnPlayer.update = true
   playSound "page-flip-2"
 
-func singlePieceOn*(players:seq[Player],square:int):SinglePiece =
+func singlePieceOn(players:seq[Player],square:int):SinglePiece =
   if players.nrOfPiecesOn(square) == 1:
     for playerNr,player in players:
       for pieceNr,piece in player.pieces:
@@ -330,12 +305,11 @@ proc move* =
   turnPlayer.update = true
   moveSelection.fromSquare = -1
   updatePiecesPainter()
-  # updatePieces = true
+  updateKeybar = true
   playSound "driveBy"
   if moveSelection.toSquare in bars:
     inc turn.undrawnBlues
     undrawnBluesUpdate()
-    # updateUndrawnBlues = true
     playSound "can-open-1"
 
 proc killPieceAndMove*(confirmedKill:string) =
@@ -345,9 +319,7 @@ proc killPieceAndMove*(confirmedKill:string) =
     playSound "Gunshot"
     playSound "Deanscream-2"
   if statGame: move()
-  else: 
-    moveAnimation
-    # runMoveAnimation = true
+  else: moveAnimation
 
 proc hostileFireEval(player:Player,pieceNr,toSquare:int):int =
   var hypoPlayer = player
@@ -355,7 +327,7 @@ proc hostileFireEval(player:Player,pieceNr,toSquare:int):int =
   hypoPlayer.hand = hypoPlayer.plans.notCashable
   hypoPlayer.hypotheticalInit.evalPos
 
-proc hostileFireAdviced*(player:Player,fromSquare,toSquare:int):bool =
+proc hostileFireAdviced(player:Player,fromSquare,toSquare:int):bool =
   let pieceNr = player.pieces.find(fromSquare)
   pieceNr != -1 and 
   player.hostileFireEval(pieceNr,toSquare) < player.hostileFireEval(pieceNr,0)
@@ -390,7 +362,7 @@ proc hasKillablePiece(square:int):bool =
   singlePiece = players.singlePieceOn square
   singlePiece.playerNr != -1 and canKillPieceOn square
 
-proc move*(square:int) =
+proc move(square:int) =
   moveSelection.toSquare = square
   if square.hasKillablePiece:
     if turnPlayer.kind == Human:
@@ -398,9 +370,7 @@ proc move*(square:int) =
     else: aiKillDecision()
   elif statGame: 
     move()
-  else: 
-    moveAnimation
-    # runMoveAnimation = true
+  else: moveAnimation
 
 proc endGame =
   if turnPlayer.kind == Human:
@@ -409,16 +379,13 @@ proc endGame =
   soundToPlay.setLen 0
 
 proc startNewGame* =
-  # configState = StartGame
   initTurnReport()
   turnReports.setLen 0
   inc turn.nr
   players = newPlayers()
   setConfigStateTo StartGame
-  # resetReportsUpdate = true
   reportUpdateReset()
   gameWon = false
-  # resetReports()
 
 proc nextTurn =
   playSound "page-flip-2"
@@ -439,16 +406,12 @@ proc nextGameState* =
     else: 
       nextTurn()
     if statGame: rollDice()
-    else: 
-      startDiceRoll()
-      # rollTheDice = true
-    # startDiceRoll(if turnPlayer.kind == Human: humanRoll else: computerRoll)
+    else: startDiceRoll()
   playSound "carhorn-1"
 
 template phaseIs*:untyped = phase
 
 proc drawCards =
-  # echo $turnPlayer.color," draw cards"
   playCashPlansTo blueDeck
   while turn.undrawnBlues > 0:
     drawCardFrom blueDeck
@@ -464,7 +427,6 @@ proc reroll(hypothetical:Hypothetic):bool =
   if isDouble():
     if bestDiceMoves.len == 0: 
       bestDiceMoves = hypothetical.bestDiceMoves()
-    # updateTurnReport diceRoll
     bestDiceMoves[0..4].anyIt diceRoll[1].ord == it.die
   else: false
 
@@ -479,7 +441,7 @@ func cashTotal(hypothetical:Hypothetic,move:Move):int =
   let cashReward = hypothetical.player(move).plans.cashable.mapIt(it.cash).sum
   cashReward+hypothetical.cash-(if move.fromSquare == 0: piecePrice else: 0)
 
-proc winningMove*(hypothetical:Hypothetic,dice:openArray[int]):Move =
+proc winningMove(hypothetical:Hypothetic,dice:openArray[int]):Move =
   if bestDiceMoves.len > 0: 
     for i,move in bestDiceMoves:
       if move.die == dice[0] and hypothetical.cashTotal(move) >= cashToWin:
@@ -504,8 +466,6 @@ func betterThan(move:Move,hypothetical:Hypothetic):bool =
   move.eval.toFloat >= hypothetical.evalPos().toFloat*0.85
 
 proc moveAi =
-  # echo turnPlayer.pieces
-  # echo $turnPlayer.color," move"
   let (isWinningMove,move) = hypo.aiMove([diceRoll[1].ord,diceRoll[2].ord])
   if isWinningMove or move.betterThan hypo:
     if turnPlayer.skipped > 0: 
@@ -515,55 +475,40 @@ proc moveAi =
   else:
     inc turnPlayer.skipped
     echo $turnPlayer.color," skips move"
-    # echo "currentPosEval: ",currentPosEval
-    # echo "moveEval: ",move.eval
   phase = PostMove
 
 proc startTurn = 
-  if statGame:
-    echo ""
-    echo "game nr: ",gameStats.len
-    echo $turnPlayer.color," start turn: ",turn.nr
+  # if statGame:
+  #   echo ""
+  #   echo "game nr: ",gameStats.len
+  #   echo $turnPlayer.color," start turn: ",turn.nr
   hypo = hypotheticalInit(turnPlayer)
   bestDiceMoves.setLen 0
   phase = Draw
 
 proc rerollPhase =
-  # echo $turnPlayer.color," roll dice"
   if statGame:
-    # echo "dice statgame"
-    # echo "ispausing: ",diceReroll.isPausing
     if not diceReroll.isPausing or hypo.reroll:
-      # echo "roll dice"
       rollDice()
       diceReroll.isPausing = true
     else:
       diceReroll.isPausing = false
       phase = AiMove
-      # echo "phase: ",phase
   elif diceReroll.isPausing and cpuTime() - diceReroll.pauseStartTime >= 0.25:
     diceReroll.isPausing = false
     startDiceRoll()
-    # rollTheDice = true
-    # startDiceRoll(computerRoll)
   elif not diceReroll.isPausing:
-    # updateTurnReport diceRoll
     if hypo.reroll: 
       diceReroll.isPausing = true
       diceReroll.pauseStartTime = cpuTime()
     else: phase = AiMove
 
 proc postMovePhase =
-  # echo $turnPlayer.color," post move"
   moveSelection.fromSquare = -1
   drawCards()
-  # recordTurnReport()
   phase = EndTurn
 
 proc endTurn* = 
-  # showMenu = false
-  # echo $turnPlayer.color," cash: ",turnPlayer.cash
-  # echo $turnPlayer.color," end turn"
   phase = Await
   nextGameState()
 
@@ -573,7 +518,6 @@ proc endTurnPhase =
   else: showMenu true
 
 proc aiTakeTurnPhase*() =
-  # echo "aitakephase: ",phase
   case phase
   of Await: startTurn()
   of Draw: drawCards()

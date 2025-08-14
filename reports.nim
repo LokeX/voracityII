@@ -6,6 +6,8 @@ import game
 import graphics
 import misc
 import os
+import play
+import stat
 
 type 
   KillMatrix = array[PlayerColor,array[PlayerColor,int]]
@@ -15,9 +17,9 @@ const
   robotoRegular* = "fonts\\Roboto-Regular_1.ttf"
   killMatrixFont = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
   reportFont = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
-  visitsFile = "dat\\visits.txt"
-  cashedFile = "dat\\cashed.txt"
-  statsFile = "dat\\stats.dat"
+  # visitsFile = "dat\\visits.txt"
+  # cashedFile = "dat\\cashed.txt"
+  # statsFile = "dat\\stats.dat"
   (rbx,rby) = (450,280)
 
   statsBatchInit = BatchInit(
@@ -254,7 +256,7 @@ proc updateStatsBatch* =
   statsBatch.setSpans statsBatchSpans()
   statsBatch.update = true
 
-template statsBatchVisible*: untyped =
+template statsBatchVisible*:untyped =
   statsBatch.spansLength > 0
   
 proc drawStats*(b:var Boxy) =
@@ -268,90 +270,90 @@ proc drawStats*(b:var Boxy) =
 template mouseOnStatsBatch*:bool =
   mouseOn statsBatch
 
-proc readVisitsFile(path:string):array[1..60,int] =
-  if fileExists path:
-    var square = 1
-    for line in lines path:
-      try: result[square] = line.split[^1].parseInt except:discard
-      inc square
+# proc readVisitsFile(path:string):array[1..60,int] =
+#   if fileExists path:
+#     var square = 1
+#     for line in lines path:
+#       try: result[square] = line.split[^1].parseInt except:discard
+#       inc square
 
-func allSquareVisits(reportVisits,fileVisits:array[1..60,int]):array[1..60,int] =
-  for idx in 1..60:
-    result[idx] = reportVisits[idx] + fileVisits[idx]
+# func allSquareVisits(reportVisits,fileVisits:array[1..60,int]):array[1..60,int] =
+#   for idx in 1..60:
+#     result[idx] = reportVisits[idx] + fileVisits[idx]
     
-proc writeSquareVisitsTo(path:string) =
-  var squareVisits:seq[string]
-  for i,visits in allSquareVisits(turnReports.reportedVisitsCount,readVisitsFile path):
-    squareVisits.add squares[i].name&" Nr."&($i)&": "&($visits)
-  writeFile(path,squareVisits.join "\n")
+# proc writeSquareVisitsTo(path:string) =
+#   var squareVisits:seq[string]
+#   for i,visits in allSquareVisits(turnReports.reportedVisitsCount,readVisitsFile path):
+#     squareVisits.add squares[i].name&" Nr."&($i)&": "&($visits)
+#   writeFile(path,squareVisits.join "\n")
 
-proc readCashedCardsFrom(path:string):CashedCards =
-  if fileExists path:
-    for line in lines path:
-      let lineSplit = line.split ':'
-      try: result.add (lineSplit[0],lineSplit[^1].strip.parseInt)
-      except:discard
+# proc readCashedCardsFrom(path:string):CashedCards =
+#   if fileExists path:
+#     for line in lines path:
+#       let lineSplit = line.split ':'
+#       try: result.add (lineSplit[0],lineSplit[^1].strip.parseInt)
+#       except:discard
 
-proc allCashedCards(path:string):CashedCards =
-  result = readCashedCardsFrom path
-  for card in reportedCashedCards():
-    if (let idx = result.mapIt(it.title).find card.title; idx != -1):
-      result[idx].count = card.count+result[idx].count
-    else: result.add card
+# proc allCashedCards(path:string):CashedCards =
+#   result = readCashedCardsFrom path
+#   for card in reportedCashedCards():
+#     if (let idx = result.mapIt(it.title).find card.title; idx != -1):
+#       result[idx].count = card.count+result[idx].count
+#     else: result.add card
   
-proc writeCashedCardsTo(path:string) =
-  writeFile(path,
-    allCashedCards(path)
-    .mapIt(it.title&": "&($it.count))
-    .join "\n"
-  )
+# proc writeCashedCardsTo(path:string) =
+#   writeFile(
+#     path,allCashedCards(path)
+#     .mapIt(it.title&": "&($it.count))
+#     .join "\n"
+#   )
 
-func aliasToChars(alias:string):Alias =
-  for i,ch in alias:
-    if i < result.len: 
-      result[i] = ch
-      if i == alias.high and i < result.high:
-        result[i+1] = '\n'
-    else: return
+# func aliasToChars(alias:string):Alias =
+#   for i,ch in alias:
+#     if i < result.len: 
+#       result[i] = ch
+#       if i == alias.high and i < result.high:
+#         result[i+1] = '\n'
+#     else: return
 
-func kindToOrd(kinds:array[6,PlayerKind]):array[6,int] =
-  for i,kind in kinds:
-    result[i] = kind.ord
+# func kindToOrd(kinds:array[6,PlayerKind]):array[6,int] =
+#   for i,kind in kinds:
+#     result[i] = kind.ord
 
-func toChars(aliases:array[6,string]):array[6,Alias] =
-  for i,alias in aliases:
-    result[i] = alias.aliasToChars
+# func toChars(aliases:array[6,string]):array[6,Alias] =
+#   for i,alias in aliases:
+#     result[i] = alias.aliasToChars
 
-proc toFileStats(stats:GameStats[string,PlayerKind]):GameStats[Alias,int] =
-  GameStats[Alias,int](
-    turnCount:stats.turnCount,
-    cash:stats.cash,
-    playerKinds:stats.playerKinds.kindToOrd,
-    aliases:stats.aliases.toChars,
-    winner:stats.winner.aliasToChars
-  )
+# proc toFileStats(stats:GameStats[string,PlayerKind]):GameStats[Alias,int] =
+#   GameStats[Alias,int](
+#     turnCount:stats.turnCount,
+#     cash:stats.cash,
+#     playerKinds:stats.playerKinds.kindToOrd,
+#     aliases:stats.aliases.toChars,
+#     winner:stats.winner.aliasToChars
+#   )
 
-func aliasToString(alias:Alias):string =
-  for ch in alias: 
-    if ch != '\n': result.add ch
-    else: return
+# func aliasToString(alias:Alias):string =
+#   for ch in alias: 
+#     if ch != '\n': result.add ch
+#     else: return
 
-func ordToKind(ks:array[6,int]):array[6,PlayerKind] =
-  for i,kind in ks: 
-    result[i] = PlayerKind(kind)
+# func ordToKind(ks:array[6,int]):array[6,PlayerKind] =
+#   for i,kind in ks: 
+#     result[i] = PlayerKind(kind)
 
-func toStrings(aliases:array[6,Alias]):array[6,string] =
-  for i,alias in aliases:
-    result[i] = alias.aliasToString
+# func toStrings(aliases:array[6,Alias]):array[6,string] =
+#   for i,alias in aliases:
+#     result[i] = alias.aliasToString
 
-proc toGameStats(stats:GameStats[Alias,int]):GameStats[string,PlayerKind] =
-  GameStats[string,PlayerKind](
-    turnCount:stats.turnCount,
-    cash:stats.cash,
-    playerKinds:stats.playerKinds.ordToKind,
-    aliases:stats.aliases.toStrings,
-    winner:stats.winner.aliasToString
-  )
+# proc toGameStats(stats:GameStats[Alias,int]):GameStats[string,PlayerKind] =
+#   GameStats[string,PlayerKind](
+#     turnCount:stats.turnCount,
+#     cash:stats.cash,
+#     playerKinds:stats.playerKinds.ordToKind,
+#     aliases:stats.aliases.toStrings,
+#     winner:stats.winner.aliasToString
+#   )
 
 proc writeGameStatsTo(path:string) =
   seqToFile(gameStats.mapIt it.toFileStats,path)

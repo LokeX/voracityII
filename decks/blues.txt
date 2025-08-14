@@ -1,9 +1,9 @@
 mission:
-Color revolutionary
+Color revolution
 {4,9,19,21}
 400000
 mission:
-Jetsetter
+Corruption
 {4,11,25,43}
 400000
 mission:
@@ -23,7 +23,7 @@ Financier
 {6,13,21,45}
 400000
 mission:
-Terrorist
+Terrorism
 {6,7,9,11}
 400000
 mission:
@@ -31,11 +31,11 @@ Spy
 {4,6,9,60}
 400000
 mission:
-Rentseeker
+Rentseeking
 {10,22,33,39}
 400000
 mission:
-Transactionalist
+Trans-action
 {4,21,25,45}
 400000
 mission:

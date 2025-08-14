@@ -15,6 +15,7 @@ import random
 import eval
 import strutils
 import os
+import stat
 
 const
   showVolTime = 2.4
@@ -125,6 +126,8 @@ proc paintKeybar:Image =
       else: "End Turn"
     ),white),
   ]
+  if moveSelection.fromSquare != -1:
+    echo spans[^1].text
   ctx.image.fillText(spans.typeset(vec2(1150,20)),translate vec2(10,2))
   ctx.image
 
@@ -482,6 +485,28 @@ proc keyboard(key:KeyboardEvent) =
   if key.button == ButtonUnknown and not isRollingDice():
     editDiceRoll key.rune.toUTF8
 
+proc writeGameStatsTo(path:string) =
+  seqToFile(gameStats.mapIt it.toFileStats,path)
+
+proc readGameStatsFrom(path:string) =
+  if fileExists path:
+    gameStats = fileToSeq(path,GameStats[Alias,int]).mapIt it.toGameStats
+
+proc writeGamestats* =
+  writeSquareVisitsTo visitsFile
+  writeCashedCardsTo cashedFile
+  if players.anyHuman and players.anyComputer:
+    echo "nr of stat games: ",gameStats.len
+    gameStats.add newGameStats()
+    echo "nr of stat games: ",gameStats.len
+    updateStatsBatch()
+    writeGameStatsTo statsFile
+
+proc resetMatchingStats* =
+  gameStats = noneMatchingStats()
+  writeGameStatsTo statsFile
+  updateStatsBatch()
+
 proc configSetupGame =
   playerBatches = newPlayerBatches()
   piecesImg.update = true
@@ -502,6 +527,7 @@ proc configGameWon =
   setMenuTo NewGameMenu
   updateKeybar = true
   showMenu = true
+  turn.undrawnBlues = 0
   # configState = None
 
 proc selectBarMoveDest(selection:string) =
