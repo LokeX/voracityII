@@ -1,11 +1,11 @@
 import play
 import game
-import times
+# import times
 import strutils
 import sequtils
 import misc
 import os
-import algorithm
+# import algorithm
 import sugar
 import math
 
@@ -209,7 +209,31 @@ proc toGameStats*(stats:GameStats[Alias,int]):GameStats[string,PlayerKind] =
     winner:stats.winner.aliasToString
   )
 
+proc writeGameStatsTo(path:string) =
+  seqToFile(gameStats.mapIt it.toFileStats,path)
+
+proc readGameStatsFrom*(path:string) =
+  if fileExists path:
+    gameStats = fileToSeq(path,GameStats[Alias,int]).mapIt it.toGameStats
+
+proc writeGamestats* =
+  writeSquareVisitsTo visitsFile
+  writeCashedCardsTo cashedFile
+  if players.anyHuman and players.anyComputer:
+    echo "nr of stat games: ",gameStats.len
+    gameStats.add newGameStats()
+    echo "nr of stat games: ",gameStats.len
+    # updateStatsBatch()
+    writeGameStatsTo statsFile
+
+proc resetMatchingStats* =
+  gameStats = noneMatchingStats()
+  writeGameStatsTo statsFile
+  # updateStatsBatch()
+
 when isMainModule:
+  import times
+  import algorithm
   proc getParams:seq[int] =
     for prm in commandLineParams():
       try: result.add prm.parseInt
@@ -281,6 +305,8 @@ when isMainModule:
     # echo getFreeMem()
     while not gameWon:
         aiTakeTurnPhase()
+        # echo players[turn.player].color
+        # echo "turn.nr: ",turn.nr
         # soundToPlay.setLen 0
     if recordStats:
       gameStats.add newGameStats()

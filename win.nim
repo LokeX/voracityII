@@ -251,9 +251,6 @@ proc drawDynamicImage*[T](b:var Boxy,dynImg:DynamicImage[T]) =
     when T is void: b.addImage(dynImg.name,dynImg.updateImage())
     else: b.addImage(dynImg.name,dynImg.updateImage(dynImg.context))
     let wh = b.getImageSize dynImg.name
-    # dynImg.area.x2 = dynImg.area.x1+wh[0]
-    # dynImg.area.y2 = dynImg.area.y1+wh[1]
-    # dynImg.rect = dynImg.area.toRect
     dynImg.rect.w = wh[0].toFloat
     dynImg.rect.h = wh[1].toFloat
     dynImg.area = dynImg.rect.toArea

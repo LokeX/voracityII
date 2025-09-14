@@ -1,114 +1,53 @@
-Moonshine: 113
-Borderless: 67
-Cold meds: 74
-Projects: 51
-Outstanding: 57
-Hooked: 65
-Underhanded: 94
-Occupational hazard: 33
-Stiffs: 33
-Pimp: 39
-Financier: 22
-Prescriptions: 55
-Drugdealer: 45
-Lucky bastard: 55
-Protection: 46
-Demolition: 84
-Containment: 98
-White collars: 25
-Advisory board: 58
-Color revolutionary: 55
-Express demands: 52
-Transactionalist: 28
-Broken bones: 42
-Human resources: 74
-Polterabend: 119
-Faulty towers: 43
-Financing: 62
-Rock solid claims: 73
-Duty free: 74
-Sweethearts: 17
-Hooters: 39
-Et spiritus sancti: 75
-Choireboys: 42
-Knocked out: 61
-Agent: 63
-Debt to society: 70
-Heartless: 23
-Lipstick on a pig: 42
-Meat grinder: 33
-Concuctions: 51
-Foreign aid: 70
-Bouncing: 61
-Usery: 69
-Transitions: 28
-Razia: 22
-Loads of stuff: 74
-Grapevine: 48
-Recycling: 32
-Rentals: 20
-Deadly cargo: 54
-Globalist: 44
-Homebrew: 58
-Gangbangers: 29
-Ludomania: 50
-Healthplan: 46
-Specimens: 45
-Insurgency: 50
-Diamonds are...: 42
-Side effects: 34
-Chicks in cages: 81
-Golden chains: 30
-Up yours: 58
-Flay'em: 56
-Knock knock: 60
-Lawfare: 68
-Blood diamants: 28
-Brotherhood: 47
-Rentseeker: 43
-Ramtheft: 42
-Small arms: 62
-Burglary: 52
-Sing a long song: 90
-Slumlord: 32
-Deadweight: 37
-Mayor: 38
-Coup: 19
-Safe bet: 37
-High society: 61
-Blood suckers: 36
-Acquittal: 49
-Legalese: 98
-Nose job: 43
-VIP Lounge: 34
-Laundry: 26
-Terrorist: 29
-Outsider: 81
-Trance: 58
-Burial at sea: 33
-Informer: 21
-Infiltration: 32
-Redemption: 59
-Bootlegging: 61
-Secret weapon: 54
-Bail: 65
-Higher powers: 63
-Stove away: 26
-Lord of War: 22
-Aiding and abetting: 14
-Bodyguard: 29
-Jetsetter: 32
-Judicial murder: 24
-Open house: 26
-Circle jerk: 35
-Spy: 9
-Grand designs: 59
-Bodycount: 16
-Broman escorte: 15
-Addictions: 17
-Home invasion: 49
-Terrorism: 9
-Color revolution: 9
-Corruption: 6
-Trans-action: 3
-Rentseeking: 8
+Redemption: 1
+Stiffs: 1
+Ludomania: 1
+Broken bones: 2
+Safe bet: 1
+Grapevine: 1
+Sweethearts: 1
+Polterabend: 2
+Faulty towers: 2
+Loads of stuff: 2
+High society: 1
+Knocked out: 1
+Chicks in cages: 2
+Drugdealer: 1
+Trans-action: 1
+Secret weapon: 2
+Moonshine: 2
+Outstanding: 2
+Containment: 1
+Deadweight: 2
+Hooters: 1
+Brotherhood: 1
+Bail: 1
+Recycling: 2
+Specimens: 1
+Home invasion: 2
+Stove away: 2
+Grand designs: 2
+Demolition: 2
+Human resources: 2
+Deadly cargo: 2
+Agent: 2
+Borderless: 1
+Globalist: 1
+Bootlegging: 1
+Lawfare: 2
+Terrorism: 2
+Lord of War: 1
+Rentseeking: 1
+Protection: 1
+Duty free: 1
+Hooked: 1
+Open house: 1
+Rock solid claims: 1
+Pimp: 1
+Concuctions: 1
+Circle jerk: 1
+Legalese: 1
+Higher powers: 1
+Nose job: 1
+Insurgency: 1
+Outsider: 1
+Prescriptions: 1

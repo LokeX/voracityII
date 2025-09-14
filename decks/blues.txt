@@ -4,7 +4,7 @@ Color revolution
 400000
 mission:
 Corruption
-{4,11,25,43}
+{4,25,43,60}
 400000
 mission:
 Drugdealer

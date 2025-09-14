@@ -441,16 +441,34 @@ func cashTotal(hypothetical:Hypothetic,move:Move):int =
   let cashReward = hypothetical.player(move).plans.cashable.mapIt(it.cash).sum
   cashReward+hypothetical.cash-(if move.fromSquare == 0: piecePrice else: 0)
 
+proc dieIndex(die:int):int =
+  for i,move in bestDiceMoves:
+    if die == move.die:
+      return i
+  -1
+
 proc winningMove(hypothetical:Hypothetic,dice:openArray[int]):Move =
   if bestDiceMoves.len > 0: 
-    for i,move in bestDiceMoves:
-      if move.die == dice[0] and hypothetical.cashTotal(move) >= cashToWin:
-        return bestDiceMoves[i]
+    for die in dice.deduplicate:
+      if (let idx = dieIndex die; idx != -1):
+        if hypothetical.cashTotal(bestDiceMoves[idx]) >= cashToWin:
+          return bestDiceMoves[idx]
   else: 
     for move in hypothetical.movesResolvedWith dice:
       if hypothetical.cashTotal(move) >= cashToWin: 
         return move
   result.pieceNr = -1
+
+# proc winningMove(hypothetical:Hypothetic,dice:openArray[int]):Move =
+#   if bestDiceMoves.len > 0: 
+#     for i,move in bestDiceMoves:
+#       if move.die == dice[0] and hypothetical.cashTotal(move) >= cashToWin:
+#         return bestDiceMoves[i]
+#   else: 
+#     for move in hypothetical.movesResolvedWith dice:
+#       if hypothetical.cashTotal(move) >= cashToWin: 
+#         return move
+#   result.pieceNr = -1
 
 proc aiMove(hypothetical:Hypothetic,dice:openArray[int]):(bool,Move) =
   if(let winMove = hypothetical.winningMove dice; winMove.pieceNr != -1):

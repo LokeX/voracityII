@@ -238,35 +238,51 @@ func evalSquare(hypothetical:Hypothetic,square:int):int =
 
 func evalPos*(hypothetical:Hypothetic):int =
   var 
-    bestHighway,bestGasstation,bestOfBoth = -1
+    bestGasstation = -1
     highwayEvals,evals:seq[int]
-  let squares = hypothetical.pieces#.deduplicate
-  for square in squares:
-    if square == 0:
-      if bestHighway == -1:
-        highwayEvals = highways.mapIt hypothetical.evalSquare it
-        bestHighway = max highwayEvals
-      if bestGasstation == -1:
-        bestGasstation = max gasStations.mapIt hypothetical.evalSquare it
-      if bestOfBoth == -1:
-        bestOfBoth = max(bestGasstation,bestHighway)
-      evals.add bestOfBoth
+  let squares = hypothetical.pieces.filterIt it != 0
+  if squares.len < hypothetical.pieces.len:
+    highwayEvals = highways.mapIt hypothetical.evalSquare it
+    bestGasstation = max gasStations.mapIt hypothetical.evalSquare it
+    evals.add max(bestGasstation,max highwayEvals)
   for square in squares:
     if (let idx = highways.find square; idx > -1):
       if bestGasstation == -1:
         bestGasstation = max gasStations.mapIt hypothetical.evalSquare it      
-      let thisSquare = 
+      let thisHighway = 
         if highwayEvals.len > 0: highwayEvals[idx]
         else: hypothetical.evalSquare square
-      evals.add max(thisSquare,bestGasstation)
-    elif square != 0: evals.add hypothetical.evalSquare square
+      evals.add max(thisHighway,bestGasstation)
+    else: evals.add hypothetical.evalSquare square
   evals.sum
 
+# func evalPos*(hypothetical:Hypothetic):int =
+#   var 
+#     bestHighway,bestGasstation,bestOfBoth = -1
+#     highwayEvals,evals:seq[int]
+#   let squares = hypothetical.pieces#.deduplicate
+#   for square in squares:
+#     if square == 0:
+#       if bestHighway == -1:
+#         highwayEvals = highways.mapIt hypothetical.evalSquare it
+#         bestHighway = max highwayEvals
+#       if bestGasstation == -1:
+#         bestGasstation = max gasStations.mapIt hypothetical.evalSquare it
+#       if bestOfBoth == -1:
+#         bestOfBoth = max(bestGasstation,bestHighway)
+#       evals.add bestOfBoth
+#   for square in squares:
+#     if (let idx = highways.find square; idx > -1):
+#       if bestGasstation == -1:
+#         bestGasstation = max gasStations.mapIt hypothetical.evalSquare it      
+#       let thisSquare = 
+#         if highwayEvals.len > 0: highwayEvals[idx]
+#         else: hypothetical.evalSquare square
+#       evals.add max(thisSquare,bestGasstation)
+#     elif square != 0: evals.add hypothetical.evalSquare square
+#   evals.sum
+
 func evalBlue(hypothetical:Hypothetic,card:BlueCard):int =
-  # var hypo = hypothetical
-  # hypo.cards.setLen 0
-  # hypo.cards.add card
-  # hypo.evalPos
   evalPos (
     hypothetical.board,
     hypothetical.pieces,

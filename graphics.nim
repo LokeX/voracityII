@@ -113,7 +113,7 @@ func buildCardSlots(initPosDim:Rect):seq[seq[CardSlot]] =
 
 const
   (cardWidth*, cardHeight*) = (255.0,410.0)
-  popUpCardRect = Rect(x:500,y:275,w:cardWidth*0.9,h:cardHeight*0.9)
+  popUpCardRect = Rect(x:500,y:290,w:cardWidth,h:cardHeight)
   drawPileRect = Rect(x:855,y:495,w:110,h:180)
   discardPileRect = Rect(x:1025,y:495,w:cardWidth*0.441,h:cardHeight*0.441)
   drawPileArea* = drawPileRect.toArea
@@ -657,25 +657,25 @@ var
     update:true
   )
 
-proc drawCardSquares(b: var Boxy, blue: BlueCard) =
-  if blue.cardKind in [Mission, Plan, Job, Deed]:
+proc drawCardSquares(b:var Boxy,blue:BlueCard) =
+  if blue.cardKind in [Mission,Plan,Job,Deed]:
     if cardSquaresPainter.context.title != blue.title:
       cardSquaresPainter.update = true
       cardSquaresPainter.context = blue
     b.drawDynamicImage cardSquaresPainter
 
-func lastDrawnCardNr(deck: Deck): int =
-  for i, card in deck.fullDeck:
-    if card.title == deck.lastDrawn: return i
+func lastDrawnCardNr(deck:Deck):int =
+  for i,card in deck.fullDeck:
+    if card.title == deck.lastDrawn: 
+      return i
   -1
 
 var
-  zoomImg, rotateImg: proc: float32
-  popUpCardName, lastName: string
+  zoomImg,rotateImg:proc:float32
+  popUpCardName,lastName:string
   center = popUpCardRect.rectCenter()
 
-proc paintCards*(b: var Boxy, deck: Deck, cards: seq[BlueCard],
-    show: Reveal = Front) =
+proc paintCards*(b:var Boxy,deck:Deck,cards:seq[BlueCard],show:Reveal = Front) =
   popUpCardName.setLen 0
   if show == Front and deck.lastDrawn.len > 0 and mouseOn drawPileArea:
     popUpCardName = deck.lastDrawn
@@ -686,11 +686,11 @@ proc paintCards*(b: var Boxy, deck: Deck, cards: seq[BlueCard],
     if mouseOn discardPileArea:
       popUpCardName = deck.discardPile[^1].title
       b.drawCardSquares deck.discardPile[^1]
-  for (card, slot) in cards.cardSlots:
+  for (card,slot) in cards.cardSlots:
     if show == Back:
-      b.drawImage("blueback", slot.rect)
+      b.drawImage("blueback",slot.rect)
     else:
-      b.drawImage(card.title, slot.rect)
+      b.drawImage(card.title,slot.rect)
     if show == Front and mouseOn slot.area:
       popUpCardName = card.title
       b.drawCardSquares card
@@ -698,7 +698,7 @@ proc paintCards*(b: var Boxy, deck: Deck, cards: seq[BlueCard],
     if lastName != popUpCardName:
       zoomImg = zoomImage(frames = 20)
       rotateImg = rotateImage(frames = 20)
-    b.drawImage(popUpCardName, center, rotateImg(), scale = zoomImg())
+    b.drawImage(popUpCardName,center,rotateImg(),scale = zoomImg())
   lastName = popUpCardName
 
 proc mouseOnPlayerBatchNr*: int =

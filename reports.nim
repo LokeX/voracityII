@@ -5,7 +5,6 @@ import strutils
 import game
 import graphics
 import misc
-import os
 import play
 import stat
 
@@ -17,16 +16,13 @@ const
   robotoRegular* = "fonts\\Roboto-Regular_1.ttf"
   killMatrixFont = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
   reportFont = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
-  # visitsFile = "dat\\visits.txt"
-  # cashedFile = "dat\\cashed.txt"
-  # statsFile = "dat\\stats.dat"
   (rbx,rby) = (450,280)
-
   statsBatchInit = BatchInit(
     kind:TextBatch,
     name:"stats",
     pos:(460,530),
     padding:(15,75,8,15),
+    border:(2,0,color(1,1,1)),
     font:(robotoRegular,20.0,color(1,1,1)),
     bgColor:color(0,0,0),
     opacity:25,
@@ -99,7 +95,6 @@ var
   killMatrixPainter* = DynamicImage[void](
     name:"killMatrix",
     rect:Rect(x:250+bx,y:250+by),
-    # area:(250+bx.toInt,250+by.toInt,0,0),
     updateImage:paintKillMatrix,
     update:true
   )
@@ -124,7 +119,7 @@ proc initReportBatch:Batch =
     shadow:(10,1.75,color(255,255,255,100))
   )
 
-proc initReportBatches:ReportBatches =
+proc initReportBatches*:ReportBatches =
   for i,batch in reportBatches.enum_mitems:
     batch = initReportBatch()
     batch.commands: batch.border.color = playerColors[PlayerColor(i)]
@@ -149,19 +144,6 @@ proc reportSpansFrom(turnReport:TurnReport):seq[Span] =
   for line in reportLines turnReport:
     result.add newSpan(line&"\n",plainFont)
 
-# proc echoTurn(report:TurnReport) =
-#   for fn,item in turnReport.fieldPairs:
-#     when typeOf(item) is tuple:
-#       for n,i in item.fieldPairs: 
-#         echo n,": ",$i
-#     else: 
-#       echo fn,": ",$item
-
-# proc recordTurnReport* =
-#   turnReport.cards.hand = turnPlayer.hand
-#   echoTurn turnReport
-#   turnReports.add turnReport
-
 proc writeEndOfGameReports =
   for player in players:
     let report = if player.color == turnPlayer.color: turnReport else:
@@ -180,24 +162,11 @@ proc initReportBatchesTurn* =
   reportBatches[turnPlayer.color].setSpans reportSpansFrom turnReport
   reportBatches[turnPlayer.color].update = true
 
-# proc initTurnReport* =
-#   turnReport = TurnReport()
-#   turnReport.turnNr = turnPlayer.turnNr+1
-#   initReportBatchesTurn()
-
 proc writeTurnReportUpdate* =
   reportBatches[turnPlayer.color].setSpans reportSpansFrom turnReport
   if turnPlayer.cash >= cashToWin:
     writeEndOfGameReports()
   reportBatches[turnPlayer.color].update = true
-
-# proc resetReports* =
-#   for batch in reportBatches.mitems:
-#     batch.setSpans @[]
-#   initTurnReport()
-#   turnReports.setLen 0
-#   selectedBatch = -1
-#   killMatrixPainter.update = true
 
 template gotReport*(player:PlayerColor):bool =
   reportBatches[player].spansLength > 0
@@ -270,112 +239,3 @@ proc drawStats*(b:var Boxy) =
 template mouseOnStatsBatch*:bool =
   mouseOn statsBatch
 
-# proc readVisitsFile(path:string):array[1..60,int] =
-#   if fileExists path:
-#     var square = 1
-#     for line in lines path:
-#       try: result[square] = line.split[^1].parseInt except:discard
-#       inc square
-
-# func allSquareVisits(reportVisits,fileVisits:array[1..60,int]):array[1..60,int] =
-#   for idx in 1..60:
-#     result[idx] = reportVisits[idx] + fileVisits[idx]
-    
-# proc writeSquareVisitsTo(path:string) =
-#   var squareVisits:seq[string]
-#   for i,visits in allSquareVisits(turnReports.reportedVisitsCount,readVisitsFile path):
-#     squareVisits.add squares[i].name&" Nr."&($i)&": "&($visits)
-#   writeFile(path,squareVisits.join "\n")
-
-# proc readCashedCardsFrom(path:string):CashedCards =
-#   if fileExists path:
-#     for line in lines path:
-#       let lineSplit = line.split ':'
-#       try: result.add (lineSplit[0],lineSplit[^1].strip.parseInt)
-#       except:discard
-
-# proc allCashedCards(path:string):CashedCards =
-#   result = readCashedCardsFrom path
-#   for card in reportedCashedCards():
-#     if (let idx = result.mapIt(it.title).find card.title; idx != -1):
-#       result[idx].count = card.count+result[idx].count
-#     else: result.add card
-  
-# proc writeCashedCardsTo(path:string) =
-#   writeFile(
-#     path,allCashedCards(path)
-#     .mapIt(it.title&": "&($it.count))
-#     .join "\n"
-#   )
-
-# func aliasToChars(alias:string):Alias =
-#   for i,ch in alias:
-#     if i < result.len: 
-#       result[i] = ch
-#       if i == alias.high and i < result.high:
-#         result[i+1] = '\n'
-#     else: return
-
-# func kindToOrd(kinds:array[6,PlayerKind]):array[6,int] =
-#   for i,kind in kinds:
-#     result[i] = kind.ord
-
-# func toChars(aliases:array[6,string]):array[6,Alias] =
-#   for i,alias in aliases:
-#     result[i] = alias.aliasToChars
-
-# proc toFileStats(stats:GameStats[string,PlayerKind]):GameStats[Alias,int] =
-#   GameStats[Alias,int](
-#     turnCount:stats.turnCount,
-#     cash:stats.cash,
-#     playerKinds:stats.playerKinds.kindToOrd,
-#     aliases:stats.aliases.toChars,
-#     winner:stats.winner.aliasToChars
-#   )
-
-# func aliasToString(alias:Alias):string =
-#   for ch in alias: 
-#     if ch != '\n': result.add ch
-#     else: return
-
-# func ordToKind(ks:array[6,int]):array[6,PlayerKind] =
-#   for i,kind in ks: 
-#     result[i] = PlayerKind(kind)
-
-# func toStrings(aliases:array[6,Alias]):array[6,string] =
-#   for i,alias in aliases:
-#     result[i] = alias.aliasToString
-
-# proc toGameStats(stats:GameStats[Alias,int]):GameStats[string,PlayerKind] =
-#   GameStats[string,PlayerKind](
-#     turnCount:stats.turnCount,
-#     cash:stats.cash,
-#     playerKinds:stats.playerKinds.ordToKind,
-#     aliases:stats.aliases.toStrings,
-#     winner:stats.winner.aliasToString
-#   )
-
-proc writeGameStatsTo(path:string) =
-  seqToFile(gameStats.mapIt it.toFileStats,path)
-
-proc readGameStatsFrom(path:string) =
-  if fileExists path:
-    gameStats = fileToSeq(path,GameStats[Alias,int]).mapIt it.toGameStats
-
-proc writeGamestats* =
-  writeSquareVisitsTo visitsFile
-  writeCashedCardsTo cashedFile
-  if players.anyHuman and players.anyComputer:
-    echo "nr of stat games: ",gameStats.len
-    gameStats.add newGameStats()
-    echo "nr of stat games: ",gameStats.len
-    updateStatsBatch()
-    writeGameStatsTo statsFile
-
-proc resetMatchingStats* =
-  gameStats = noneMatchingStats()
-  writeGameStatsTo statsFile
-  updateStatsBatch()
-
-reportBatches = initReportBatches()
-readGameStatsFrom statsFile

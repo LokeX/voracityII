@@ -338,8 +338,12 @@ proc confirmEndGame = really("end this game?",
   (answer:string) => (if answer == "Yes": setupNewGame())
 )
 
+proc statReset =
+  resetMatchingStats()
+  updateStatsBatch()
+
 proc confirmResetStats = really("reset stats?",
-  (answer:string) => (if answer == "Yes": resetMatchingStats())
+  (answer:string) => (if answer == "Yes": statReset())
 )
 
 proc menuSelection =
@@ -485,27 +489,27 @@ proc keyboard(key:KeyboardEvent) =
   if key.button == ButtonUnknown and not isRollingDice():
     editDiceRoll key.rune.toUTF8
 
-proc writeGameStatsTo(path:string) =
-  seqToFile(gameStats.mapIt it.toFileStats,path)
+# proc writeGameStatsTo(path:string) =
+#   seqToFile(gameStats.mapIt it.toFileStats,path)
 
-proc readGameStatsFrom(path:string) =
-  if fileExists path:
-    gameStats = fileToSeq(path,GameStats[Alias,int]).mapIt it.toGameStats
+# proc readGameStatsFrom(path:string) =
+#   if fileExists path:
+#     gameStats = fileToSeq(path,GameStats[Alias,int]).mapIt it.toGameStats
 
-proc writeGamestats* =
-  writeSquareVisitsTo visitsFile
-  writeCashedCardsTo cashedFile
-  if players.anyHuman and players.anyComputer:
-    echo "nr of stat games: ",gameStats.len
-    gameStats.add newGameStats()
-    echo "nr of stat games: ",gameStats.len
-    updateStatsBatch()
-    writeGameStatsTo statsFile
+# proc writeGamestats* =
+#   writeSquareVisitsTo visitsFile
+#   writeCashedCardsTo cashedFile
+#   if players.anyHuman and players.anyComputer:
+#     echo "nr of stat games: ",gameStats.len
+#     gameStats.add newGameStats()
+#     echo "nr of stat games: ",gameStats.len
+#     updateStatsBatch()
+#     writeGameStatsTo statsFile
 
-proc resetMatchingStats* =
-  gameStats = noneMatchingStats()
-  writeGameStatsTo statsFile
-  updateStatsBatch()
+# proc resetMatchingStats* =
+#   gameStats = noneMatchingStats()
+#   writeGameStatsTo statsFile
+#   updateStatsBatch()
 
 proc configSetupGame =
   playerBatches = newPlayerBatches()
@@ -523,6 +527,7 @@ proc configStartGame =
 
 proc configGameWon =
   writeGamestats()
+  updateStatsBatch()
   playSound "applause-2"
   setMenuTo NewGameMenu
   updateKeybar = true
@@ -691,13 +696,16 @@ for i,kind in playerKindsFromFile():
   playerKinds[i] = kind
 initPlayers()
 playerBatches = newPlayerBatches()
+reportBatches = initReportBatches()
+readGameStatsFrom statsFile
 updateStatsBatch()
 if fileExists(settingsFile): 
   settingsFromFile()
 else: settingsToFile()
+echo gameStats.len
 setVolume vol
 addCall call
-addCall dialogCall # we add dialog second - or it will be drawn beneath the board
+addCall dialogCall 
 window.onCloseRequest = quitVoracity
 window.icon = readImage "pics\\BarMan.png"
 runWinWith: 
