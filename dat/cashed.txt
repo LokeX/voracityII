@@ -1,53 +1,107 @@
-Redemption: 1
-Stiffs: 1
-Ludomania: 1
-Broken bones: 2
-Safe bet: 1
-Grapevine: 1
-Sweethearts: 1
-Polterabend: 2
-Faulty towers: 2
-Loads of stuff: 2
-High society: 1
-Knocked out: 1
-Chicks in cages: 2
-Drugdealer: 1
-Trans-action: 1
-Secret weapon: 2
-Moonshine: 2
-Outstanding: 2
-Containment: 1
-Deadweight: 2
-Hooters: 1
-Brotherhood: 1
-Bail: 1
-Recycling: 2
-Specimens: 1
-Home invasion: 2
-Stove away: 2
-Grand designs: 2
-Demolition: 2
-Human resources: 2
-Deadly cargo: 2
-Agent: 2
-Borderless: 1
-Globalist: 1
-Bootlegging: 1
-Lawfare: 2
-Terrorism: 2
-Lord of War: 1
-Rentseeking: 1
-Protection: 1
-Duty free: 1
-Hooked: 1
-Open house: 1
-Rock solid claims: 1
-Pimp: 1
-Concuctions: 1
-Circle jerk: 1
-Legalese: 1
-Higher powers: 1
-Nose job: 1
-Insurgency: 1
-Outsider: 1
-Prescriptions: 1
+Redemption: 10
+Stiffs: 6
+Ludomania: 2
+Broken bones: 10
+Safe bet: 6
+Grapevine: 7
+Sweethearts: 4
+Polterabend: 10
+Faulty towers: 9
+Loads of stuff: 10
+High society: 9
+Knocked out: 8
+Chicks in cages: 5
+Drugdealer: 4
+Trans-action: 4
+Secret weapon: 7
+Moonshine: 15
+Outstanding: 8
+Containment: 8
+Deadweight: 3
+Hooters: 4
+Brotherhood: 5
+Bail: 8
+Recycling: 6
+Specimens: 3
+Home invasion: 15
+Stove away: 5
+Grand designs: 4
+Demolition: 10
+Human resources: 11
+Deadly cargo: 10
+Agent: 11
+Borderless: 3
+Globalist: 7
+Bootlegging: 4
+Lawfare: 7
+Terrorism: 4
+Lord of War: 6
+Rentseeking: 5
+Protection: 5
+Duty free: 9
+Hooked: 10
+Open house: 2
+Rock solid claims: 9
+Pimp: 6
+Concuctions: 6
+Circle jerk: 3
+Legalese: 8
+Higher powers: 8
+Nose job: 8
+Insurgency: 5
+Outsider: 8
+Prescriptions: 6
+Bouncing: 6
+Side effects: 6
+Diamonds are...: 5
+Blood diamants: 7
+Foreign aid: 5
+Color revolution: 5
+Acquittal: 3
+Financier: 3
+Underhanded: 8
+Up yours: 6
+Choireboys: 7
+Knock knock: 5
+Sing a long song: 11
+White collars: 3
+Broman escorte: 6
+Cold meds: 8
+Et spiritus sancti: 4
+Occupational hazard: 6
+VIP Lounge: 4
+Small arms: 7
+Express demands: 5
+Ramtheft: 4
+Golden chains: 7
+Bodyguard: 4
+Mayor: 4
+Homebrew: 5
+Meat grinder: 2
+Judicial murder: 2
+Flay'em: 5
+Projects: 2
+Advisory board: 5
+Usery: 2
+Financing: 4
+Lucky bastard: 3
+Lipstick on a pig: 6
+Laundry: 2
+Debt to society: 2
+Transitions: 3
+Trance: 4
+Bodycount: 2
+Informer: 2
+Rentals: 6
+Healthplan: 1
+Slumlord: 3
+Heartless: 2
+Gangbangers: 3
+Aiding and abetting: 1
+Coup: 2
+Blood suckers: 1
+Infiltration: 2
+Spy: 2
+Addictions: 1
+Corruption: 1
+Burial at sea: 1

@@ -16,6 +16,7 @@ import eval
 import strutils
 import os
 import stat
+import cards
 
 const
   showVolTime = 2.4
@@ -35,49 +36,14 @@ const
     "The way is long, dark and lonely",
     "Let perseverance light your path"
   ]
-  headerInit = BatchInit(
-    kind:TextBatch,
-    name:"header",
-    pos:(1560,5),
-    entries: @[""],
-    font:(logoFontPath,18.0,color(1,1,1)),
-    hAlign:CenterAlign,
-    fixedBounds:(300,25),
-    bgColor:color(0,0,0),
-    opacity:25,
-    border:(5,10,color(1,1,1)),
-  )
-  footerInit = BatchInit(
-    kind:TextBatch,
-    name:"footer",
-    pos:(1560,930),
-    entries: @[""],
-    font:(logoFontPath,18.0,color(1,1,1)),
-    hAlign:CenterAlign,
-    fixedBounds:(300,25),
-    bgColor:color(0,0,0),
-    opacity:25,
-    border:(5,10,color(1,1,1)),
-  )
-
 let
   voracityLogo = readImage "pics\\voracity.png"
   lets_rockLogo = readImage "pics\\lets_rock.png"
   barMan = readImage "pics\\barman.jpg"
   logoFont = setNewFont(logoFontPath,size = 16.0,color(1,1,1))
-  cardsHeader = newBatch headerInit
-  cardsFooter = newBatch footerInit
-
-type
-  Pinned = enum None,Discard,Deck
 
 var 
   batchInputNr = -1
-  mouseOnBatchPlayerNr = -1
-  pinnedBatchNr = -1
-  altPressed:bool
-  pinnedCards:Pinned
-  reveal:bool
   frames:float
   vol = 0.05
   showVolume:float
@@ -190,20 +156,6 @@ proc paintVolume:Image =
   ctx.fillRect(5,5,vol*100,10)
   ctx.image
 
-template mouseOnBatchColor:untyped = players[mouseOnBatchPlayerNr].color
-
-template selectedBatchColor:untyped =
-  if mouseOnBatchPlayerNr != -1: players[mouseOnBatchPlayerNr].color
-  else: players[pinnedBatchNr].color
-
-template batchSelected:untyped =
-  mouseOnBatchPlayerNr != -1 or pinnedBatchNr != -1
-
-proc cashedCards:seq[BlueCard] =
-  result.add selectedBatchColor.reports.mapIt(it.cards.cashed).flatMap
-  if selectedBatchColor == turnPlayer.color:
-    result.add turnReport.cards.cashed
-
 proc reportAnimationMoves:seq[AnimationMove] =
   if selectedBatchColor == turnPlayer.color:
     result.add turnReport.moves.mapIt (it.fromSquare,it.toSquare)
@@ -212,84 +164,11 @@ proc reportAnimationMoves:seq[AnimationMove] =
     .reports[^1].moves
     .mapIt (it.fromSquare,it.toSquare)
 
-template drawSelectedPlayersHand:untyped =
-  altPressed and pinnedBatchNr == -1 and turnPlayer.cash >= cashToWin
-
-proc paintCardsHeader(b:var Boxy,color:PlayerColor,header:string) =
-  if header != cardsHeader.getSpanText 0:
-    cardsHeader.commands:
-      cardsHeader.border.color = playerColors[color]
-    cardsHeader.setSpanText header,0
-    cardsHeader.update = true
-  b.drawDynamicImage cardsHeader
-
-proc showCards(b:var Boxy) =
-  var
-    cards:seq[BlueCard]
-    show:Reveal = Front
-    header = ""
-    color = Black
-  if turn.nr == 0:
-    if pinnedCards == Deck or mouseOn drawPileArea:
-      cards = blueDeck.fullDeck
-      header = "Full deck"
-  elif pinnedCards == Discard or mouseOn discardPileArea:
-    cards = blueDeck.discardPile
-    header = "Discard pile"
-  elif batchSelected and selectedBatchColor.reports.len > 0:
-    if drawSelectedPlayersHand:
-      cards = players[mouseOnBatchPlayerNr].hand
-      color = players[mouseOnBatchPlayerNr].color
-      header = $color&" player's hand"
-    else: 
-      cards = cashedCards()
-      color = players[max(mouseOnBatchPlayerNr,pinnedBatchNr)].color
-      header = $color&" player's cashed cards"
-  else: 
-    cards = turnPlayer.hand
-    show = if turnPlayer.kind == Human or reveal: Front else: Back
-    color = turnPlayer.color
-    header = $color&" player's hand"
-  b.paintCards(blueDeck,cards,show)
-  if header.len > 0:
-    b.paintCardsHeader(color,header)
-
-template showFooter:untyped =
-  mouseOnBatchPlayerNr != -1 or 
-  pinnedBatchNr != -1 or 
-  pinnedCards == Discard or 
-  mouseOn(discardPileArea) or
-  pinnedCards == Deck or
-  (mouseOn(drawPileArea) and turn.nr == 0)
-
-template clickToPin:untyped =
-  (mouseOnBatchPlayerNr != -1 or 
-  mouseOn(discardPileArea) or 
-  mouseOn(drawPileArea)) and 
-  (pinnedBatchNr == -1 and pinnedCards == None)
-
-proc drawCardsFooter(b:var Boxy) =
-  if showFooter:
-    let txt = if clickToPin: "Click to pin" else: "Click to unpin"
-    if txt != cardsFooter.getSpanText 0:
-      let (fColor,bColor) = if txt.endsWith "unpin": 
-        (contrastColors[Red],playerColors[Red])
-      else: (contrastColors[Green],playerColors[Green]) 
-      cardsFooter.commands:
-        cardsFooter.text.bgColor = bColor
-        cardsFooter.border.color = bColor
-        cardsFooter.text.spans[0].font.paint = fColor
-      cardsFooter.setSpanText txt,0
-      cardsFooter.update = true
-    b.drawDynamicImage cardsFooter
-
 proc draw(b:var Boxy) =
   frames += 1
-  if oldBg != -1: b.drawImage backgrounds[oldBg].name,oldBgRect
-  b.drawImage backgrounds[bgSelected].name,bgRect
+  if oldBg != -1: b.drawImage(backgrounds[oldBg].name,oldBgRect)
+  b.drawImage(backgrounds[bgSelected].name,bgRect)
   b.drawBoard
-  # b.drawDynamicImage piecesImg
-  # b.drawDynamicImage piecesImg
   b.drawDynamicImage piecesImg
   b.drawPlayerBatches
   b.drawStats
@@ -312,7 +191,7 @@ proc draw(b:var Boxy) =
       b.drawDynamicImage nrOfUndrawnBluesPainter
     if mouseOnBatchPlayerNr != -1 and gotReport mouseOnBatchColor:
       b.drawReport mouseOnBatchColor
-  elif pinnedCards != Deck and not mouseOn drawPileArea: 
+  elif pinnedCards != AllDeck and not mouseOn drawPileArea: 
     b.drawImage("logo",vec2(1475,60))
     b.drawImage("advicetext",vec2(1525,450))
     b.drawImage("barman",Rect(x:1555,y:530,w:220,h:275))
@@ -423,7 +302,7 @@ proc mouse(m:KeyEvent) =
     if mouseOn discardPileArea: 
       pinnedCards = Discard
     elif turn.nr == 0 and mouseOn drawPileArea: 
-      pinnedCards = Deck
+      pinnedCards = AllDeck
     else: pinnedCards = None
   if m.leftMousePressed:
     if turn.nr == 0: togglePlayerKind()
@@ -488,28 +367,6 @@ proc keyboard(key:KeyboardEvent) =
     else:discard
   if key.button == ButtonUnknown and not isRollingDice():
     editDiceRoll key.rune.toUTF8
-
-# proc writeGameStatsTo(path:string) =
-#   seqToFile(gameStats.mapIt it.toFileStats,path)
-
-# proc readGameStatsFrom(path:string) =
-#   if fileExists path:
-#     gameStats = fileToSeq(path,GameStats[Alias,int]).mapIt it.toGameStats
-
-# proc writeGamestats* =
-#   writeSquareVisitsTo visitsFile
-#   writeCashedCardsTo cashedFile
-#   if players.anyHuman and players.anyComputer:
-#     echo "nr of stat games: ",gameStats.len
-#     gameStats.add newGameStats()
-#     echo "nr of stat games: ",gameStats.len
-#     updateStatsBatch()
-#     writeGameStatsTo statsFile
-
-# proc resetMatchingStats* =
-#   gameStats = noneMatchingStats()
-#   writeGameStatsTo statsFile
-#   updateStatsBatch()
 
 proc configSetupGame =
   playerBatches = newPlayerBatches()

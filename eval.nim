@@ -435,14 +435,24 @@ func movesSeededWith(hypothetical:Hypothetic,dice:openArray[int]):seq[Move] =
       if fromSquare != 0 or hypothetical.cash >= piecePrice:
         result.add (pieceNr,die,fromSquare,0,0)
 
-func resolveSeedMoves(hypothetical:Hypothetic,moves:sink seq[Move]):seq[Move] =
-  result = move moves
-  for move in moves:
-    for i,toSquare in moveToSquares(move.fromSquare,move.die):
-      result[i].toSquare = toSquare
+# func resolveSeedMoves(hypothetical:Hypothetic,moves:seq[Move]):seq[Move] =
+#   # result = move moves
+#   for move in moves:
+#     for toSquare in moveToSquares(move.fromSquare,move.die):
+#       result.add move
+#       result[^1].toSquare = toSquare
+
+# func resolveSeedMoves(hypothetical:Hypothetic,moves:sink seq[Move]):seq[Move] =
+#   result = move moves
+#   for move in moves:
+#     for i,toSquare in moveToSquares(move.fromSquare,move.die):
+#       result[i].toSquare = toSquare
 
 func movesResolvedWith*(hypothetical:Hypothetic,dice:openArray[int]):seq[Move] =
-  hypothetical.resolveSeedMoves(hypothetical.movesSeededWith dice)
+  for move in hypothetical.movesSeededWith dice:
+    for toSquare in moveToSquares(move.fromSquare,move.die):
+      result.add move
+      result[^1].toSquare = toSquare
 
 func player*(hypothetical:Hypothetic,move:Move):Player =
   var pieces = hypothetical.pieces
@@ -462,7 +472,7 @@ func player*(hypothetical:Hypothetic,move:Move):Player =
 proc move*(hypothetical:Hypothetic,dice:openArray[int]):Move = 
   result = hypothetical.movesSeededWith(dice)
     .map(genericMove => hypothetical.bestMoveFrom genericMove)
-    .map(bestMove => bestMove)
+    # .map(bestMove => bestMove)
     .reduce (a,b) => (if a.eval >= b.eval: a else: b)
 
 proc bestDiceMoves*(hypothetical:Hypothetic):seq[Move] =
