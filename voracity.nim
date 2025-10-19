@@ -18,144 +18,6 @@ import os
 import stat
 import cards
 
-const
-  showVolTime = 2.4
-  settingsFile = "dat\\settings.cfg"
-  logoFontPath = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
-  logoText = [
-    "Created by",
-    "Sebastian Tue Øltieng",
-    "Per Ulrik Bøge Nielsen",
-    "",
-    "Coded by",
-    "Per Ulrik Bøge Nielsen",
-    "",
-    "All rights reserved (1998 - 2023)",
-  ]
-  adviceText = [
-    "The way is long, dark and lonely",
-    "Let perseverance light your path"
-  ]
-let
-  voracityLogo = readImage "pics\\voracity.png"
-  lets_rockLogo = readImage "pics\\lets_rock.png"
-  barMan = readImage "pics\\barman.jpg"
-  logoFont = setNewFont(logoFontPath,size = 16.0,color(1,1,1))
-
-var 
-  batchInputNr = -1
-  frames:float
-  vol = 0.05
-  showVolume:float
-  showPanel = true
-
-proc paintKeybar:Image =
-  let 
-    ctx = newImage(1200,30).newContext
-    white = setNewFont(logoFontPath,18,color(1,1,1))
-    yellow = setNewFont(logoFontPath,18,color(1,1,0))
-    green = setNewFont(logoFontPath,18,color(0,1,0))
-  ctx.image.fill color(0,0,0,75)
-  let spans = [
-    newSpan("Keys:  ",green),
-    newSpan("P",yellow),
-    newSpan("anel (this):  ",white),
-    newSpan("on",(if showPanel: yellow else: white)),
-    newSpan("/",white),
-    newSpan("off",(if showPanel: white else: yellow)),
-    newSpan("  |  ",green),
-    newSpan("S",yellow),
-    newSpan("ound:  ",white),
-    newSpan("on",(if volume() == 0: white else: yellow)),
-    newSpan("/",white),
-    newSpan("off",(if volume() == 0: yellow else: white)),
-    newSpan("  |  ",green),
-    newSpan("A",yellow),
-    newSpan("uto end turn (Computer):  ",white),
-    newSpan("on",(if autoEndTurn: yellow else: white)),
-    newSpan("/",white),
-    newSpan("off",(if autoEndTurn: white else: yellow)),
-    newSpan("  |  ",green),
-    newSpan("+/- ",yellow),
-    newSpan("(NumPad):  Adjust volume",white),
-    newSpan("  |  ",green),
-    newSpan("Right-click-mouse:  ",yellow),
-    newSpan((
-      if turn.nr == 0: 
-        "Start Game" 
-      elif moveSelection.fromSquare != -1:
-        "Deselect piece"
-      elif not showMenu:
-        "Show Menu"
-      elif turnPlayer.cash >= cashToWin: 
-        "New Game"
-      else: "End Turn"
-    ),white),
-  ]
-  if moveSelection.fromSquare != -1:
-    echo spans[^1].text
-  ctx.image.fillText(spans.typeset(vec2(1150,20)),translate vec2(10,2))
-  ctx.image
-
-let keybarPainter = DynamicImage[void](
-  name:"keybar",
-  updateImage:paintKeybar,
-  # area:(225,935,0,0),
-  rect:Rect(x:225,y:935),
-  update:true
-)
-
-proc paintSubText:Image =
-  var 
-    spans:seq[Span]
-    logoFontYellow = logoFont.copy
-    logoFontBlack = logoFont.copy
-  logoFontYellow.paint = color(1,1,0)
-  logoFontBlack.paint = color(0,0,0)
-  spans.add newSpan(adviceText[0]&"\n",logoFontBlack)
-  spans.add newSpan(adviceText[1],logoFontYellow)
-  let 
-    arrangement = spans.typeset(
-      bounds = vec2(250,100),
-      hAlign = CenterAlign
-    )
-  result = newImage(250,100)
-  result.fillText(arrangement,translate vec2(0,0))
-
-proc logoTextArrangement(width,height:float):Arrangement =
-  logoFont.lineHeight = 22
-  logoFont.typeset(
-    logoText.join("\n"),
-    bounds = vec2(width,height),
-    hAlign = CenterAlign
-  )
-
-proc paintLogo:Image =
-  result = newImage(350,400)
-  var ctx = result.newContext
-  ctx.drawImage(voracityLogo,vec2(0,0))
-  ctx.drawImage(lets_rockLogo,vec2(50,70))
-  ctx.image.fillText(logoTextArrangement(350,200),translate vec2(0,150))
-
-proc paintBarman:Image =
-  let 
-    (w,h) = ((int)(barMan.width.toFloat*0.9),barMan.height)
-    shadow = 5
-  result = newImage(w+shadow,h+shadow)
-  var ctx = result.newContext
-  ctx.fillStyle = color(0,0,0,100)
-  ctx.fillRect(Rect(x:shadow.toFloat,y:shadow.toFloat,w:w.toFloat*0.9,h:h.toFloat))
-  ctx.image.blur 2
-  ctx.drawImage(barman,Rect(x:0,y:0,w:w.toFloat*0.9,h:h.toFloat))
-  ctx.image.applyOpacity 25
-
-proc paintVolume:Image =
-  var ctx = newImage(110,20).newContext
-  ctx.image.fill color(255,255,255)
-  ctx.fillStyle = color(1,1,1)
-  ctx.fillRect(5,5,vol*100,10)
-  ctx.image
-
 proc reportAnimationMoves:seq[AnimationMove] =
   if selectedBatchColor == turnPlayer.color:
     result.add turnReport.moves.mapIt (it.fromSquare,it.toSquare)
@@ -179,7 +41,7 @@ proc draw(b:var Boxy) =
     b.drawDynamicImage keybarPainter
   if showMenu: b.drawDynamicImage mainMenu
   if batchInputNr != -1: b.drawBatch inputBatch
-  if showVolume > 0: b.drawImage("volume",vec2(750,15))
+  if showVolume > 0: b.drawImage(volumeImg,vec2(750,15))
   if turn.nr > 0:
     if mouseOn squares[0].dims.area: b.drawKillMatrix
     b.doMoveAnimation
@@ -192,9 +54,9 @@ proc draw(b:var Boxy) =
     if mouseOnBatchPlayerNr != -1 and gotReport mouseOnBatchColor:
       b.drawReport mouseOnBatchColor
   elif pinnedCards != AllDeck and not mouseOn drawPileArea: 
-    b.drawImage("logo",vec2(1475,60))
-    b.drawImage("advicetext",vec2(1525,450))
-    b.drawImage("barman",Rect(x:1555,y:530,w:220,h:275))
+    b.drawImage(logoImg,vec2(1475,60))
+    b.drawImage(adviceImg,vec2(1525,450))
+    b.drawImage(barmanImg,Rect(x:1555,y:530,w:220,h:275))
   else:
     b.drawCardsFooter
   b.showCards
@@ -544,10 +406,7 @@ template hookUpGamePlayInterface =
 
 hookUpGamePlayInterface()
 blueDeck.initGraphics
-addImage("logo",paintLogo())
-addImage("barman",paintBarman())
-addImage("advicetext",paintSubText())
-addImage("volume",paintVolume())
+initGraphics()
 randomize()
 for i,kind in playerKindsFromFile(): 
   playerKinds[i] = kind

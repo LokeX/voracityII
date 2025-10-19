@@ -11,6 +11,15 @@ import stat
 type 
   KillMatrix = array[PlayerColor,array[PlayerColor,int]]
   ReportBatches* = array[PlayerColor,Batch]
+  BatchSetup = tuple
+    name:string
+    bgColor:PlayerColor
+    entries:seq[string]
+    hAlign:HorizontalAlignment
+    font:string
+    fontSize:float
+    padding:(int,int,int,int)
+
 
 const
   robotoRegular* = "fonts\\Roboto-Regular_1.ttf"
@@ -28,6 +37,32 @@ const
     opacity:25,
     shadow:(10,1.5,color(255,255,255,150))
   )
+  (pbx,pby) = (20,20)
+  inputEntries: seq[string] = @[
+    "Write player handle:\n",
+    "\n",
+  ]
+  condensedRegular = "fonts\\AsapCondensed-Regular.ttf"
+  titleBorder:Border = (size:0,angle:0,color:color(0,0,100))
+  inputBorder:Border = (size:0,angle:0,color:color(0,0,100))
+  inputBatchInit = BatchInit(
+    kind: InputBatch,
+    name: "inputBatch",
+    titleOn: true,
+    titleLine: (color:color(1,1,0),bgColor:color(0,0,0),border:titleBorder),
+    pos: (400,200),
+    inputCursor: (0.5,color(0,1,0)),
+    inputLine: (color(0,1,0),color(0,0,0),inputBorder),
+    padding: (40,40,20,20),
+    entries: inputEntries,
+    inputMaxChars: 8,
+    alphaOnly: true,
+    font: (condensedRegular,30.0,color(1,1,1)),
+    bgColor: color(0,0,0),
+    border: (15,25,color(0,0,100)),
+    shadow: (15,1.5,color(255,255,255,200))
+  )
+
 
 let
   plainFont = setNewFont(reportFont,18,color(1,1,1,1))
@@ -38,6 +73,98 @@ var
   statsBatch = newBatch statsBatchInit
   reportBatches*:ReportBatches
   selectedBatch*:int
+  mouseOnBatchPlayerNr* = -1
+  pinnedBatchNr* = -1
+  inputBatch* = newBatch inputBatchInit
+  playerBatches*: array[6, Batch]
+  showCursor*: bool
+
+template mouseOnBatchColor*:untyped = players[mouseOnBatchPlayerNr].color
+
+template selectedBatchColor*:untyped =
+  if mouseOnBatchPlayerNr != -1: players[mouseOnBatchPlayerNr].color
+  else: players[pinnedBatchNr].color
+
+template batchSelected*:untyped =
+  mouseOnBatchPlayerNr != -1 or pinnedBatchNr != -1
+
+proc drawCursor*(b:var Boxy) =
+  if turn.nr > 0 and showCursor:
+    let
+      x = (playerBatches[turn.player].area.x2-40).toFloat
+      y = (playerBatches[turn.player].area.y1+10).toFloat
+      cursor = Rect(x:x,y:y,w:20,h:20)
+    b.drawRect(cursor,contrastColors[players[turn.player].color])
+
+proc mouseOnPlayerBatchNr*: int =
+  result = -1
+  for i, _ in players:
+    if mouseOn playerBatches[i]: return i
+
+proc playerBatch(setup:BatchSetup,yOffset:int):Batch =
+  newBatch BatchInit(
+    kind: TextBatch,
+    name: setup.name,
+    pos: (pbx, pby+yOffset),
+    padding: setup.padding,
+    entries: setup.entries,
+    hAlign: setup.hAlign,
+    fixedBounds: (175, 110),
+    font: (setup.font, setup.fontSize, contrastColors[setup.bgColor]),
+    border: (3, 20, contrastColors[setup.bgColor]),
+    blur: 2,
+    opacity: 25,
+    bgColor: playerColors[setup.bgColor],
+    shadow: (10, 1.75, color(255, 255, 255, 100))
+  )
+
+proc playerBatchTxt(playerNr:int):seq[string] =
+  if turn.nr == 0:
+    if playerKinds[playerNr] == Human and playerHandles[playerNr].len > 0:
+      @[playerHandles[playerNr]]
+    else:
+      @[$playerKinds[playerNr]]
+  else: @[
+    "Turn Nr: "&($turn.nr)&"\n",
+    "Cards: "&($players[playerNr].hand.len)&"\n",
+    "Cash: "&(insertSep($players[playerNr].cash, '.'))
+  ]
+
+proc drawPlayerBatches*(b:var Boxy) =
+  for batchNr, _ in players:
+    if players[batchNr].update:
+      playerBatches[batchNr].setSpanTexts playerBatchTxt batchNr
+      playerBatches[batchNr].update = true
+      players[batchNr].update = false
+    b.drawBatch playerBatches[batchNr]
+
+proc batchSetup(playerNr:int):BatchSetup =
+  let player = players[playerNr]
+  result.name = $player.color
+  result.bgColor = player.color
+  if turn.nr == 0:
+    result.hAlign = CenterAlign
+    result.font = fjallaOneRegular
+    result.fontSize = 30
+    result.padding = (0, 0, 35, 35)
+  else:
+    result.hAlign = LeftAlign
+    result.font = kalam
+    result.fontSize = 18
+    result.padding = (20, 20, 12, 10)
+  result.entries = playerBatchTxt playerNr
+
+proc newPlayerBatches*:array[6,Batch] =
+  var
+    yOffset = pby
+    setup: BatchSetup
+  for playerNr, _ in players:
+    if playerNr > 0:
+      yOffset = pby+((result[playerNr-1].rect.h.toInt+15)*playerNr)
+    setup = batchSetup playerNr
+    result[playerNr] = setup.playerBatch yOffset
+    result[playerNr].update = true
+    result[playerNr].dynMove(Right, 30)
 
 proc victims(killer:PlayerColor):seq[PlayerColor] =
   for report in turnReports:

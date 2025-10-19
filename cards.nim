@@ -77,11 +77,12 @@ let
   roboto = readTypeface "fonts\\Roboto-Regular_1.ttf"
   point = readTypeface "fonts\\StintUltraCondensed-Regular.ttf"
   ibmplex = readTypeFace "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
+  asap = readTypeface "fonts\\AsapCondensed-Bold.ttf"
+  whiteAsap16 = setNewFont(asap,size = 20,color = color(1,1,0))
+  blackAsap16 = setNewFont(asap,size = 20,color = color(0,0,0))
 
-let
   cardsHeader = newBatch headerInit
   cardsFooter = newBatch footerInit
-
 
 proc paintUndrawnBlues:Image =
   var ctx = newImage(110,180).newContext
@@ -123,11 +124,6 @@ func typesetIcon(font:Font,txt:string,width,height:int):Arrangement =
     vAlign = MiddleAlign,
     wrap = false
   )
-
-let
-  asap = readTypeface "fonts\\AsapCondensed-Bold.ttf"
-  whiteAsap16 = setNewFont(asap,size = 20,color = color(1,1,0))
-  blackAsap16 = setNewFont(asap,size = 20,color = color(0,0,0))
 
 proc initIcon(square:Square):Image =
   result = readImage square.iconPath

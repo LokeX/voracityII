@@ -11,14 +11,14 @@ Loads of stuff: 10
 High society: 9
 Knocked out: 8
 Chicks in cages: 5
-Drugdealer: 4
+Drugdealer: 5
 Trans-action: 4
 Secret weapon: 7
 Moonshine: 15
 Outstanding: 8
-Containment: 8
+Containment: 9
 Deadweight: 3
-Hooters: 4
+Hooters: 5
 Brotherhood: 5
 Bail: 8
 Recycling: 6
@@ -30,9 +30,9 @@ Demolition: 10
 Human resources: 11
 Deadly cargo: 10
 Agent: 11
-Borderless: 3
+Borderless: 4
 Globalist: 7
-Bootlegging: 4
+Bootlegging: 5
 Lawfare: 7
 Terrorism: 4
 Lord of War: 6
@@ -42,7 +42,7 @@ Duty free: 9
 Hooked: 10
 Open house: 2
 Rock solid claims: 9
-Pimp: 6
+Pimp: 7
 Concuctions: 6
 Circle jerk: 3
 Legalese: 8
@@ -56,7 +56,7 @@ Side effects: 6
 Diamonds are...: 5
 Blood diamants: 7
 Foreign aid: 5
-Color revolution: 5
+Color revolution: 6
 Acquittal: 3
 Financier: 3
 Underhanded: 8
@@ -67,7 +67,7 @@ Sing a long song: 11
 White collars: 3
 Broman escorte: 6
 Cold meds: 8
-Et spiritus sancti: 4
+Et spiritus sancti: 5
 Occupational hazard: 6
 VIP Lounge: 4
 Small arms: 7
@@ -87,9 +87,9 @@ Financing: 4
 Lucky bastard: 3
 Lipstick on a pig: 6
 Laundry: 2
-Debt to society: 2
+Debt to society: 3
 Transitions: 3
-Trance: 4
+Trance: 5
 Bodycount: 2
 Informer: 2
 Rentals: 6
