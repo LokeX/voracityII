@@ -416,11 +416,13 @@ proc drawCards =
   while turn.undrawnBlues > 0:
     drawCardFrom blueDeck
     playCashPlansTo blueDeck
-  hypo.cards = turnPlayer.hand
   hypo.pieces = turnPlayer.pieces
-  if hypo.cards.len > 3:
-    hypo.cards = hypo.evalBlues
-    turnPlayer.hand = hypo.cards
+  # hypo.cards = turnPlayer.hand
+  hypo.cards = turnPlayer.sortBlues
+  # hypo.cards = turnPlayer.hand
+  # if hypo.cards.len > 3:
+  #   hypo.cards = hypo.evalBlues
+  #   turnPlayer.hand = hypo.cards
   phase = Reroll
 
 proc reroll(hypothetical:Hypothetic):bool =
@@ -524,6 +526,7 @@ proc rerollPhase =
 proc postMovePhase =
   moveSelection.fromSquare = -1
   drawCards()
+  # turnPlayer.hand = turnPlayer.sortBlues
   phase = EndTurn
 
 proc endTurn* = 

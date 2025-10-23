@@ -1,89 +1,89 @@
-Redemption: 10
+Redemption: 11
 Stiffs: 6
 Ludomania: 2
-Broken bones: 10
-Safe bet: 6
+Broken bones: 11
+Safe bet: 7
 Grapevine: 7
-Sweethearts: 4
-Polterabend: 10
+Sweethearts: 5
+Polterabend: 11
 Faulty towers: 9
 Loads of stuff: 10
-High society: 9
+High society: 10
 Knocked out: 8
-Chicks in cages: 5
-Drugdealer: 5
+Chicks in cages: 7
+Drugdealer: 6
 Trans-action: 4
-Secret weapon: 7
-Moonshine: 15
+Secret weapon: 8
+Moonshine: 16
 Outstanding: 8
 Containment: 9
-Deadweight: 3
+Deadweight: 4
 Hooters: 5
 Brotherhood: 5
-Bail: 8
+Bail: 10
 Recycling: 6
 Specimens: 3
 Home invasion: 15
 Stove away: 5
 Grand designs: 4
 Demolition: 10
-Human resources: 11
+Human resources: 12
 Deadly cargo: 10
 Agent: 11
 Borderless: 4
 Globalist: 7
 Bootlegging: 5
-Lawfare: 7
+Lawfare: 8
 Terrorism: 4
 Lord of War: 6
-Rentseeking: 5
-Protection: 5
-Duty free: 9
-Hooked: 10
+Rentseeking: 6
+Protection: 7
+Duty free: 10
+Hooked: 11
 Open house: 2
-Rock solid claims: 9
+Rock solid claims: 11
 Pimp: 7
 Concuctions: 6
 Circle jerk: 3
-Legalese: 8
+Legalese: 9
 Higher powers: 8
 Nose job: 8
-Insurgency: 5
-Outsider: 8
+Insurgency: 6
+Outsider: 9
 Prescriptions: 6
-Bouncing: 6
-Side effects: 6
-Diamonds are...: 5
+Bouncing: 7
+Side effects: 7
+Diamonds are...: 6
 Blood diamants: 7
 Foreign aid: 5
-Color revolution: 6
-Acquittal: 3
-Financier: 3
+Color revolution: 7
+Acquittal: 4
+Financier: 4
 Underhanded: 8
 Up yours: 6
 Choireboys: 7
 Knock knock: 5
-Sing a long song: 11
+Sing a long song: 12
 White collars: 3
 Broman escorte: 6
-Cold meds: 8
-Et spiritus sancti: 5
-Occupational hazard: 6
+Cold meds: 9
+Et spiritus sancti: 6
+Occupational hazard: 8
 VIP Lounge: 4
 Small arms: 7
 Express demands: 5
-Ramtheft: 4
-Golden chains: 7
+Ramtheft: 5
+Golden chains: 8
 Bodyguard: 4
-Mayor: 4
+Mayor: 5
 Homebrew: 5
 Meat grinder: 2
 Judicial murder: 2
-Flay'em: 5
+Flay'em: 6
 Projects: 2
 Advisory board: 5
 Usery: 2
-Financing: 4
+Financing: 5
 Lucky bastard: 3
 Lipstick on a pig: 6
 Laundry: 2
@@ -96,12 +96,12 @@ Rentals: 6
 Healthplan: 1
 Slumlord: 3
 Heartless: 2
-Gangbangers: 3
-Aiding and abetting: 1
-Coup: 2
-Blood suckers: 1
-Infiltration: 2
-Spy: 2
+Gangbangers: 4
+Aiding and abetting: 2
+Coup: 3
+Blood suckers: 2
+Infiltration: 3
+Spy: 3
 Addictions: 1
 Corruption: 1
 Burial at sea: 1

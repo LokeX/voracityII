@@ -160,7 +160,7 @@ var test = [5,3,9,1]
 
 import algorithm
 import sugar
-test.sort (a,b) => a-b
+test.sort (a,b) => b-a
 echo test
 echo test.sortedByIt it
 # while true:
