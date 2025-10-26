@@ -47,8 +47,7 @@ template execIf*(cond,code:untyped):untyped =
   if cond: code
 
 template exclude*[T:seq or array or openArray](things:T,excludeThing:untyped):untyped =
-  var included = when typeof(things) is seq: 
-    things else: @things  
+  var included = when typeof(things) is seq: things else: @things
   if (let index = included.find excludeThing; index != -1): 
     included.del index
   included

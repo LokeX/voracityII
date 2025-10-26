@@ -139,7 +139,6 @@ proc rightMouse =
     moveSelection.fromSquare = -1
     piecesImg.update = true
   elif not showMenu:
-    echo "setting menu visibility"
     showMenu = true
     # mainMenu.dynamicZoom 30
     mainMenu.zoom = zoomImage 15

@@ -63,7 +63,6 @@ const
     shadow: (15,1.5,color(255,255,255,200))
   )
 
-
 let
   plainFont = setNewFont(reportFont,18,color(1,1,1,1))
   matrixFont = setNewFont(killMatrixFont,size = 16.0)

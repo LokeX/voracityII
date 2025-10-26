@@ -22,7 +22,6 @@ type
     cards*:tuple[drawn,played,cashed,discarded,hand:seq[BlueCard]]
     kills*:seq[PlayerColor]
 
-
 var
   # Interface controls
   runMoveAnimation*:proc()
@@ -128,20 +127,20 @@ proc updateTurnReport*[T](item:T) =
   
 proc updateTurnReportCards*(blues:seq[BlueCard],playedCard:PlayedCard) =
   execIf recordStats:
-    case playedCard
-    of Drawn: turnReport.cards.drawn.add blues
-    of Played: turnReport.cards.played.add blues
-    of Cashed: turnReport.cards.cashed.add blues
-    of Discarded: turnReport.cards.discarded.add blues
+    case playedCard:
+      of Drawn: turnReport.cards.drawn.add blues
+      of Played: turnReport.cards.played.add blues
+      of Cashed: turnReport.cards.cashed.add blues
+      of Discarded: turnReport.cards.discarded.add blues
     updateTurnReport()
 
-proc echoTurn(report:TurnReport) =
-  for fn,item in turnReport.fieldPairs:
-    when typeOf(item) is tuple:
-      for n,i in item.fieldPairs: 
-        echo n,": ",$i
-    else: 
-      echo fn,": ",$item
+# proc echoTurn(report:TurnReport) =
+#   for fn,item in turnReport.fieldPairs:
+#     when typeOf(item) is tuple:
+#       for n,i in item.fieldPairs: 
+#         echo n,": ",$i
+#     else: 
+#       echo fn,": ",$item
 
 proc recordTurnReport* =
   execIf recordStats:
@@ -236,36 +235,36 @@ proc playDejaVue =
   delete(blueDeck.discardPile,blueDeck.discardPile.high - 1)
   blueDeck.lastDrawn = turnPlayer.hand[^1].title
   if turnPlayer.hand.len > 0: 
-    case turnPlayer.hand[^1].cardKind 
-    of Event: playEvent()
-    of News: playNews()
-    else:discard
+    case turnPlayer.hand[^1].cardKind:
+      of Event: playEvent()
+      of News: playNews()
+      else:discard
 
 proc playEvent =
   let event = turnPlayer.hand[^1]
   turnPlayer.hand.playTo blueDeck,turnPlayer.hand.high
-  case event.title
-  of "Sour piss":
-    playSound "can-open-1"
-    blueDeck.shufflePiles
-    turn.undrawnBlues += 1
-  of "Happy hour": 
-    playSound "aplauze-1"
-    turn.undrawnBlues += 3
-  of "Massacre": playMassacre()
-  of "Deja vue": 
-    if blueDeck.discardPile.len > 1: playDejaVue()
-  elif barMove event: move moveSelection.toSquare
+  case event.title:
+    of "Sour piss":
+      playSound "can-open-1"
+      blueDeck.shufflePiles
+      turn.undrawnBlues += 1
+    of "Happy hour": 
+      playSound "aplauze-1"
+      turn.undrawnBlues += 3
+    of "Massacre": playMassacre()
+    of "Deja vue": 
+      if blueDeck.discardPile.len > 1: playDejaVue()
+    elif barMove event: move moveSelection.toSquare
   playCashPlansTo blueDeck
 
 proc drawCardFrom*(deck:var Deck) =
   turnPlayer.hand.drawFrom deck
   var action:PlayedCard = Played
   let blue = turnPlayer.hand[^1]
-  case blue.cardKind
-  of Event: playEvent()
-  of News: playNews()
-  else: action = Drawn
+  case blue.cardKind:
+    of Event: playEvent()
+    of News: playNews()
+    else: action = Drawn
   updateTurnReportCards(@[blue],action)
   dec turn.undrawnBlues
   undrawnBluesUpdate()
