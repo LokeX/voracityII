@@ -8,7 +8,7 @@ import sugar
 import misc except reversed
 
 const
-  highwayVal* = 2000
+  highwayVal* = 12000
   valBar = 15000
   # posPercent = [1.0,0.5,0.5,0.5,0.5,0.5,0.5,0.25,0.24,0.22,0.20,0.18,0.15]
   posPercent = [1.0,0.3,0.3,0.3,0.3,0.3,0.3,0.15,0.14,0.12,0.10,0.08,0.05]
@@ -29,7 +29,8 @@ type
 #   tp.syncAll
 
 func countBars*(hypothetical:Hypothetic):int = 
-  hypothetical.pieces.countIt(it in bars)
+  hypothetical.pieces.countIt(it.isBar)
+  # hypothetical.pieces.countIt(it in bars)
 
 func piecesOn(hypothetical:Hypothetic,square:int):int =
   hypothetical.pieces.count(square)
@@ -48,15 +49,11 @@ func covers(pieceSquare,coverSquare:int):bool =
     if coverSquare in moveToSquares(pieceSquare,die):
       return true
 
-func remove(pieces:openArray[int],removePiece:int):seq[int] =
-  for idx,piece in pieces:
-    if piece == removePiece:
-      if idx < pieces.high: 
-        result.add pieces[idx+1..pieces.high]
-      return
-    result.add piece
+func remove(pieces:seq[int],removePiece:int):seq[int] =
+  result = pieces
+  result.del pieces.find removePiece
 
-func covers(pieces,squares:openArray[int],count:int):int = 
+func nrOfcovers(pieces,squares:seq[int],maxDepth:int,count:int):int = 
   var 
     coverPieces:seq[int]
     idx:int
@@ -68,23 +65,32 @@ func covers(pieces,squares:openArray[int],count:int):int =
   elif idx == squares.len:
     count+1
   else: 
-    var maxCovers:int
+    var coverDepth:int
     for coverPiece in coverPieces:
-      maxCovers = max(
-        maxCovers,
+      coverDepth = max(
+        coverDepth,
         pieces
           .remove(coverPiece)
-          # .exclude(coverPiece)
-          .covers(squares[idx..squares.high],count+1)
+          .nrOfcovers(squares[idx..squares.high],maxDepth,count+1)
       )
-    maxCovers
+      if coverDepth == maxDepth: 
+        break
+    coverDepth
 
-template covers(pieces,squares:untyped):untyped = 
-  pieces.covers(squares,0)
+template nrOfcovers*(pieces,squares:seq[int]):untyped = 
+  pieces.nrOfcovers(squares,squares.len,0)
+
+func covers(pieces,squares:seq[int]):bool = 
+  let coverPieces = pieces.filterIt it.covers squares[0]
+  if coverPieces.len == 0: 
+    false
+  elif squares.len == 1: 
+    true
+  else: coverPieces.anyIt pieces.remove(it).covers(squares[1..squares.high])
 
 # None recursive alternative to covers - DO NOT REMOVE
 
-# func covers(pieces,squares:openArray[int]):int = 
+# func covers(pieces,squares:seq[int]):int = 
 #   var 
 #     covers,nextCovers:seq[tuple[pieces,squares,usedPieces:seq[int],idx:int]]
 #     count:int
@@ -113,32 +119,47 @@ template covers(pieces,squares:untyped):untyped =
 #           )
 #   count
 
-func coversOneIn(pieces,squares:openArray[int]):bool =  
-  for piece in pieces:
-    for square in squares:
-      if piece.covers square:
-        return true
+func coversOneInMany(coverPieces,squares:seq[int],requiredSquare:int):bool = 
+  var pieces = coverPieces
+  if (let idx = pieces.find requiredSquare; idx > -1): pieces.del idx
+  else:
+    let requiredCovers = pieces.filterIt it.covers requiredSquare
+    case requiredCovers.len:
+      of 0: return false
+      of 1: pieces.del pieces.find requiredCovers[0]
+      else:discard
+  pieces.any piece => squares.anyIt piece.covers it
 
-func covers*(pieces:openArray[int],card:BlueCard):bool =
-  let nrOfCovers = pieces.covers card.squares.required
-  (card.squares.required.len == 0 or card.squares.required.len == nrOfCovers) and
-  (card.squares.oneInMany.len == 0 or pieces.coversOneIn(card.squares.oneInMany))
+func coverPieces(hypothetical:Hypothetic):seq[int] =
+  let nrAllowed = hypothetical.cash div piecePrice
+  var count = 0
+  for piece in hypothetical.pieces:
+    if piece == 0:
+      if count == nrAllowed:
+        continue
+      inc count
+    result.add piece
+
+func covers*(pieces:seq[int],card:BlueCard):bool =
+  (card.squares.oneInMany.len == 0 and 
+    pieces.covers(card.squares.required)) or 
+  (card.squares.oneInMany.len > 0 and 
+    pieces.coversOneInMany(card.squares.oneInMany,card.squares.required[0]))
 
 func cardVal(hypothetical:Hypothetic): int =
-  let coverCount = hypothetical.cards.countIt hypothetical.pieces.covers it
-  if (let val = 3 - coverCount; val > 0): 
-    val*30000 else: 0
+  let coverPieces = hypothetical.coverPieces
+  (3-hypothetical.cards.countIt(coverPieces.covers it))*30000
 
 func barVal*(hypothetical:Hypothetic):int = 
   valBar-(3000*hypothetical.countBars)+hypothetical.cardVal
-  
+
 func rewardValue(hypothetical:Hypothetic,card:BlueCard):int =
   let 
-    cashNeeded = cashToWin-(cashToWin-card.cash)
-  if cashNeeded < card.cash: 
-    cashNeeded #div lockedPosModifier
-  else: 
-    card.cash #div lockedPosModifier
+    deed = card.squares.required.len == 1
+    fd = hypothetical.cash < 10000
+    close = hypothetical.cash+card.cash > cashToWin
+    # adjust = if (fd or close) and deed: 10 else: 1
+  card.cash*(if (fd or close) and deed: 10 else: 1)
 
 func oneInMoreBonus(hypothetical:Hypothetic,blueCard:BlueCard,square:int):int =
   let 
@@ -152,7 +173,9 @@ func oneInMoreBonus(hypothetical:Hypothetic,blueCard:BlueCard,square:int):int =
       of 0:reward div 2
       of 1:reward
       else:0
-  elif hypothetical.piecesOn(requiredSquare) > 0: result = reward
+  elif hypothetical.piecesOn(requiredSquare) > 0: 
+    result = reward
+  else: result = reward div 2
 
 func blueVals(hypothetical:Hypothetic,squares:openArray[int]):array[12,int] =
   for card in hypothetical.cards:
@@ -174,28 +197,25 @@ func blueVals(hypothetical:Hypothetic,squares:openArray[int]):array[12,int] =
             result[squareIndexes[idx]] += bonus
     elif card.squares.oneInMany.len == 0:
       if (let idx = squares.find(card.squares.required[0]); idx > -1):
-        result[idx] += hypothetical.rewardValue(card)*2
+        result[idx] += hypothetical.rewardValue(card)
     else:
       for idx,square in squares:
         if (square == card.squares.required[0] or square in card.squares.oneInMany):
           result[idx] += hypothetical.oneInMoreBonus(card,square)
 
 func posPercentages(hypothetical:Hypothetic,squares:openArray[int]):array[12,float] =
-  var freePieces:int
+  var freePieces,freePiecesOnSquare:int
   for i,square in squares:
-    let freePiecesOnSquare = hypothetical.freePiecesOn square
-    if freePiecesOnSquare > 0:
+    freePiecesOnSquare = hypothetical.freePiecesOn square
+    if freePiecesOnSquare > 0: 
       freePieces += freePiecesOnSquare
-    if freePieces == 0:
+    if freePieces == 0: 
       result[i] = posPercent[i]
-    else:
-      result[i] = posPercent[i].pow freePieces.toFloat
+    else: result[i] = posPercent[i].pow freePieces.toFloat
 
 func squareNrs(square:int):array[12,int] =
-  var i:int
   for idx in square..<square+posPercent.high:
-    result[i] = adjustToSquareNr idx
-    inc i
+    result[idx-square] = adjustToSquareNr idx
 
 func evalSquare(hypothetical:Hypothetic,square:int):int =
   var squares = square.squareNrs
@@ -214,11 +234,12 @@ func evalPos*(hypothetical:Hypothetic):int =
     highwayEvals,gasstationEvals,evals:seq[int]
     hypo = hypothetical 
   let 
-    highwaySquares = hypothetical.pieces.filterIt it in highways
+    coverPieces = hypothetical.coverPieces
+    highwaySquares = hypothetical.pieces.filterIt it.isHighway
     ordSquares = hypothetical.pieces.filterIt it != 0 and it notin highwaySquares
-    removedCount = hypothetical.pieces.count 0
+    removedCount = coverPieces.count 0
   if hypo.cards.len > 1:
-    hypo.cards = hypothetical.cards.filterIt hypothetical.pieces.covers it
+    hypo.cards = hypothetical.cards.filterIt coverPieces.covers it
   evals.add ordSquares.mapIt hypo.evalSquare it
   if ordSquares.len < hypothetical.pieces.len:
     gasstationEvals = 
@@ -280,8 +301,9 @@ func friendlyFireBest(hypothetical:Hypothetic,move:Move):bool =
   
 func friendlyFireAdviced*(hypothetical:Hypothetic,move:Move):bool =
   move.fromSquare != 0 and
-  move.toSquare notIn highways and
-  move.toSquare notIn gasStations and
+  canKillPieceOn(move.toSquare) and
+  # move.toSquare notIn highways and
+  # move.toSquare notIn gasStations and
   hypothetical.piecesOn(move.toSquare) == 1 and 
   hypothetical.allPlayersPieces.countIt(it == move.toSquare) == 1 and
   hypothetical.requiredPiecesOn(move.toSquare) < 2 and
@@ -307,18 +329,18 @@ func bestMoveFrom(hypothetical:Hypothetic,generic:Move):Move =
     result = generic
     result.toSquare = squares[0]
     result.eval = hypothetical.evalMove(result.pieceNr,squares[0])
-    for i in 1..squares.high:  
+    for i in 1..squares.high:
       if (let eval = hypothetical.evalMove(result.pieceNr,squares[i]); eval > result.eval):
         (result.toSquare,result.eval) = (squares[i],eval)
-  
-func movesSeededWith(hypothetical:Hypothetic,dice:openArray[int]):seq[Move] =
+
+func genericMoves(hypothetical:Hypothetic,dice:openArray[int]):seq[Move] =
   for die in dice.deduplicate:
     for pieceNr,fromSquare in hypothetical.pieces.deduplicate:
       if fromSquare != 0 or hypothetical.cash >= piecePrice:
         result.add (pieceNr,die,fromSquare,0,0)
 
-func movesResolvedWith*(hypothetical:Hypothetic,dice:openArray[int]):seq[Move] =
-  for move in hypothetical.movesSeededWith dice:
+func moves*(hypothetical:Hypothetic,dice:openArray[int]):seq[Move] =
+  for move in hypothetical.genericMoves dice:
     for toSquare in moveToSquares(move.fromSquare,move.die):
       result.add move
       result[^1].toSquare = toSquare
@@ -332,16 +354,15 @@ func player*(hypothetical:Hypothetic,move:Move):Player =
   )
 
 # proc move*(hypothetical:Hypothetic,dice:openArray[int]):Move = 
-#   result = hypothetical.movesSeededWith(dice)
+#   result = hypothetical.genericMoves(dice)
 #     .map(genericMove => tp.spawn hypothetical.bestMoveFrom genericMove)
 #     .map(bestMove => sync bestMove)
 #     .reduce (a,b) => (if a.eval >= b.eval: a else: b)
 #   syncem
 
 proc move*(hypothetical:Hypothetic,dice:openArray[int]):Move = 
-  result = hypothetical.movesSeededWith(dice)
+  result = hypothetical.genericMoves(dice)
     .map(genericMove => hypothetical.bestMoveFrom genericMove)
-    # .map(bestMove => bestMove)
     .reduce (a,b) => (if a.eval >= b.eval: a else: b)
 
 proc bestDiceMoves*(hypothetical:Hypothetic):seq[Move] =
@@ -354,7 +375,7 @@ func allPlayersPieces(players:seq[Player]):seq[int] =
     result.add player.pieces
 
 func baseEvalBoard(hypothetical:Hypothetic):EvalBoard =
-  result[0] = 4000
+  result[0] = 24000
   for highway in highways: 
     result[highway] = highwayVal
   var value = hypothetical.barVal
@@ -371,29 +392,25 @@ proc boardInit(player:Player):EvalBoard =
     turn.nr
   )
  
-proc hypotheticalInit*(player:Player):Hypothetic = (
+proc hypotheticalInit*(player:Player,hand:seq[BlueCard]):Hypothetic = (
   player.boardInit,
   player.pieces,
   players.allPlayersPieces,
-  player.hand,
+  hand,
   player.cash,
   player.skipped
 )
 
-# proc sortBlues*(player:Player):seq[BlueCard] =
-#   var hypo = player.hypotheticalInit #.evalBlues
-#   hypo.cards = hypo.evalBlues
-#   if hypo.cards.len > 3: 
-#     hypo.sortUncoveredBlues
-#   else: hypo.cards
+template hypotheticalInit*(player:untyped):untyped =
+  player.hypotheticalInit player.hand
 
-func covers(player:Player,card:BlueCard):int =
+func coversDif(pieces:seq[int],card:BlueCard):int =
   var 
     coversRequired = card.squares.required.len
-    covers = player.pieces.covers card.squares.required
+    covers = pieces.nrOfcovers card.squares.required
   if card.squares.oneInMany.len > 0: 
     inc coversRequired
-    if player.pieces.coversOneIn card.squares.oneInMany:
+    if pieces.coversOneInMany(card.squares.oneInMany,card.squares.required[0]):
       inc covers
   covers-coversRequired
 
@@ -409,12 +426,14 @@ proc sortBlues*(player:Player):seq[BlueCard] =
     var 
       covered:seq[BlueCard]
       uncovered:seq[tuple[card:BlueCard,value:int]]
+      hypo = player.hypotheticalInit
+      coversDif:int
+    let coverPieces = hypo.coverPieces
     for card in player.hand:
-      let covers = player.covers card
-      if covers > -1: covered.add card
-      else: uncovered.add (card,covers)
-    if covered.len > 3:
-      var hypo = player.hypotheticalInit
+      coversDif = coverPieces.coversDif card
+      if coversDif > -1: covered.add card
+      else: uncovered.add (card,coversDif)
+    if covered.len > 3: 
       hypo.cards = covered
       covered = hypo.evalBlues
     result.add covered
@@ -431,7 +450,7 @@ proc sortBlues*(player:Player):seq[BlueCard] =
 
 func pieceNrsOnBars(player:Player):seq[int] =
   for nr,square in player.pieces:
-    if square in bars: result.add nr
+    if square.isBar: result.add nr
 
 proc eventMovesEval*(player:Player,event:BlueCard):seq[Move] =
   var hypothetical = player.hypotheticalInit

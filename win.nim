@@ -258,9 +258,8 @@ proc drawDynamicImage*[T](b:var Boxy,dynImg:DynamicImage[T]) =
     dynImg.update = false
   if dynImg.move != nil:
     var moveRect = dynImg.move() 
-    if dynImg.rect == moveRect: 
-      dynImg.move = nil
-      dynImg.rect = moveRect
+    if dynImg.rect == moveRect: dynImg.move = nil
+      # dynImg.rect = moveRect
     dynImg.center = moveRect.rectCenter
   if dynImg.rotate != nil:
     dynImg.angle = dynImg.rotate()

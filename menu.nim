@@ -4,20 +4,22 @@ import batch
 
 type
   Background* = tuple[name:string,img:Image]
-  MenuKind* = enum SetupMenu,GameMenu,NewGameMenu
+  MenuKind* = enum SetupMenu,GameMenu,LostGameMenu,WonGameMenu
 
 const
   ibmPlexSansCondensedSemiBold = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
   menuEntries = [
     SetupMenu: @["Start Game\n","Quit Voracity"],
     GameMenu: @["End Turn\n","New Game\n","Quit Voracity"],
-    NewGameMenu: @["New Game\n","Quit Voracity"],
+    LostGameMenu: @["New Game\n","Quit Voracity"],
+    WonGameMenu: @["New Game\n","Quit Voracity"],
   ]
 
 let
-  backgrounds*:array[3,Background] = [
+  backgrounds*:array[4,Background] = [
     ("skylines",readImage "pics\\2015-02-24-BestSkylines_11.jpg"),
     ("darkgrain",readImage "pics\\dark-wood-grain.jpg"),
+    ("loser",readImage "pics\\loser.jpg"),
     ("fireworks2",readImage "pics\\fireworks.jpg")
   ]
 

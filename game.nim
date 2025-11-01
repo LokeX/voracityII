@@ -14,6 +14,7 @@ type
     hoverSquare,fromSquare,toSquare:int
     toSquares:seq[int]
     event:bool
+  SquareKind = enum GasStation,Highway,Bar,Other
   Board* = array[61,tuple[nr:int,name:string]]
   PlayerColor* = enum Red,Green,Blue,Yellow,Black,White
   DieFace* = enum 
@@ -67,6 +68,22 @@ const
   gasStations* = [2,15,27,37,47]
   bars* = [1,16,18,20,28,35,40,46,51,54]
 
+func squareKinds:array[0..60,SquareKind] =
+  for idx in 0..60:
+    result[idx] =
+      if idx in highways:
+       Highway
+      elif idx in gasStations:
+        GasStation
+      elif idx in bars:
+        Bar
+      else: Other
+
+const
+  squareKind = squareKinds()
+
+randomize()
+
 proc newBoard*(path:string):Board =
   var count = 0
   result[0] = (0,"Removed")
@@ -80,11 +97,17 @@ var
   diceRoll*:Dice = [DieFace3,DieFace4]
   turn*:Turn
   blueDeck* = newDeck "decks\\blues.txt"
-  board* = newBoard "dat\\board.txt"
   playerKinds*:array[6,PlayerKind]
   playerHandles*:array[6,string]
   players*:seq[Player]
   moveSelection*:MoveSelection = (-1,-1,-1,@[],false)
+
+let
+  board* = newBoard "dat\\board.txt"
+
+func isBar*(square:int):bool = squareKind[square] == Bar
+func isGasStation*(square:int):bool = squareKind[square] == GasStation
+func isHighway*(square:int):bool = squareKind[square] == Highway
 
 func parseProtoCards(lines:sink seq[string]):seq[ProtoCard] =
   var 
@@ -123,7 +146,6 @@ func newBlueCards(protoCards:seq[ProtoCard]):seq[BlueCard] =
 proc newDeck*(path:string):Deck =
   result = Deck(fullDeck:path.lines.toSeq.parseProtoCards.newBlueCards)
   result.drawPile = result.fullDeck
-  randomize()
   result.drawPile.shuffle
   # echo result.drawPile.mapIt it.title&"\n"
 
@@ -163,7 +185,7 @@ func adjustToSquareNr*(adjustSquare:int):int =
   if adjustSquare > 60: adjustSquare - 60 else: adjustSquare
 
 func canKillPieceOn*(square:int):bool =
-  square notIn highways and square notIn gasStations
+  not square.isHighway and not square.isGasStation
 
 func moveToSquare(fromSquare:int,die:int):int = 
   adjustToSquareNr fromSquare+die
@@ -171,7 +193,7 @@ func moveToSquare(fromSquare:int,die:int):int =
 func moveToSquares*(fromSquare,die:int):seq[int] =
   if fromsquare != 0: result.add moveToSquare(fromSquare,die)
   else: result.add highways.mapIt moveToSquare(it,die)
-  if fromSquare in highways or fromsquare == 0:      
+  if fromSquare.isHighway or fromsquare == 0:      
     result.add gasStations.mapIt moveToSquare(it,die)
   result = result.filterIt(it != fromSquare).deduplicate
 
@@ -191,9 +213,9 @@ func moveToSquares*(fromSquare:int,dice:Dice):seq[int] =
 
 func diceMoved*(fromSquare,toSquare:int):bool =
   if fromSquare == 0:
-    tosquare notin gasStations and toSquare notin highways
-  elif fromSquare in highways:
-    toSquare notin gasStations
+    not tosquare.isGasStation and not toSquare.isHighway
+  elif fromSquare.isHighway:
+    not toSquare.isGasStation
   else: true
 
 func dieUsed*(fromSquare,toSquare:int,dice:Dice):int =
@@ -249,17 +271,24 @@ func piecesOn*(players:seq[Player],square:int):seq[tuple[playerNr,pieceNr:int]] 
     for pieceNr,piece in player.pieces:
       if piece == square: result.add (playerNr,pieceNr)
 
+func pieceOnSquare*(player:Player,square:int):int =
+  for i,piece in player.pieces:
+    if piece == square: return i
+
 func nrOfPiecesOn*(players:seq[Player],square:int):int =
   players.mapIt(it.pieces.countIt it == square).sum
 
 func nrOfPiecesOnBars*(player:Player): int =
-  player.pieces.countIt it in bars
+  player.pieces.countIt it.isBar
 
 func hasPieceOn*(player:Player,square:int):bool =
   for pieceSquare in player.pieces:
     if pieceSquare == square: return true
 
-func piecesOnBars*(player:Player):seq[int] = bars.filterIt player.hasPieceOn it
+func piecesOnBars*(player:Player):seq[int] = 
+  for square in player.pieces:
+    if square.isBar: result.add square
+    # bars.filterIt player.hasPieceOn it
 
 func requiredSquaresOk*(player:Player,plan:BlueCard):bool =
   plan.squares.required.deduplicate

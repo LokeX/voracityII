@@ -108,16 +108,17 @@ proc togglePlayerKind* =
     piecesImg.update = true
     updateStatsBatch()
 
-proc select*(square:int) =
-  if turnPlayer.hasPieceOn square:
-    moveSelection = (-1,square,-1,turnPlayer.movesFrom(square),false)
-    moveToSquaresPainter.context = moveSelection.toSquares
-    moveToSquaresPainter.update = true
-    # updatePieces = true
-    piecesImg.update = true
-    playSound "carstart-1"
+proc selectPiece*(square:int) =
+  if not turn.diceMoved or square == 0 or square.isHighway:
+    if turnPlayer.hasPieceOn square:
+      moveSelection = (-1,square,-1,turnPlayer.movesFrom(square),false)
+      moveToSquaresPainter.context = moveSelection.toSquares
+      moveToSquaresPainter.update = true
+      piecesImg.update = true
+      updateKeybar = true
+      playSound "carstart-1"
 
-proc leftMouse* =
+proc humanLeftMouse* =
   if turn.undrawnBlues > 0 and mouseOn drawPileArea: 
     drawCardFrom blueDeck
     playCashPlansTo blueDeck
@@ -125,22 +126,20 @@ proc leftMouse* =
   elif not isRollingDice():
     if (let square = mouseOnSquare(); square != -1): 
       if moveSelection.fromSquare == -1 or square notIn moveSelection.toSquares:
-        select square
-        updateKeybar = true
+        selectPiece square
       elif moveSelection.fromSquare != -1:
-        move square
+        movePiece square
     elif turnPlayer.hand.len > 3: 
       if (let slotNr = turnPlayer.mouseOnCardSlot; slotNr != -1):
         turnPlayer.hand.playTo blueDeck,slotNr
         turnPlayer.hand = turnPlayer.sortBlues
 
-proc rightMouse =
+proc humanRightMouse =
   if moveSelection.fromSquare != -1:
     moveSelection.fromSquare = -1
     piecesImg.update = true
   elif not showMenu:
     showMenu = true
-    # mainMenu.dynamicZoom 30
     mainMenu.zoom = zoomImage 15
   else: nextGameState()
 
@@ -170,14 +169,14 @@ proc mouse(m:KeyEvent) =
     if showMenu and mouseOnMenuSelection():
       menuSelection()
     elif turnPlayer.kind == Human:
-      leftMouse()
+      humanLeftMouse()
       if turn.nr > 0 and mouseOnDice() and mayReroll(): 
         startDiceRoll()
   elif m.rightMousePressed and batchInputNr == -1: 
     if turn.nr > 0 and turnPlayer.kind == Computer: 
       aiRightMouse()
     else:
-      rightMouse()
+      humanRightMouse()
     keybarPainter.update = true
 
 proc mouseMoved = 
@@ -246,8 +245,13 @@ proc configStartGame =
 proc configGameWon =
   writeGamestats()
   updateStatsBatch()
-  playSound "applause-2"
-  setMenuTo NewGameMenu
+  if turnPlayer.kind == Human:
+    playSound "applause-2"
+    setMenuTo WonGameMenu
+  else:
+    playSound "sad-trombone"
+    setMenuTo LostGameMenu
+
   updateKeybar = true
   showMenu = true
   turn.undrawnBlues = 0
@@ -264,7 +268,7 @@ proc selectBarMoveDest(selection:string) =
   elif entries.len == 1: 
     moveSelection.toSquare = dialogBarMoves[0].toSquare
     moveSelection.event = true
-    move moveSelection.toSquare
+    movePiece moveSelection.toSquare
 
 proc selectBar =
   showMenu = false

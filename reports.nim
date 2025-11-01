@@ -90,10 +90,10 @@ template batchSelected*:untyped =
 proc drawCursor*(b:var Boxy) =
   if turn.nr > 0 and showCursor:
     let
-      x = (playerBatches[turn.player].area.x2-40).toFloat
-      y = (playerBatches[turn.player].area.y1+10).toFloat
+      x = playerBatches[turn.player].center.x+50
+      y = playerBatches[turn.player].center.y-50
       cursor = Rect(x:x,y:y,w:20,h:20)
-    b.drawRect(cursor,contrastColors[players[turn.player].color])
+    b.drawRect(cursor,contrastColors[turnPlayer.color])
 
 proc mouseOnPlayerBatchNr*: int =
   result = -1

@@ -153,10 +153,6 @@ proc setupNewGame* =
   players = newDefaultPlayers()
   setConfigStateTo SetupGame
 
-func pieceOnSquare(player:Player,square:int):int =
-  for i,piece in player.pieces:
-    if piece == square: return i
-
 proc barToMassacre(player:Player,players:seq[Player]):int =
   if (let playerBars = turnPlayer.piecesOnBars; playerBars.len > 0):
     let 
@@ -192,7 +188,7 @@ proc playCashPlansTo*(deck:var Deck) =
       ).sum
       undrawnBluesUpdate()
 
-proc move*(square:int)
+proc movePiece*(square:int)
 proc eventMoveFmt*(move:Move):EventMoveFmt =
   ("from:"&board[move.fromSquare].name&" Nr. "&($board[move.fromSquare].nr)&"\n",
    "to:"&board[move.toSquare].name&" Nr. "&($board[move.toSquare].nr)&"\n")
@@ -206,7 +202,7 @@ proc endBarMoveSelection*(selection:string) =
   if (let toSquare = selection.splitWhitespace[^1].parseInt; toSquare != -1):
     moveSelection.toSquare = toSquare
     moveSelection.event = true
-    move moveSelection.toSquare
+    movePiece moveSelection.toSquare
 
 proc barMove(moveEvent:BlueCard):bool =
   dialogBarMoves = turnPlayer.eventMovesEval moveEvent
@@ -254,7 +250,7 @@ proc playEvent =
     of "Massacre": playMassacre()
     of "Deja vue": 
       if blueDeck.discardPile.len > 1: playDejaVue()
-    elif barMove event: move moveSelection.toSquare
+    elif barMove event: movePiece moveSelection.toSquare
   playCashPlansTo blueDeck
 
 proc drawCardFrom*(deck:var Deck) =
@@ -306,7 +302,7 @@ proc move* =
   updatePiecesPainter()
   updateKeybar = true
   playSound "driveBy"
-  if moveSelection.toSquare in bars:
+  if moveSelection.toSquare.isBar:
     inc turn.undrawnBlues
     undrawnBluesUpdate()
     playSound "can-open-1"
@@ -339,7 +335,7 @@ proc shouldKillEnemyOn(killer:Player,toSquare:int): bool =
       hostileFireAdviced = killer.hostileFireAdviced(moveSelection.fromSquare,toSquare)
       agroKill = rand(1..100) <= killer.agro div 5
       planChance = players[singlePiece.playerNr].cashChanceOn(toSquare,blueDeck)
-      barKill = toSquare in bars and (
+      barKill = toSquare.isBar and (
         killer.nrOfPiecesOnBars > 0 or players.len < 3
       )
     (planChance > 0.1*(players.len.toFloat/2)) or 
@@ -361,7 +357,7 @@ proc hasKillablePiece(square:int):bool =
   singlePiece = players.singlePieceOn square
   singlePiece.playerNr != -1 and canKillPieceOn square
 
-proc move(square:int) =
+proc movePiece(square:int) =
   moveSelection.toSquare = square
   if square.hasKillablePiece:
     if turnPlayer.kind == Human:
@@ -416,12 +412,7 @@ proc drawCards =
     drawCardFrom blueDeck
     playCashPlansTo blueDeck
   hypo.pieces = turnPlayer.pieces
-  # hypo.cards = turnPlayer.hand
   hypo.cards = turnPlayer.sortBlues
-  # hypo.cards = turnPlayer.hand
-  # if hypo.cards.len > 3:
-  #   hypo.cards = hypo.evalBlues
-  #   turnPlayer.hand = hypo.cards
   phase = Reroll
 
 proc reroll(hypothetical:Hypothetic):bool =
@@ -455,7 +446,7 @@ proc winningMove(hypothetical:Hypothetic,dice:openArray[int]):Move =
         if hypothetical.cashTotal(bestDiceMoves[idx]) >= cashToWin:
           return bestDiceMoves[idx]
   else: 
-    for move in hypothetical.movesResolvedWith dice:
+    for move in hypothetical.moves dice:
       if hypothetical.cashTotal(move) >= cashToWin: 
         return move
   result.pieceNr = -1
@@ -490,10 +481,16 @@ proc moveAi =
     if turnPlayer.skipped > 0: 
       turnPlayer.skipped = 0
     moveSelection.fromSquare = move.fromSquare
-    move move.toSquare
+    movePiece move.toSquare
   else:
     inc turnPlayer.skipped
     echo $turnPlayer.color," skips move"
+    echo "turn nr: ",turnPlayer.turnNr
+    echo "dice: ",diceRoll
+    echo "pieces: ",turnPlayer.pieces
+    echo "cards: ",turnPlayer.hand.mapIt it.title&"/"&($it.squares.required)
+    echo "covered: ",turnPlayer.hand.filterIt(turnPlayer.pieces.toSeq.covers it).mapIt it.title
+    # echo "covers: ",turnPlayer.hand.mapIt(turnPlayer.pieces.covers it.squares.required)
   phase = PostMove
 
 proc startTurn = 
@@ -525,7 +522,6 @@ proc rerollPhase =
 proc postMovePhase =
   moveSelection.fromSquare = -1
   drawCards()
-  # turnPlayer.hand = turnPlayer.sortBlues
   phase = EndTurn
 
 proc endTurn* = 
