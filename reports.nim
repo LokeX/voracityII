@@ -20,7 +20,6 @@ type
     fontSize:float
     padding:(int,int,int,int)
 
-
 const
   robotoRegular* = "fonts\\Roboto-Regular_1.ttf"
   killMatrixFont = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
@@ -75,7 +74,7 @@ var
   mouseOnBatchPlayerNr* = -1
   pinnedBatchNr* = -1
   inputBatch* = newBatch inputBatchInit
-  playerBatches*: array[6, Batch]
+  playerBatches*: array[6,Batch]
   showCursor*: bool
 
 template mouseOnBatchColor*:untyped = players[mouseOnBatchPlayerNr].color
@@ -129,14 +128,6 @@ proc playerBatchTxt(playerNr:int):seq[string] =
     "Cash: "&(insertSep($players[playerNr].cash, '.'))
   ]
 
-proc drawPlayerBatches*(b:var Boxy) =
-  for batchNr, _ in players:
-    if players[batchNr].update:
-      playerBatches[batchNr].setSpanTexts playerBatchTxt batchNr
-      playerBatches[batchNr].update = true
-      players[batchNr].update = false
-    b.drawBatch playerBatches[batchNr]
-
 proc batchSetup(playerNr:int):BatchSetup =
   let player = players[playerNr]
   result.name = $player.color
@@ -164,6 +155,14 @@ proc newPlayerBatches*:array[6,Batch] =
     result[playerNr] = setup.playerBatch yOffset
     result[playerNr].update = true
     result[playerNr].dynMove(Right, 30)
+
+proc drawPlayerBatches*(b:var Boxy) =
+  for batchNr, _ in players:
+    if players[batchNr].update:
+      playerBatches[batchNr].setSpanTexts playerBatchTxt batchNr
+      playerBatches[batchNr].update = true
+      players[batchNr].update = false
+    b.drawBatch playerBatches[batchNr]
 
 proc victims(killer:PlayerColor):seq[PlayerColor] =
   for report in turnReports:
@@ -346,6 +345,14 @@ proc statsBatchSpans:seq[Span] =
         newSpan("  |  ",robotoPurple),
         newSpan(stats.computerPercent&"%",robotoYellow),
       ]
+
+proc reportAnimationMoves*:seq[AnimationMove] =
+  if selectedBatchColor == turnPlayer.color:
+    result.add turnReport.moves.mapIt (it.fromSquare,it.toSquare)
+  elif selectedBatchColor.reports.len > 0: 
+    result.add selectedBatchColor
+    .reports[^1].moves
+    .mapIt (it.fromSquare,it.toSquare)
 
 proc updateStatsBatch* =
   statsBatch.setSpans statsBatchSpans()

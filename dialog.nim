@@ -28,19 +28,6 @@ var
   returnSelection:proc(s:string)
   square = -1
 
-proc startDialog*(entries:seq[string],selRange:HSlice[int,int],call:proc(s:string)) =
-  square = -1
-  dialogEntries = entries
-  menuBatchInit.entries = entries
-  menuBatchInit.selectionRange = selRange
-  dialogBatch = newBatch menuBatchInit
-  returnSelection = call
-  pushCalls()
-  excludeInputCallsExcept thisDialog
-  dialogBatch.isActive = true
-  dialogBatch.update = true
-  dialogBatch.dynMove(Up,13)
-
 proc endDialog(selected:string) =
   square = -1
   dialogBatch.isActive = false
@@ -56,7 +43,7 @@ proc keyboard(k:KeyboardEvent) =
     endDialog dialogEntries[dialogBatch.selection].strip
   else: k.batchKeyb dialogBatch
 
-proc mouse(m:KeyEvent) =
+proc mouseClicked(m:KeyEvent) =
   if dialogBatch.isActive and m.leftMousePressed and dialogBatch.mouseOnSelectionArea != -1:
     dialogBatch.mouseSelect
     endDialog dialogEntries[dialogBatch.selection].strip
@@ -81,8 +68,22 @@ var
     reciever:thisDialog,
     draw:draw,
     keyboard:keyboard,
-    mouse:mouse,
+    mouseClick:mouseClicked,
     mouseMoved:mouseMoved,
     active:false
   )
+
+proc startDialog*(entries:seq[string],selRange:HSlice[int,int],call:proc(s:string)) =
+  square = -1
+  dialogEntries = entries
+  menuBatchInit.entries = entries
+  menuBatchInit.selectionRange = selRange
+  dialogBatch = newBatch menuBatchInit
+  returnSelection = call
+  pushCalls()
+  # addCall dialogCall
+  excludeInputCallsExcept thisDialog
+  dialogBatch.isActive = true
+  dialogBatch.update = true
+  dialogBatch.dynMove(Up,13)
 

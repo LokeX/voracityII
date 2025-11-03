@@ -18,14 +18,6 @@ import os
 import stat
 import cards
 
-proc reportAnimationMoves:seq[AnimationMove] =
-  if selectedBatchColor == turnPlayer.color:
-    result.add turnReport.moves.mapIt (it.fromSquare,it.toSquare)
-  elif selectedBatchColor.reports.len > 0: 
-    result.add selectedBatchColor
-    .reports[^1].moves
-    .mapIt (it.fromSquare,it.toSquare)
-
 proc draw(b:var Boxy) =
   frames += 1
   if oldBg != -1: b.drawImage(backgrounds[oldBg].name,oldBgRect)
@@ -148,7 +140,7 @@ proc aiRightMouse* =
     if showMenu: 
       endTurn()
 
-proc mouse(m:KeyEvent) =
+proc mouseClicked(m:KeyEvent) =
   if mouseOnBatchPlayerNr != -1:
     if turn.nr > 0: pinnedBatchNr = mouseOnBatchPlayerNr
   else: 
@@ -234,13 +226,11 @@ proc configSetupGame =
   setMenuTo SetupMenu
   showMenu = true
   playSound "carhorn-1"
-  # configState = None
 
 proc configStartGame =
   playerBatches = newPlayerBatches()
   setMenuTo GameMenu
   showMenu = false
-  # configState = None
 
 proc configGameWon =
   writeGamestats()
@@ -251,11 +241,9 @@ proc configGameWon =
   else:
     playSound "sad-trombone"
     setMenuTo LostGameMenu
-
   updateKeybar = true
   showMenu = true
   turn.undrawnBlues = 0
-  # configState = None
 
 proc selectBarMoveDest(selection:string) =
   let 
@@ -386,7 +374,7 @@ var
   call = Call(
     reciever:"voracity",
     draw:draw,
-    mouse:mouse,
+    mouseClick:mouseClicked,
     mouseMoved:mouseMoved,
     keyboard:keyboard,
     cycle:cycle,

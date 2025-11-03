@@ -43,7 +43,7 @@ type
     active* = true
     mouseMoved*:proc()
     keyboard*:proc(keyboard:KeyboardEvent)
-    mouse*:proc(mouse:KeyEvent)
+    mouseClick*:proc(mouse:KeyEvent)
     draw*:proc(boxy:var Boxy)
     cycle*:proc()
     timer*:TimerCall
@@ -85,7 +85,8 @@ proc pushCalls* =
 proc popCalls* =
   calls = pushedCalls
 
-proc addCall*(call:Call) = calls.add(call)
+proc addCall*(call:Call) = 
+  calls.add(call)
 
 proc excludeInputCallsExcept*(reciever:string) =
   for call in calls.mitems:
@@ -296,8 +297,8 @@ proc callBack(button:Button) =
   for call in calls:
     if call.active:
       if button.isMouseKey:
-        if call.mouse != nil: 
-          call.mouse(newKeyEvent(button))
+        if call.mouseClick != nil: 
+          call.mouseClick(newKeyEvent(button))
       elif call.keyboard != nil: 
         call.keyboard(newKeyboardEvent(button,"¤".toRunes[0]))
 
@@ -341,7 +342,6 @@ proc callTimers* =
 template runWinWith*(body:untyped) =
   window.visible = true
   while not window.closeRequested:
-    # sleep 5
     pollEvents()
     body
 

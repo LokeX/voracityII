@@ -89,7 +89,8 @@ proc paintUndrawnBlues:Image =
   ctx.font = fjallaOneRegular
   ctx.fontSize = 160
   ctx.fillStyle = color(1,1,0)
-  ctx.fillText($turn.undrawnBlues,20,160)
+  let width = ctx.measureText($turn.undrawnBlues).width
+  ctx.fillText($turn.undrawnBlues,(110-width)/2,160)
   ctx.image
 
 var

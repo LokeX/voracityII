@@ -1,0 +1,89 @@
+{
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Run Voracity for release",
+      "type": "process",
+      "command": "nim",
+      "args": [
+        "c",
+        "-r",
+        // "-d:useMalloc",
+        "-d:release",
+        "--mm:markAndSweep",
+        // "--app:gui",
+        // "--opt:speed",
+        // "--floatChecks:off",
+        // "--overflowChecks:off",
+        // "--nanChecks:off",
+        // "--infChecks:off",
+        // "--objChecks:off",
+        // "--excessiveStackTrace:on",
+        // "--parallelBuild:6",
+        // "--warning:all:off",
+        "voracity.nim"
+      ],
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Run Voracity",
+      "type": "process",
+      "command": "nim",
+      "args": [
+        "c",
+        "-r",
+        "--opt:speed",
+        "--floatChecks:off",
+        "--overflowChecks:off",
+        "--nanChecks:off",
+        "--infChecks:off",
+        "--objChecks:off",
+        "--excessiveStackTrace:on",
+        "--parallelBuild:6",
+        "--warning:all:off",
+        "voracity.nim"
+      ],
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      }
+    },
+    {
+      "label": "Compile Voracity",
+      "type": "process",
+      "command": "nim",
+      "args": [
+        "c",
+        "-d:release",
+        "voracity.nim"
+      ],
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      }
+    },
+    {
+      "label": "nim: build current file (for debugging)",
+      "command": "nim",
+      "args": [
+        "compile",
+        "-g",
+        "--debugger:native",
+        "-o:${workspaceRoot}/bin/${fileBasenameNoExtension}",
+        "${relativeFile}"
+      ],
+      "options": {
+        "cwd": "${workspaceRoot}"
+      },
+      "type": "shell"
+    }
+  ]
+}
