@@ -234,6 +234,7 @@ proc resetMatchingStats* =
 when isMainModule:
   import times
   import algorithm
+
   proc getParams:seq[int] =
     for prm in commandLineParams():
       try: result.add prm.parseInt
@@ -292,6 +293,7 @@ when isMainModule:
     result.add "avgTurns: "
     result.add formatFloat(float(stats.turns)/float(stats.games),ffDecimal,2)&"\n"
 
+  initGame()
   for i in 0..playerKinds.high:
     if i < settings.nrOfPlayers:
       playerKinds[i] = Computer

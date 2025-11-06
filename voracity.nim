@@ -11,12 +11,13 @@ import sugar
 import reports
 import sequtils
 import misc
-import random
+# import random
 import eval
 import strutils
 import os
 import stat
 import cards
+import board
 
 proc draw(b:var Boxy) =
   frames += 1
@@ -35,6 +36,7 @@ proc draw(b:var Boxy) =
   if batchInputNr != -1: b.drawBatch inputBatch
   if showVolume > 0: b.drawImage(volumeImg,vec2(750,15))
   if turn.nr > 0:
+    b.drawSquareText
     if mouseOn squares[0].dims.area: b.drawKillMatrix
     b.doMoveAnimation
     b.drawCursor
@@ -100,16 +102,6 @@ proc togglePlayerKind* =
     piecesImg.update = true
     updateStatsBatch()
 
-proc selectPiece*(square:int) =
-  if not turn.diceMoved or square == 0 or square.isHighway:
-    if turnPlayer.hasPieceOn square:
-      moveSelection = (-1,square,-1,turnPlayer.movesFrom(square),false)
-      moveToSquaresPainter.context = moveSelection.toSquares
-      moveToSquaresPainter.update = true
-      piecesImg.update = true
-      updateKeybar = true
-      playSound "carstart-1"
-
 proc humanLeftMouse* =
   if turn.undrawnBlues > 0 and mouseOn drawPileArea: 
     drawCardFrom blueDeck
@@ -172,6 +164,7 @@ proc mouseClicked(m:KeyEvent) =
     keybarPainter.update = true
 
 proc mouseMoved = 
+  mouseSquare = mouseOnSquare()
   let batchNr = mouseOnPlayerBatchNr()
   if altPressed: 
     if batchNr != -1: mouseOnBatchPlayerNr = batchNr
@@ -325,6 +318,7 @@ proc cycle =
     aiTakeTurnPhase()
 
 proc timer = 
+  if squareTimer > 0: dec squareTimer
   if showVolume > 0: showVolume -= 0.4
   showCursor = not showCursor
   if turn.nr > 0 and not moveAnimation.active and mouseOnBatchPlayerNr != -1:
@@ -333,17 +327,6 @@ proc timer =
           startMovesAnimations(mouseOnBatchColor,moves)
   # echo frames*2.5
   frames = 0
-
-proc playerKindsFromFile:seq[PlayerKind] =
-  try:
-    readFile(kindFile)
-    .split("@[,]\" ".toRunes)
-    .filterIt(it.len > 0)
-    .mapIt(PlayerKind(PlayerKind.mapIt($it).find(it)))
-  except: defaultPlayerKinds
-
-proc playerKindsToFile*(playerKinds:openArray[PlayerKind]) =
-  writeFile(kindFile,$playerKinds.mapIt($it))
 
 proc settingsToFile =
   let f = open(settingsFile,fmWrite)
@@ -371,7 +354,7 @@ proc timerCall:TimerCall =
   TimerCall(call:timer,lastTime:cpuTime(),secs:0.4)
 
 var
-  call = Call(
+  voracityCall = Call(
     reciever:"voracity",
     draw:draw,
     mouseClick:mouseClicked,
@@ -381,7 +364,7 @@ var
     timer:timerCall()
   )
 
-template hookUpGamePlayInterface =
+template initPlay =
   configState = setConfigState
   killDialog = startKillDialog
   runSelectBar = selectBar
@@ -395,23 +378,20 @@ template hookUpGamePlayInterface =
   resetReportsUpdate = resetReports
   runMoveAnimation = animateMove
 
-hookUpGamePlayInterface()
-blueDeck.initGraphics
+template initSettings =
+  if fileExists(settingsFile): 
+    settingsFromFile()
+  else: settingsToFile()
+
+initGame()
+initPlay()
 initGraphics()
-randomize()
-for i,kind in playerKindsFromFile(): 
-  playerKinds[i] = kind
-initPlayers()
-playerBatches = newPlayerBatches()
-reportBatches = initReportBatches()
-readGameStatsFrom statsFile
-updateStatsBatch()
-if fileExists(settingsFile): 
-  settingsFromFile()
-else: settingsToFile()
-echo gameStats.len
+initBoard()
+initCards()
+initReports()
+initSettings()
 setVolume vol
-addCall call
+addCall voracityCall
 addCall dialogCall 
 window.onCloseRequest = quitVoracity
 window.icon = readImage "pics\\BarMan.png"

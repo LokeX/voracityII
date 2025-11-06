@@ -243,7 +243,7 @@ func evalPos*(hypothetical:Hypothetic):int =
   evals.add ordSquares.mapIt hypo.evalSquare it
   if ordSquares.len < legalPieces.len:
     gasstationEvals = 
-      gasStations.filterIt(it notin hypo.pieces).mapIt hypo.evalSquare it
+      gasStations.mapIt hypo.evalSquare it
     if removedCount > 0: highwayEvals = highways.mapIt hypo.evalSquare it
   for highwaySquare in highwaySquares:
     let 

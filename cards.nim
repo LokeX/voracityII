@@ -3,6 +3,7 @@ import win
 import batch
 import game
 import play
+import board
 import reports
 import sequtils
 import strutils
@@ -66,7 +67,6 @@ const
     opacity:25,
     border:(5,10,color(1,1,1)),
   )
-
 
 let
   deedbg = readImage "pics\\deedbg.jpg"
@@ -314,10 +314,11 @@ proc paintIconsOn(card:BlueCard,img:var Image,squares:BoardSquares) =
   for idx,squareNr in cardSquares:
     let icon = squares[squareNr].paintIcon
     img.draw(icon,translate vec2(x,y))
-    x += icon.width.toFloat*1.5
+    # x += icon.width.toFloat*1.5
     if idx == 1:
       x = x_offset+(if cardSquares.len == 3: 45 else: 0)
       y += icon.height.toFloat*1.5
+    else: x += icon.width.toFloat*1.5
  
 proc paintBlue(card:BlueCard,squares:BoardSquares):Image =
   let borderSize = 1.0
@@ -327,11 +328,6 @@ proc paintBlue(card:BlueCard,squares:BoardSquares):Image =
   if (card.cardKind notin [Event,News]) or card.moveSquares[^1] notin [0, -1]:
     card.paintIconsOn(result,squares)
   card.paintTextBoxOn(result,squares)
-
-proc initGraphics*(deck:Deck) =
-  addImage("blueback",blueBack)
-  for idx,img in deck.fullDeck.mapIt it.paintBlue squares:
-    addImage(deck.fullDeck[idx].title,img)
 
 func nrOfslots(nrOfCards: int):int =
   for i,capacity in slotCapacities:
@@ -486,4 +482,8 @@ proc drawCardsFooter*(b:var Boxy) =
       cardsFooter.update = true
     b.drawDynamicImage cardsFooter
 
+template initCards* =
+  addImage("blueback",blueBack)
+  for idx,img in blueDeck.fullDeck.mapIt it.paintBlue squares:
+    addImage(blueDeck.fullDeck[idx].title,img)
 

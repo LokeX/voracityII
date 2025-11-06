@@ -7,6 +7,7 @@ import graphics
 import misc
 import play
 import stat
+import board
 
 type 
   KillMatrix = array[PlayerColor,array[PlayerColor,int]]
@@ -21,7 +22,9 @@ type
     padding:(int,int,int,int)
 
 const
-  robotoRegular* = "fonts\\Roboto-Regular_1.ttf"
+  fjallaOneRegular* = "fonts\\FjallaOne-Regular.ttf"
+  kalam = "fonts\\Kalam-Bold.ttf"
+  robotoRegular = "fonts\\Roboto-Regular_1.ttf"
   killMatrixFont = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
   reportFont = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
   (rbx,rby) = (450,280)
@@ -372,3 +375,8 @@ proc drawStats*(b:var Boxy) =
 template mouseOnStatsBatch*:bool =
   mouseOn statsBatch
 
+template initReports* =
+  playerBatches = newPlayerBatches()
+  reportBatches = initReportBatches()
+  readGameStatsFrom statsFile
+  updateStatsBatch()

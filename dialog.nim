@@ -2,7 +2,7 @@ import batch
 import game
 import strutils
 import win except strip,splitWhitespace
-from graphics import moveToSquaresPainter
+from board import moveToSquaresPainter
 
 const
   thisDialog = "dialog"

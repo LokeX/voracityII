@@ -11,7 +11,7 @@ type
   CashedCards* = seq[tuple[title:string,count:int]]  
   PlayedCard* = enum Drawn,Played,Cashed,Discarded
   MoveSelection* = tuple
-    hoverSquare,fromSquare,toSquare:int
+    fromSquare,toSquare:int
     toSquares:seq[int]
     event:bool
   SquareKind = enum GasStation,Highway,Bar,Other
@@ -56,7 +56,8 @@ type
     undrawnBlues:int
 
 const
-  kindFile* = "dat\\playerkinds.cfg"
+  playerKindStrs = PlayerKind.mapIt $it
+  playerKindFile* = "dat\\playerkinds.cfg"
   handlesFile = "dat\\handles.txt"
   
   defaultPlayerKinds* = @[Human,Computer,None,None,None,None]
@@ -82,7 +83,18 @@ func squareKinds:array[0..60,SquareKind] =
 const
   squareKind = squareKinds()
 
-randomize()
+
+var 
+  board*:Board
+  blueDeck*:Deck
+  # board* = newBoard "dat\\board.txt"
+  # blueDeck* = newDeck "decks\\blues.txt"
+  diceRoll*:Dice = [DieFace3,DieFace4]
+  turn*:Turn
+  playerKinds*:array[6,PlayerKind]
+  playerHandles*:array[6,string]
+  players*:seq[Player]
+  moveSelection*:MoveSelection = (-1,-1,@[],false)
 
 proc newBoard*(path:string):Board =
   var count = 0
@@ -91,19 +103,8 @@ proc newBoard*(path:string):Board =
     inc count
     result[count] = (count,name)
 
-proc newDeck*(path:string):Deck
+# proc newDeck*(path:string):Deck
 
-var 
-  diceRoll*:Dice = [DieFace3,DieFace4]
-  turn*:Turn
-  blueDeck* = newDeck "decks\\blues.txt"
-  playerKinds*:array[6,PlayerKind]
-  playerHandles*:array[6,string]
-  players*:seq[Player]
-  moveSelection*:MoveSelection = (-1,-1,-1,@[],false)
-
-let
-  board* = newBoard "dat\\board.txt"
 
 func isBar*(square:int):bool = squareKind[square] == Bar
 func isGasStation*(square:int):bool = squareKind[square] == GasStation
@@ -366,7 +367,25 @@ proc playerHandlesFromFile:array[6,string] =
         result[count] = lineStrip
       inc count
 
-proc initPlayers* =
+proc playerKindsFromFile:seq[PlayerKind] =
+  try:
+    playerKindFile.readFile.splitLines
+    .mapIt(PlayerKind(playerKindStrs.find(it)))
+  except: defaultPlayerKinds
+
+proc playerKindsToFile*(playerKinds:openArray[PlayerKind]) =
+  playerKindFile.writeFile(playerKinds.mapIt($it).join "\n")
+
+# proc initPlayers* =
+#   for i,kind in playerKindsFromFile(): playerKinds[i] = kind
+#   playerHandles = playerHandlesFromFile()
+#   players = newDefaultPlayers()
+
+template initGame* =
+  randomize()
+  board = newBoard "dat\\board.txt"
+  blueDeck = newDeck "decks\\blues.txt"
+  for i,kind in playerKindsFromFile(): playerKinds[i] = kind
   playerHandles = playerHandlesFromFile()
   players = newDefaultPlayers()
 
