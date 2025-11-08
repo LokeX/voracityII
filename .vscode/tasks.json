@@ -12,7 +12,7 @@
         "-r",
         // "-d:useMalloc",
         "-d:release",
-        "--mm:markAndSweep",
+        // "--mm:markAndSweep",
         // "--app:gui",
         // "--opt:speed",
         // "--floatChecks:off",
@@ -20,7 +20,7 @@
         // "--nanChecks:off",
         // "--infChecks:off",
         // "--objChecks:off",
-        // "--excessiveStackTrace:on",
+        "--excessiveStackTrace:on",
         // "--parallelBuild:6",
         // "--warning:all:off",
         "voracity.nim"

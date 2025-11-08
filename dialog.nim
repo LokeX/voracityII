@@ -1,14 +1,10 @@
+import win
 import batch
-import game
-import strutils
-import win except strip,splitWhitespace
-from board import moveToSquaresPainter
+import sugar
 
 const
   thisDialog = "dialog"
   robotoRegular* = "fonts\\Roboto-Regular_1.ttf"
-
-var 
   selectorBorder*:Border = (0,10,color(1,0,0))
   menuBatchInit* = BatchInit(
     kind:MenuBatch,
@@ -23,14 +19,15 @@ var
     border:(0,15,color(1,1,1)),
     shadow:(15,1.5,color(255,255,255,150))
   )
-  dialogEntries:seq[string]
-  dialogBatch:Batch
+
+var 
+  dialogBatch* = newBatch menuBatchInit
   returnSelection:proc(s:string)
-  square = -1
+  dialogOnMouseMoved*:proc()
 
 proc endDialog(selected:string) =
-  square = -1
   dialogBatch.isActive = false
+  dialogOnMouseMoved = nil
   popCalls()
   returnSelection selected
 
@@ -40,28 +37,19 @@ proc draw(b:var Boxy) =
 
 proc keyboard(k:KeyboardEvent) = 
   if dialogBatch.isActive and k.pressedIs KeyEnter:
-    endDialog dialogEntries[dialogBatch.selection].strip
+    endDialog dialogBatch.stringSelection
   else: k.batchKeyb dialogBatch
 
 proc mouseClicked(m:KeyEvent) =
   if dialogBatch.isActive and m.leftMousePressed and dialogBatch.mouseOnSelectionArea != -1:
     dialogBatch.mouseSelect
-    endDialog dialogEntries[dialogBatch.selection].strip
+    endDialog dialogBatch.stringSelection
 
 proc mouseMoved =
   if dialogBatch.isActive and mouseOn dialogBatch:
     dialogBatch.mouseSelect
-    let selectedSquare = try: 
-      dialogEntries[dialogBatch.selection]
-      .splitWhitespace[^1]
-      .parseInt 
-    except: -1
-    if selectedSquare notin [-1,square]:
-      square = selectedSquare
-      moveToSquaresPainter.context = @[square]
-      moveToSquaresPainter.update = true
-      if dialogEntries[dialogBatch.selection].startsWith "from":
-        moveSelection.fromSquare = square #yeah, it's a hack
+    if dialogOnMouseMoved != nil:
+      dialogOnMouseMoved()
 
 var 
   dialogCall* = Call(
@@ -70,20 +58,25 @@ var
     keyboard:keyboard,
     mouseClick:mouseClicked,
     mouseMoved:mouseMoved,
-    active:false
+    active:true
   )
 
 proc startDialog*(entries:seq[string],selRange:HSlice[int,int],call:proc(s:string)) =
-  square = -1
-  dialogEntries = entries
-  menuBatchInit.entries = entries
-  menuBatchInit.selectionRange = selRange
-  dialogBatch = newBatch menuBatchInit
+  dialogBatch.resetMenu(entries,selRange)
   returnSelection = call
   pushCalls()
-  # addCall dialogCall
-  excludeInputCallsExcept thisDialog
+  excludeInputCalls()
+  addCall dialogCall
   dialogBatch.isActive = true
   dialogBatch.update = true
   dialogBatch.dynMove(Up,13)
+
+proc really*(title:string,answer:string -> void) =
+  let entries = @[
+    "Really "&title&"\n",
+    "\n",
+    "Yes\n",
+    "No",
+  ]
+  startDialog(entries,2..3,answer)
 

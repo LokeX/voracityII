@@ -153,11 +153,11 @@ proc setupNewGame* =
   players = newDefaultPlayers()
   setConfigStateTo SetupGame
 
-proc barToMassacre(player:Player,players:seq[Player]):int =
+proc barToMassacre(player:Player,allPlayers:seq[Player]):int =
   if (let playerBars = turnPlayer.piecesOnBars; playerBars.len > 0):
     let 
-      maxPieces = playerBars.mapIt(players.nrOfPiecesOn it).max
-      barsWithMaxPieces = playerBars.filterIt(players.nrOfPiecesOn(it) == maxPieces)
+      maxPieces = playerBars.mapIt(allPlayers.nrOfPiecesOn it).max
+      barsWithMaxPieces = playerBars.filterIt(allPlayers.nrOfPiecesOn(it) == maxPieces)
       chosenBar = barsWithMaxPieces[rand 0..barsWithMaxPieces.high]
     chosenBar
   else: -1

@@ -404,6 +404,11 @@ proc newBatch*(batchInit:BatchInit):Batch =
 proc selection*(batch:Batch):int = 
   if batch.kind == MenuBatch: batch.selector.selection else: -1
 
+proc stringSelection*(batch:Batch):string =
+  if batch.kind == MenuBatch:
+    batch.text.spans.mapIt(it.text)[batch.selection].strip
+  else: "error batch is not MenuBatch"
+
 proc input*(batch:Batch):string =
   if batch.kind == InputBatch: 
     batch.text.spans[^1].text
@@ -420,6 +425,7 @@ proc resetMenu*(batch:Batch,entries:seq[string],selectionRange:HSlice[int,int]) 
     batch.setDimensions
     batch.selector.selectionRange = selectionRange
     batch.selector.selection = selectionRange.a
+    batch.selector.img = batch.paintSelector()
     batch.selector.selectionAreas = batch.computeSelectionAreas()
   else: echo "error, cannot resetSpanTexts: batch is not MenuBatch"
 

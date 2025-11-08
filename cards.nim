@@ -43,6 +43,20 @@ const
   slotCapacities = [8,18,32,50,72,98,128]
   initPosDim = Rect(x:1580.0,y:50.0,w:cardWidth,h:cardHeight)
   cardSlotsX = initPosDim.buildCardSlots
+
+let
+  deedbg = readImage "pics\\deedbg.jpg"
+  planbg = readImage "pics\\bronze_plates.jpg"
+  jobbg = readImage "pics\\silverback.jpg"
+  missionbg = readImage "pics\\mission.jpg"
+  blueBack = readImage "pics\\blueback.jpg"
+  roboto = readTypeface "fonts\\Roboto-Regular_1.ttf"
+  point = readTypeface "fonts\\StintUltraCondensed-Regular.ttf"
+  ibmplex = readTypeFace "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
+  asap = readTypeface "fonts\\AsapCondensed-Bold.ttf"
+  whiteAsap16 = setNewFont(asap,size = 20,color = color(1,1,0))
+  blackAsap16 = setNewFont(asap,size = 20,color = color(0,0,0))
+
   headerInit = BatchInit(
     kind:TextBatch,
     name:"header",
@@ -68,22 +82,6 @@ const
     border:(5,10,color(1,1,1)),
   )
 
-let
-  deedbg = readImage "pics\\deedbg.jpg"
-  planbg = readImage "pics\\bronze_plates.jpg"
-  jobbg = readImage "pics\\silverback.jpg"
-  missionbg = readImage "pics\\mission.jpg"
-  blueBack = readImage "pics\\blueback.jpg"
-  roboto = readTypeface "fonts\\Roboto-Regular_1.ttf"
-  point = readTypeface "fonts\\StintUltraCondensed-Regular.ttf"
-  ibmplex = readTypeFace "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
-  asap = readTypeface "fonts\\AsapCondensed-Bold.ttf"
-  whiteAsap16 = setNewFont(asap,size = 20,color = color(1,1,0))
-  blackAsap16 = setNewFont(asap,size = 20,color = color(0,0,0))
-
-  cardsHeader = newBatch headerInit
-  cardsFooter = newBatch footerInit
-
 proc paintUndrawnBlues:Image =
   var ctx = newImage(110,180).newContext
   ctx.font = fjallaOneRegular
@@ -94,6 +92,8 @@ proc paintUndrawnBlues:Image =
   ctx.image
 
 var
+  cardsHeader = newBatch headerInit
+  cardsFooter = newBatch footerInit
   altPressed*:bool
   pinnedCards*:Pinned
   reveal*:bool

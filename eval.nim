@@ -50,8 +50,19 @@ func covers(pieceSquare,coverSquare:int):bool =
       return true
 
 func remove(pieces:seq[int],removePiece:int):seq[int] =
-  result = pieces
-  result.del pieces.find removePiece
+  for idx,piece in pieces:
+    if piece == removePiece:
+      if idx < pieces.high:
+        result.add pieces[idx+1..pieces.high]
+      return
+    else: result.add piece
+
+  # result = pieces
+  # result.del pieces.find removePiece
+
+# func remove(pieces:seq[int],removePiece:int):seq[int] =
+#   result = pieces
+#   result.del pieces.find removePiece
 
 func nrOfcovers(pieces,squares:seq[int],maxDepth:int,count:int):int = 
   var 
@@ -77,7 +88,7 @@ func nrOfcovers(pieces,squares:seq[int],maxDepth:int,count:int):int =
         break
     coverDepth
 
-template nrOfcovers*(pieces,squares:seq[int]):untyped = 
+template nrOfcovers*(pieces,squares:untyped):untyped = 
   pieces.nrOfcovers(squares,squares.len,0)
 
 func covers(pieces,squares:seq[int]):bool = 
@@ -86,7 +97,10 @@ func covers(pieces,squares:seq[int]):bool =
     false
   elif squares.len == 1: 
     true
-  else: coverPieces.anyIt pieces.remove(it).covers(squares[1..squares.high])
+  else: coverPieces.anyIt(
+    pieces.remove(it)
+      .covers(squares[1..squares.high])
+  )
 
 # None recursive alternative to covers - DO NOT REMOVE
 

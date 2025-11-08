@@ -1,60 +1,60 @@
-Bar Nr.1: 94
+Bar Nr.1: 95
 Gas Station Nr.2: 11
-Bank Nr.3: 72
-Town Hall Nr.4: 443
-Highway Nr.5: 168
-Barracks Nr.6: 410
-Church Nr.7: 291
-Villa Nr.8: 283
-Embassey Nr.9: 210
-Courthouse Nr.10: 309
-Airport Nr.11: 316
-Casino Nr.12: 153
-Jeweler Nr.13: 175
-Bank Nr.14: 52
-Gas Station Nr.15: 41
-Bar Nr.16: 430
-Highway Nr.17: 135
-Bar Nr.18: 134
-Disco Nr.19: 292
-Bar Nr.20: 276
-Brothel Nr.21: 614
-Realestate Nr.22: 164
+Bank Nr.3: 73
+Town Hall Nr.4: 458
+Highway Nr.5: 176
+Barracks Nr.6: 418
+Church Nr.7: 296
+Villa Nr.8: 286
+Embassey Nr.9: 211
+Courthouse Nr.10: 317
+Airport Nr.11: 324
+Casino Nr.12: 155
+Jeweler Nr.13: 178
+Bank Nr.14: 54
+Gas Station Nr.15: 43
+Bar Nr.16: 440
+Highway Nr.17: 141
+Bar Nr.18: 136
+Disco Nr.19: 297
+Bar Nr.20: 282
+Brothel Nr.21: 627
+Realestate Nr.22: 167
 Shop Nr.23: 35
-Bank Nr.24: 33
-Hospital Nr.25: 208
-Undertaker Nr.26: 176
+Bank Nr.24: 34
+Hospital Nr.25: 213
+Undertaker Nr.26: 180
 Gas Station Nr.27: 22
-Bar Nr.28: 120
-Highway Nr.29: 120
-McLeans Nr.30: 640
-Condo Nr.31: 86
-Condo Nr.32: 75
-Lawyers Nr.33: 327
+Bar Nr.28: 124
+Highway Nr.29: 124
+McLeans Nr.30: 651
+Condo Nr.31: 91
+Condo Nr.32: 76
+Lawyers Nr.33: 339
 Shop Nr.34: 33
-Bar Nr.35: 206
-Prison Nr.36: 178
-Gas Station Nr.37: 10
-Bank Nr.38: 28
-Debt Inc Nr.39: 257
-Bar Nr.40: 320
-Highway Nr.41: 199
-Shop Nr.42: 44
-Entreprenour Nr.43: 188
+Bar Nr.35: 215
+Prison Nr.36: 181
+Gas Station Nr.37: 11
+Bank Nr.38: 29
+Debt Inc Nr.39: 263
+Bar Nr.40: 331
+Highway Nr.41: 205
+Shop Nr.42: 46
+Entreprenour Nr.43: 194
 Shop Nr.44: 50
-Pharmacy Nr.45: 334
-Bar Nr.46: 213
+Pharmacy Nr.45: 341
+Bar Nr.46: 219
 Gas Station Nr.47: 3
-Brewery Nr.48: 292
-Harbour Nr.49: 283
+Brewery Nr.48: 299
+Harbour Nr.49: 287
 Shop Nr.50: 27
-Bar Nr.51: 348
-Bank Nr.52: 33
-Highway Nr.53: 161
-Bar Nr.54: 179
-Import inc Nr.55: 180
-Slum Nr.56: 74
-Alley Nr.57: 296
-Slum Nr.58: 73
-Slum Nr.59: 52
-Police Nr.60: 212
+Bar Nr.51: 352
+Bank Nr.52: 35
+Highway Nr.53: 165
+Bar Nr.54: 186
+Import inc Nr.55: 183
+Slum Nr.56: 75
+Alley Nr.57: 302
+Slum Nr.58: 74
+Slum Nr.59: 54
+Police Nr.60: 216

@@ -1,6 +1,7 @@
 import boxy, opengl 
 import windy
 import times
+import sequtils
 
 export boxy 
 export windy
@@ -87,6 +88,10 @@ proc popCalls* =
 
 proc addCall*(call:Call) = 
   calls.add(call)
+
+proc excludeInputCalls* =
+  for call in calls.mitems:
+    call.active = false
 
 proc excludeInputCallsExcept*(reciever:string) =
   for call in calls.mitems:
@@ -294,13 +299,13 @@ func isMouseKey(button:Button):bool =
   ]
 
 proc callBack(button:Button) =
-  for call in calls:
-    if call.active:
-      if button.isMouseKey:
-        if call.mouseClick != nil: 
-          call.mouseClick(newKeyEvent(button))
-      elif call.keyboard != nil: 
-        call.keyboard(newKeyboardEvent(button,"¤".toRunes[0]))
+  for call in calls.filterIt it.active:
+    # if call.active:
+    if button.isMouseKey:
+      if call.mouseClick != nil: 
+        call.mouseClick(newKeyEvent(button))
+    elif call.keyboard != nil: 
+      call.keyboard(newKeyboardEvent(button,"¤".toRunes[0]))
 
 window.onButtonRelease = proc(button:Button) = button.callBack
 
@@ -312,32 +317,34 @@ window.onButtonPress = proc(button:Button) =
 window.onFrame = proc() =
   glClear(GL_COLOR_BUFFER_BIT)  
   bxy.beginFrame(window.size)
-  for call in calls:
-    if call.draw != nil: call.draw(bxy)
+  for call in calls.filterIt it.draw != nil:
+    call.draw(bxy)
   bxy.endFrame()
   window.swapBuffers()
 
 window.onRune = proc(rune:Rune) =
   var button:Button
-  for call in calls:
-    if call.keyboard != nil and call.active: 
-      call.keyboard(newKeyboardEvent(button,rune))
+  for call in calls.filterIt it.keyboard != nil and it.active:
+    call.keyboard(newKeyboardEvent(button,rune))
 
 window.onMouseMove = proc() =
-  for call in calls:
-    if call.mouseMoved != nil and call.active: 
-      call.mouseMoved()
+  for call in calls.filterIt it.mouseMoved != nil and it.active:
+    call.mouseMoved()
 
 proc callCycles* =
-  for call in calls:
-    if call.cycle != nil: call.cycle()
+  for call in calls.filterIt it.cycle != nil and it.active:
+    call.cycle()
+
+proc timerCalls:seq[(int,Call)] =
+  for idx,call in calls:
+    if call.timer.call != nil and call.active:
+      result.add (idx,call)
 
 proc callTimers* =
-  for call in calls.mitems:
-    if call.timer.call != nil:
-      if cpuTime()-call.timer.lastTime > call.timer.secs:
-        call.timer.lastTime = cpuTime()
-        call.timer.call()
+  for (idx,call) in timerCalls():
+    if cpuTime()-call.timer.lastTime > call.timer.secs:
+      calls[idx].timer.lastTime = cpuTime()
+      call.timer.call()
 
 template runWinWith*(body:untyped) =
   window.visible = true

@@ -10,7 +10,7 @@ import megasound
 type
   SquareTexts = array[61,seq[string]]
   BoardSquares* = array[61,Square]
-  Square* = tuple[nr:int,name:string,dims:Dims]
+  Square* = tuple[nr:int,name:string,dims:graphics.Dims]
   AnimationMove* = tuple[fromSquare,toSquare:int]
   MoveAnimations* = object
     active*:bool
@@ -29,6 +29,10 @@ const
   (lxo,rxo) = (70.0,1030.0)
 
   asapCondensedItalic = "fonts\\AsapCondensed-Italic.ttf"
+
+let
+  flavourFont = setNewFont("fonts\\AsapCondensed-Italic.ttf",size = 16.0,color(1,1,1))
+  boardImg* = readImage "pics\\engboard.jpg"
   squareTextBatchInit = BatchInit(
     kind:TextBatch,
     name:"squaretext",
@@ -41,16 +45,6 @@ const
     shadow:(10,1.5,color(255,255,255,150))
   )
 
-let
-  flavourFont = setNewFont("fonts\\AsapCondensed-Italic.ttf",size = 16.0,color(1,1,1))
-  boardImg* = readImage "pics\\engboard.jpg"
-
-proc buildSquareTexts(path:string):SquareTexts =
-  var square = 0
-  for line in path.lines:
-    if line.startsWith("square:"):
-      square = line[7..line.high].splitWhitespace[^1].parseInt
-    else: result[square].add line
 
 var 
   moveAnimation*: MoveAnimations
@@ -61,6 +55,13 @@ var
   mouseSquare* = -1
   lastTextSquare = -1
   hoverSquare = -1
+
+proc buildSquareTexts(path:string):SquareTexts =
+  var square = 0
+  for line in path.lines:
+    if line.startsWith("square:"):
+      square = line[7..line.high].splitWhitespace[^1].parseInt
+    else: result[square].add line
 
 func squareDims:array[61,Dims] =
   result[0].rect = Rect(x:1225,y:150,w:35,h:100)
@@ -83,9 +84,6 @@ proc buildBoardSquares*(board:Board):BoardSquares =
       result[nr] = (nr,name,squareDims[nr])
     else:
       result[0] = (0,"Removed",squareDims[0])
-
-# let
-#   squares* = buildBoardSquares game.board
 
 proc mouseOnSquare*: int =
   for square in squares:
@@ -244,11 +242,6 @@ proc doMoveAnimation*(b:var Boxy) =
 proc drawBoard*(b:var Boxy) =
   b.drawImage("board", boardPos)
 
-template initBoard* =
-  addImage("board",boardImg)
-  squares = buildBoardSquares board
-  squareTexts = buildSquareTexts "dat\\boardtxt.txt"
-
 proc squareTextSpans(square:int):seq[Span] =
   for idx,text in squareTexts[square]:
     result.add newSpan(text,flavourFont)
@@ -272,4 +265,7 @@ proc createBoardTextFile* =
   for idx in 0..60:
     f.write("square:"&($idx)&"\nThis is a test text for square: "&($idx)&"\n")
 
-
+template initBoard* =
+  addImage("board",boardImg)
+  squares = buildBoardSquares board
+  squareTexts = buildSquareTexts "dat\\boardtxt.txt"

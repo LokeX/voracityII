@@ -5,6 +5,7 @@ import megasound
 import sequtils
 import play
 import menu
+import batch
 
 type
   Dims* = tuple[area:Area,rect:Rect]
@@ -60,6 +61,31 @@ const
   adviceImg* = "advicetext"
   volumeImg* = "volume"
 
+  inputEntries: seq[string] = @[
+    "Write player handle:\n",
+    "\n",
+  ]
+  condensedRegular = "fonts\\AsapCondensed-Regular.ttf"
+  titleBorder:Border = (size:0,angle:0,color:color(0,0,100))
+  inputBorder:Border = (size:0,angle:0,color:color(0,0,100))
+  inputBatchInit = BatchInit(
+    kind: InputBatch,
+    name: "inputBatch",
+    titleOn: true,
+    titleLine: (color:color(1,1,0),bgColor:color(0,0,0),border:titleBorder),
+    pos: (400,200),
+    inputCursor: (0.5,color(0,1,0)),
+    inputLine: (color(0,1,0),color(0,0,0),inputBorder),
+    padding: (40,40,20,20),
+    entries: inputEntries,
+    inputMaxChars: 8,
+    alphaOnly: true,
+    font: (condensedRegular,30.0,color(1,1,1)),
+    bgColor: color(0,0,0),
+    border: (15,25,color(0,0,100)),
+    shadow: (15,1.5,color(255,255,255,200))
+  )
+
 let
   voracityLogo = readImage "pics\\voracity.png"
   lets_rockLogo = readImage "pics\\lets_rock.png"
@@ -67,6 +93,7 @@ let
   logoFont = setNewFont(logoFontPath,size = 16.0,color(1,1,1))
 
 var 
+  inputBatch* = newBatch inputBatchInit
   batchInputNr* = -1
   frames*:float
   vol* = 0.05
@@ -74,6 +101,17 @@ var
   showPanel* = true
   dieRollFrame* = maxRollFrames
   dieEdit:int
+
+proc handleInput*(key:KeyboardEvent) = 
+  if key.button != KeyEnter: key.batchKeyb inputBatch
+  else:
+    if inputBatch.input.len > 0:
+      playerKinds[batchInputNr] = Human
+      players[batchInputNr].kind = Human
+    playerHandles[batchInputNr] = inputBatch.input
+    players[batchInputNr].update = true
+    batchInputNr = -1
+    inputBatch.deleteInput
 
 proc paintKeybar:Image =
   let 
@@ -111,7 +149,7 @@ proc paintKeybar:Image =
         "Start Game" 
       elif moveSelection.fromSquare != -1:
         "Deselect piece"
-      elif not showMenu:
+      elif not menu.showMenu:
         "Show Menu"
       elif turnPlayer.cash >= cashToWin: 
         "New Game"
@@ -178,6 +216,17 @@ proc paintVolume*:Image =
   ctx.fillStyle = color(1,1,1)
   ctx.fillRect(5,5,vol*100,10)
   ctx.image
+
+proc setVolume*(key:KeyboardEvent) =
+  vol += (
+    if key.button.isKey NumpadAdd: 
+      if vol < 0.95: 0.05 else: 0
+    elif vol <= 0.05: 0 else: -0.05
+  )
+  setVolume vol
+  removeImg("volume")
+  addImage("volume",paintVolume())
+  showVolume = showVolTime
 
 proc editDiceRoll*(input:string) =
   if input.toUpper == "D": dieEdit = 1

@@ -11,7 +11,6 @@ import sugar
 import reports
 import sequtils
 import misc
-# import random
 import eval
 import strutils
 import os
@@ -55,15 +54,13 @@ proc draw(b:var Boxy) =
     b.drawCardsFooter
   b.showCards
 
-proc really(title:string,answer:string -> void) =
-  let entries = @[
-    "Really "&title&"\n",
-    "\n",
-    "Yes\n",
-    "No",
-  ]
-  showMenu = false
-  startDialog(entries,2..3,answer)
+proc statReset =
+  resetMatchingStats()
+  updateStatsBatch()
+
+proc confirmResetStats = really("reset stats?",
+  (answer:string) => (if answer == "Yes": statReset())
+)
 
 proc confirmQuit = really("quit Voracity?",
   (answer:string) => (if answer == "Yes": window.closeRequested = true)
@@ -73,22 +70,17 @@ proc confirmEndGame = really("end this game?",
   (answer:string) => (if answer == "Yes": setupNewGame())
 )
 
-proc statReset =
-  resetMatchingStats()
-  updateStatsBatch()
-
-proc confirmResetStats = really("reset stats?",
-  (answer:string) => (if answer == "Yes": statReset())
-)
-
 proc menuSelection =
   if mouseOnMenuSelection("Quit Voracity"):
+    showMenu = false
     confirmQuit()
   elif mouseOnMenuSelection("Start Game") or mouseOnMenuSelection("End Turn"):
     nextGameState()
   elif mouseOnMenuSelection("New Game"):
     if turnPlayer.cash >= cashToWin: setupNewGame()
-    else: confirmEndGame()
+    else: 
+      showMenu = false
+      confirmEndGame()
 
 proc togglePlayerKind* =
   if (let batchNr = mouseOnPlayerBatchNr(); batchNr != -1) and turn.nr == 0:
@@ -102,7 +94,7 @@ proc togglePlayerKind* =
     piecesImg.update = true
     updateStatsBatch()
 
-proc humanLeftMouse* =
+proc leftMousePlay* =
   if turn.undrawnBlues > 0 and mouseOn drawPileArea: 
     drawCardFrom blueDeck
     playCashPlansTo blueDeck
@@ -118,7 +110,7 @@ proc humanLeftMouse* =
         turnPlayer.hand.playTo blueDeck,slotNr
         turnPlayer.hand = turnPlayer.sortBlues
 
-proc humanRightMouse =
+proc rightMousePlay =
   if moveSelection.fromSquare != -1:
     moveSelection.fromSquare = -1
     piecesImg.update = true
@@ -139,7 +131,9 @@ proc mouseClicked(m:KeyEvent) =
     pinnedBatchNr = -1
     batchInputNr = -1
     inputBatch.deleteInput
-  if statsBatchVisible and mouseOnStatsBatch: confirmResetStats()
+  if statsBatchVisible and mouseOnStatsBatch: 
+    showMenu = false
+    confirmResetStats()
   if m.rightMousePressed and turn.nr == 0 and mouseOnBatchPlayerNr != -1:
     batchInputNr = mouseOnBatchPlayerNr
   if m.leftMousePressed or m.rightMousePressed:
@@ -153,14 +147,14 @@ proc mouseClicked(m:KeyEvent) =
     if showMenu and mouseOnMenuSelection():
       menuSelection()
     elif turnPlayer.kind == Human:
-      humanLeftMouse()
+      leftMousePlay()
       if turn.nr > 0 and mouseOnDice() and mayReroll(): 
         startDiceRoll()
   elif m.rightMousePressed and batchInputNr == -1: 
     if turn.nr > 0 and turnPlayer.kind == Computer: 
       aiRightMouse()
     else:
-      humanRightMouse()
+      rightMousePlay()
     keybarPainter.update = true
 
 proc mouseMoved = 
@@ -174,31 +168,14 @@ proc mouseMoved =
 
 proc keyboard(key:KeyboardEvent) =
   altPressed = key.pressed.alt
-  if batchInputNr != -1 and key.button != KeyEnter: 
-    key.batchKeyb inputBatch
+  if batchInputNr != -1: 
+    key.handleInput
+    if key.button == KeyEnter:
+      updateStatsBatch()
   elif key.keyPressed: 
     case key.button
     of NumpadAdd,NumpadSubtract:
-      vol += (
-        if key.button.isKey NumpadAdd: 
-          if vol < 0.95: 0.05 else: 0
-        elif vol <= 0.05: 0 else: -0.05
-      )
-      setVolume vol
-      removeImg("volume")
-      addImage("volume",paintVolume())
-      showVolume = showVolTime
-    of KeyEnter:
-      if batchInputNr != -1: 
-        if inputBatch.input.len > 0:
-          playerKinds[batchInputNr] = Human
-          players[batchInputNr].kind = Human
-        playerHandles[batchInputNr] = inputBatch.input
-        players[batchInputNr].update = true
-        # updateBatch batchInputNr
-        batchInputNr = -1
-        inputBatch.deleteInput
-        updateStatsBatch()
+      key.setVolume
     of KeyA: 
       keybarPainter.update = true
       autoEndTurn = not autoEndTurn
@@ -238,6 +215,21 @@ proc configGameWon =
   showMenu = true
   turn.undrawnBlues = 0
 
+proc barMoveMouseMoved(entries:seq[string]):proc =
+  var square = -1
+  proc =
+    let selectedSquare = try: 
+      entries[dialogBatch.selection]
+      .splitWhitespace[^1]
+      .parseInt 
+    except: -1
+    if selectedSquare notin [-1,square]:
+      square = selectedSquare
+      moveToSquaresPainter.context = @[square]
+      moveToSquaresPainter.update = true
+      if entries[dialogBatch.selection].startsWith "from":
+        moveSelection.fromSquare = square #yeah, it's a hack
+
 proc selectBarMoveDest(selection:string) =
   let 
     entries = dialogBarMoves.dialogEntries move => move.toSquare
@@ -245,6 +237,7 @@ proc selectBarMoveDest(selection:string) =
   if fromSquare != -1:
     moveSelection.fromSquare = fromSquare
   if entries.len > 1:
+    dialogOnMouseMoved = entries.barMoveMouseMoved()
     startDialog(entries,0..entries.high,endBarMoveSelection)
   elif entries.len == 1: 
     moveSelection.toSquare = dialogBarMoves[0].toSquare
@@ -255,6 +248,7 @@ proc selectBar =
   showMenu = false
   let entries = dialogBarMoves.dialogEntries move => move.fromSquare
   if entries.len > 1:
+    dialogOnMouseMoved = entries.barMoveMouseMoved()
     startDialog(entries,0..entries.high,selectBarMoveDest)
   elif entries.len == 1: 
     moveSelection.fromSquare = dialogBarMoves[0].fromSquare
@@ -392,7 +386,7 @@ initReports()
 initSettings()
 setVolume vol
 addCall voracityCall
-addCall dialogCall 
+# addCall dialogCall 
 window.onCloseRequest = quitVoracity
 window.icon = readImage "pics\\BarMan.png"
 runWinWith: 
