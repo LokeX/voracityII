@@ -29,30 +29,6 @@ const
   reportFont = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
   (rbx,rby) = (450,280)
   (pbx,pby) = (20,20)
-  # inputEntries: seq[string] = @[
-  #   "Write player handle:\n",
-  #   "\n",
-  # ]
-  # condensedRegular = "fonts\\AsapCondensed-Regular.ttf"
-  # titleBorder:Border = (size:0,angle:0,color:color(0,0,100))
-  # inputBorder:Border = (size:0,angle:0,color:color(0,0,100))
-  # inputBatchInit = BatchInit(
-  #   kind: InputBatch,
-  #   name: "inputBatch",
-  #   titleOn: true,
-  #   titleLine: (color:color(1,1,0),bgColor:color(0,0,0),border:titleBorder),
-  #   pos: (400,200),
-  #   inputCursor: (0.5,color(0,1,0)),
-  #   inputLine: (color(0,1,0),color(0,0,0),inputBorder),
-  #   padding: (40,40,20,20),
-  #   entries: inputEntries,
-  #   inputMaxChars: 8,
-  #   alphaOnly: true,
-  #   font: (condensedRegular,30.0,color(1,1,1)),
-  #   bgColor: color(0,0,0),
-  #   border: (15,25,color(0,0,100)),
-  #   shadow: (15,1.5,color(255,255,255,200))
-  # )
 
 let
   statsBatchInit = BatchInit(
@@ -66,6 +42,7 @@ let
     opacity:25,
     shadow:(10,1.5,color(255,255,255,150))
   )
+
   plainFont = setNewFont(reportFont,18,color(1,1,1,1))
   matrixFont = setNewFont(killMatrixFont,size = 16.0)
   roboto = setNewFont(robotoRegular,size = 15.0)

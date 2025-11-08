@@ -15,6 +15,7 @@ const
     WonGameMenu: @["New Game\n","Quit Voracity"],
   ]
 
+let
   selectorBorder:Border = (0,10,color(1,0,0))
   menuBatchInit = BatchInit(
     kind:MenuBatch,
@@ -32,7 +33,6 @@ const
     shadow:(10,1.5,color(255,255,255,150))
   )
 
-let
   backgrounds*:array[4,Background] = [
     ("skylines",readImage "pics\\2015-02-24-BestSkylines_11.jpg"),
     ("darkgrain",readImage "pics\\dark-wood-grain.jpg"),

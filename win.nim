@@ -93,17 +93,17 @@ proc excludeInputCalls* =
   for call in calls.mitems:
     call.active = false
 
-proc excludeInputCallsExcept*(reciever:string) =
-  for call in calls.mitems:
-    call.active = call.reciever == reciever
+# proc excludeInputCallsExcept*(reciever:string) =
+#   for call in calls.mitems:
+#     call.active = call.reciever == reciever
 
-proc includeInputCallsExcept*(reciever:string) =
-  for call in calls.mitems:
-    call.active = call.reciever != reciever
+# proc includeInputCallsExcept*(reciever:string) =
+#   for call in calls.mitems:
+#     call.active = call.reciever != reciever
 
-proc includeAllCalls* =
-  for call in calls.mitems:
-    call.active = true
+# proc includeAllCalls* =
+#   for call in calls.mitems:
+#     call.active = true
 
 proc removeImg*(key:string) =
   bxy.removeImage key
@@ -265,7 +265,6 @@ proc drawDynamicImage*[T](b:var Boxy,dynImg:DynamicImage[T]) =
   if dynImg.move != nil:
     var moveRect = dynImg.move() 
     if dynImg.rect == moveRect: dynImg.move = nil
-      # dynImg.rect = moveRect
     dynImg.center = moveRect.rectCenter
   if dynImg.rotate != nil:
     dynImg.angle = dynImg.rotate()

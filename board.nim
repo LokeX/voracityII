@@ -33,6 +33,7 @@ const
 let
   flavourFont = setNewFont("fonts\\AsapCondensed-Italic.ttf",size = 16.0,color(1,1,1))
   boardImg* = readImage "pics\\engboard.jpg"
+
   squareTextBatchInit = BatchInit(
     kind:TextBatch,
     name:"squaretext",

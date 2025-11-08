@@ -5,6 +5,8 @@ import sugar
 const
   thisDialog = "dialog"
   robotoRegular* = "fonts\\Roboto-Regular_1.ttf"
+
+let
   selectorBorder*:Border = (0,10,color(1,0,0))
   menuBatchInit* = BatchInit(
     kind:MenuBatch,
