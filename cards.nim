@@ -44,7 +44,7 @@ const
   initPosDim = Rect(x:1580.0,y:50.0,w:cardWidth,h:cardHeight)
   cardSlotsX = initPosDim.buildCardSlots
 
-let
+# let
   headerInit = BatchInit(
     kind:TextBatch,
     name:"header",
@@ -70,6 +70,7 @@ let
     border:(5,10,color(1,1,1)),
   )
 
+let
   deedbg = readImage "pics\\deedbg.jpg"
   planbg = readImage "pics\\bronze_plates.jpg"
   jobbg = readImage "pics\\silverback.jpg"

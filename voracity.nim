@@ -376,6 +376,7 @@ template initSettings =
   if fileExists(settingsFile): 
     settingsFromFile()
   else: settingsToFile()
+  setVolume vol
 
 initGame()
 initPlay()
@@ -384,7 +385,6 @@ initBoard()
 initCards()
 initReports()
 initSettings()
-setVolume vol
 addCall voracityCall
 # addCall dialogCall 
 window.onCloseRequest = quitVoracity

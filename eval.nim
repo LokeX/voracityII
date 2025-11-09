@@ -6,6 +6,7 @@ import sugar
 # import taskpools
 # import cpuInfo
 import misc except reversed
+# import malebolgia
 
 const
   highwayVal* = 12000
@@ -305,6 +306,20 @@ proc evalBlues*(hypothetical:Hypothetic):seq[BlueCard] =
     result[i].eval = evals[i]
   result.sort (a,b) => b.eval - a.eval
 
+# proc evalBlues*(hypothetical:Hypothetic):seq[BlueCard] =
+#   var 
+#     m = createMaster()
+#     evals = newSeq[int](hypothetical.cards.len)
+#   m.awaitAll:
+#     for i,card in hypothetical.cards:
+#       m.spawn hypothetical.evalBlue(card) -> evals[i]
+#   var cardEvals:seq[tuple[card:BlueCard,eval:int]]
+#   for i,eval in evals:
+#     cardEvals.add (hypothetical.cards[i],evals[i])
+#   cardEvals.sort (a,b) => b.eval - a.eval
+#   cardEvals.mapIt it.card
+  
+
 func friendlyFireBest(hypothetical:Hypothetic,move:Move):bool =
   var hypoMove = hypothetical
   hypoMove.pieces[move.pieceNr] = move.toSquare
@@ -375,6 +390,16 @@ proc move*(hypothetical:Hypothetic,dice:openArray[int]):Move =
   result = hypothetical.genericMoves(dice)
     .map(genericMove => hypothetical.bestMoveFrom genericMove)
     .reduce (a,b) => (if a.eval >= b.eval: a else: b)
+
+# proc move*(hypothetical:Hypothetic,dice:openArray[int]):Move = 
+#   var 
+#     m = createMaster()
+#     genericMoves = hypothetical.genericMoves(dice)
+#     evals = newSeq[Move](genericMoves.len)
+#   m.awaitAll:
+#     for i,genericMove in genericMoves:
+#       m.spawn hypothetical.bestMoveFrom(genericMove) -> evals[i]
+#   evals.reduce (a,b) => (if a.eval >= b.eval: a else: b) 
 
 proc bestDiceMoves*(hypothetical:Hypothetic):seq[Move] =
   for die in 1..6:

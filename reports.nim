@@ -30,7 +30,7 @@ const
   (rbx,rby) = (450,280)
   (pbx,pby) = (20,20)
 
-let
+# let
   statsBatchInit = BatchInit(
     kind:TextBatch,
     name:"stats",
@@ -43,6 +43,7 @@ let
     shadow:(10,1.5,color(255,255,255,150))
   )
 
+let
   plainFont = setNewFont(reportFont,18,color(1,1,1,1))
   matrixFont = setNewFont(killMatrixFont,size = 16.0)
   roboto = setNewFont(robotoRegular,size = 15.0)

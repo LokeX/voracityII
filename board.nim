@@ -30,10 +30,7 @@ const
 
   asapCondensedItalic = "fonts\\AsapCondensed-Italic.ttf"
 
-let
-  flavourFont = setNewFont("fonts\\AsapCondensed-Italic.ttf",size = 16.0,color(1,1,1))
-  boardImg* = readImage "pics\\engboard.jpg"
-
+# let
   squareTextBatchInit = BatchInit(
     kind:TextBatch,
     name:"squaretext",
@@ -45,6 +42,10 @@ let
     opacity:25,
     shadow:(10,1.5,color(255,255,255,150))
   )
+
+let
+  flavourFont = setNewFont("fonts\\AsapCondensed-Italic.ttf",size = 16.0,color(1,1,1))
+  boardImg* = readImage "pics\\engboard.jpg"
 
 
 var 

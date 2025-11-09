@@ -65,7 +65,10 @@ const
     "Write player handle:\n",
     "\n",
   ]
+
   condensedRegular = "fonts\\AsapCondensed-Regular.ttf"
+
+# let
   titleBorder:Border = (size:0,angle:0,color:color(0,0,100))
   inputBorder:Border = (size:0,angle:0,color:color(0,0,100))
   inputBatchInit = BatchInit(

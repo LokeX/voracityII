@@ -1,4 +1,5 @@
-import boxy, opengl 
+# import boxy, opengl 
+import boxy/src/boxy, opengl 
 import windy
 import times
 import sequtils
@@ -89,21 +90,13 @@ proc popCalls* =
 proc addCall*(call:Call) = 
   calls.add(call)
 
-proc excludeInputCalls* =
+proc excludeCallsExcept*(includeCall:string) =
+  for call in calls.mitems:
+    call.active = call.reciever == includeCall
+
+proc excludeCalls* =
   for call in calls.mitems:
     call.active = false
-
-# proc excludeInputCallsExcept*(reciever:string) =
-#   for call in calls.mitems:
-#     call.active = call.reciever == reciever
-
-# proc includeInputCallsExcept*(reciever:string) =
-#   for call in calls.mitems:
-#     call.active = call.reciever != reciever
-
-# proc includeAllCalls* =
-#   for call in calls.mitems:
-#     call.active = true
 
 proc removeImg*(key:string) =
   bxy.removeImage key
@@ -114,8 +107,7 @@ proc setFont*(font:var Font,size:float = 12.0,color:Color = color(1,1,1)) =
 
 proc setNewFont*[T:Typeface or string](typeFace:T,size:float = 12.0,color:Color = color(1,1,1)):Font =
   result = newFont(
-    when T is string:
-      typeFace.readTypeface
+    when T is string: typeFace.readTypeface
     else: typeFace
   )
   result.paint = color
@@ -140,7 +132,7 @@ func leftMousePressed*(m:KeyEvent):bool =
 func rightMousePressed*(m:KeyEvent):bool =
   m.keyState.down and m.button == MouseRight
 
-proc scaledMousePos*:(int,int) =
+template scaledMousePos*:untyped =
   ((int)(window.mousepos[0].toFloat/boxyScale),
   (int)(window.mousepos[1].toFloat/boxyScale))
 
@@ -152,7 +144,7 @@ proc mouseOn*(area:Area):bool =
   let (mx,my) = scaledMousePos()
   area.x1 <= mx and area.y1 <= my and mx <= area.x2 and my <= area.y2
 
-template mouseOn*(handle:AreaHandle):bool = mouseOn handle.area
+template mouseOn*(handle:AreaHandle):untyped = mouseOn handle.area
 
 func imageArea*(area:Area,img:Image):Area =
   (area.x1,area.y1,area.x1+img.width,area.y1+img.height)
@@ -297,6 +289,16 @@ func isMouseKey(button:Button):bool =
     DoubleClick,TripleClick,QuadrupleClick
   ]
 
+# proc callBack(button:Button) =
+#   for call in calls:
+#     # if call.active:
+#     if call.active:
+#       if button.isMouseKey:
+#         if call.mouseClick != nil: 
+#           call.mouseClick(newKeyEvent(button))
+#       elif call.keyboard != nil: 
+#         call.keyboard(newKeyboardEvent(button,"¤".toRunes[0]))
+
 proc callBack(button:Button) =
   for call in calls.filterIt it.active:
     # if call.active:
@@ -313,6 +315,15 @@ window.onButtonPress = proc(button:Button) =
     window.closeRequested = true
   else: button.callBack
 
+# window.onFrame = proc() =
+#   glClear(GL_COLOR_BUFFER_BIT)  
+#   bxy.beginFrame(window.size)
+#   for call in calls:
+#     if call.draw != nil:
+#       call.draw(bxy)
+#   bxy.endFrame()
+#   window.swapBuffers()
+
 window.onFrame = proc() =
   glClear(GL_COLOR_BUFFER_BIT)  
   bxy.beginFrame(window.size)
@@ -321,14 +332,30 @@ window.onFrame = proc() =
   bxy.endFrame()
   window.swapBuffers()
 
+# window.onRune = proc(rune:Rune) =
+#   var button:Button
+#   for call in calls:
+#     if call.keyboard != nil and call.active:
+#       call.keyboard(newKeyboardEvent(button,rune))
+
 window.onRune = proc(rune:Rune) =
   var button:Button
   for call in calls.filterIt it.keyboard != nil and it.active:
     call.keyboard(newKeyboardEvent(button,rune))
 
+# window.onMouseMove = proc() =
+#   for call in calls:
+#     if call.mouseMoved != nil and call.active:
+#       call.mouseMoved()
+
 window.onMouseMove = proc() =
   for call in calls.filterIt it.mouseMoved != nil and it.active:
     call.mouseMoved()
+
+# proc callCycles* =
+#   for call in calls:
+#     if call.cycle != nil and call.active:
+#       call.cycle()
 
 proc callCycles* =
   for call in calls.filterIt it.cycle != nil and it.active:
@@ -338,6 +365,13 @@ proc timerCalls:seq[(int,Call)] =
   for idx,call in calls:
     if call.timer.call != nil and call.active:
       result.add (idx,call)
+
+# proc callTimers* =
+#   for call in calls.mitems:
+#     if call.timer.call != nil and call.active:
+#       if cpuTime()-call.timer.lastTime > call.timer.secs:
+#         call.timer.lastTime = cpuTime()
+#         call.timer.call()
 
 proc callTimers* =
   for (idx,call) in timerCalls():

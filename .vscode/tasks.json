@@ -13,6 +13,7 @@
         // "-d:useMalloc",
         "-d:release",
         // "--mm:markAndSweep",
+        // "--mm:atomicarc",
         // "--app:gui",
         // "--opt:speed",
         // "--floatChecks:off",
