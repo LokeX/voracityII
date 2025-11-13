@@ -31,7 +31,6 @@ type
       squares*:PlanSquares
       cash*:int
       eval*:int
-      covered*:bool
     of Event,News:
       moveSquares*:seq[int]
       bgPath*:string
@@ -57,6 +56,7 @@ type
 
 const
   playerKindStrs = PlayerKind.mapIt $it
+  cardKindStr = CardKind.mapIt ($it).toLower
   playerKindFile* = "dat\\playerkinds.cfg"
   handlesFile = "dat\\handles.txt"
   
@@ -83,12 +83,9 @@ func squareKinds:array[0..60,SquareKind] =
 const
   squareKind = squareKinds()
 
-
 var 
   board*:Board
   blueDeck*:Deck
-  # board* = newBoard "dat\\board.txt"
-  # blueDeck* = newDeck "decks\\blues.txt"
   diceRoll*:Dice = [DieFace3,DieFace4]
   turn*:Turn
   playerKinds*:array[6,PlayerKind]
@@ -103,14 +100,11 @@ proc newBoard*(path:string):Board =
     inc count
     result[count] = (count,name)
 
-# proc newDeck*(path:string):Deck
-
-
 func isBar*(square:int):bool = squareKind[square] == Bar
 func isGasStation*(square:int):bool = squareKind[square] == GasStation
 func isHighway*(square:int):bool = squareKind[square] == Highway
 
-func parseProtoCards(lines:sink seq[string]):seq[ProtoCard] =
+func parseProtoCards(lines:seq[string]):seq[ProtoCard] =
   var 
     cardLine:int
     protoCard:ProtoCard 
@@ -126,7 +120,7 @@ func parseCardSquares(str:string,brackets:array[2,char]):seq[int] =
   if -1 in [f,l]: @[] else: str[f+1..l-1].split(',').mapIt it.parseInt
 
 func parseCardKindFrom(kind:string):CardKind =
-  try: CardKind(CardKind.mapIt(($it).toLower).find kind[0..kind.high-1].toLower) 
+  try: CardKind(cardKindStr.find kind[0..kind.high-1].toLower) 
   except: raise newException(CatchableError,"Error, parsing CardKind: "&kind)
 
 func newBlueCards(protoCards:seq[ProtoCard]):seq[BlueCard] =
@@ -143,12 +137,11 @@ func newBlueCards(protoCards:seq[ProtoCard]):seq[BlueCard] =
       )
       card.cash = protoCard[3].parseInt
     result.add card
-
+ 
 proc newDeck*(path:string):Deck =
   result = Deck(fullDeck:path.lines.toSeq.parseProtoCards.newBlueCards)
   result.drawPile = result.fullDeck
   result.drawPile.shuffle
-  # echo result.drawPile.mapIt it.title&"\n"
 
 proc resetDeck*(deck:var Deck) =
   deck.discardPile.setLen 0
@@ -175,12 +168,6 @@ proc drawFromDiscardPile*(hand:var seq[BlueCard],deck:var Deck) =
 proc playTo*(hand:var seq[BlueCard],deck:var Deck,card:int) =
   deck.discardPile.add hand[card]
   hand.del card
-
-proc rollDice*() = 
-  for die in diceRoll.mitems: 
-    die = DieFace(rand(1..6))
-
-proc isDouble*: bool = diceRoll[1] == diceRoll[2]
 
 func adjustToSquareNr*(adjustSquare:int):int =
   if adjustSquare > 60: adjustSquare - 60 else: adjustSquare
@@ -211,6 +198,12 @@ func moveToSquares*(fromSquare:int,dice:Dice):seq[int] =
     if i == 1 or dice[1] != dice[2]:
       result.add moveToSquares(fromSquare,die.ord)
   result.deduplicate
+
+proc rollDice*() = 
+  for die in diceRoll.mitems: 
+    die = DieFace(rand(1..6))
+
+proc isDouble*: bool = diceRoll[1] == diceRoll[2]
 
 func diceMoved*(fromSquare,toSquare:int):bool =
   if fromSquare == 0:
@@ -249,24 +242,6 @@ func indexFromColor*(players:seq[Player],playerColor:PlayerColor):int =
     if player.color == playerColor: return i
   result = -1
 
-func knownBluesIn(discardPile,hand:seq[BlueCard]):seq[BlueCard] =
-  result.add discardPile.filterIt it.cardKind notin [News,Event]
-  result.add hand
-
-func require(cards:seq[BlueCard],square:int):seq[BlueCard] =
-  cards.filterIt(square in it.squares.required or square in it.squares.oneInMany)
-
-func cashChanceOn*(player:Player,square:int,deck:Deck): float =
-  let 
-    knownCards = knownBluesIn(deck.discardPile,player.hand)
-    unknownCards = deck.fullDeck
-      .filterIt(
-        it.cardKind notin [News,Event] and
-        it.title notIn knownCards.mapIt(it.title)
-      )
-    chance = unknownCards.require(square).len.toFloat/unknownCards.len.toFloat
-  chance*player.hand.len.toFloat
-
 func piecesOn*(players:seq[Player],square:int):seq[tuple[playerNr,pieceNr:int]] =
   for playerNr,player in players:
     for pieceNr,piece in player.pieces:
@@ -289,13 +264,12 @@ func hasPieceOn*(player:Player,square:int):bool =
 func piecesOnBars*(player:Player):seq[int] = 
   for square in player.pieces:
     if square.isBar: result.add square
-    # bars.filterIt player.hasPieceOn it
 
-func requiredSquaresOk*(player:Player,plan:BlueCard):bool =
+template requiredSquaresOk(player,plan:untyped):untyped =
   plan.squares.required.deduplicate
     .allIt player.pieces.count(it) >= plan.squares.required.count it
 
-func oneInManySquaresOk*(player:Player,plan:BlueCard):bool =
+template oneInManySquaresOk(player,plan:untyped):untyped =
   plan.squares.oneInmany.len == 0 or 
   player.pieces.anyIt it in plan.squares.oneInMany
 
@@ -312,12 +286,12 @@ proc discardCards*(player:var Player,deck:var Deck):seq[BlueCard] =
     result.add player.hand[player.hand.high]
     player.hand.playTo deck,player.hand.high
 
-proc cashInPlansTo*(deck:var Deck):seq[BlueCard] =
-  let (cashable,notCashable) = turnPlayer.plans
+proc cashInPlansTo*(player:var Player,deck:var Deck):seq[BlueCard] =
+  let (cashable,notCashable) = player.plans
   for plan in cashable.sortedByIt it.cash:
     deck.discardPile.add plan
-  turnPlayer.hand = notCashable
-  turnPlayer.cash += cashable.mapIt(it.cash).sum
+  player.hand = notCashable
+  player.cash += cashable.mapIt(it.cash).sum
   cashable
 
 proc newDefaultPlayers*:seq[Player] =
@@ -376,11 +350,6 @@ proc playerKindsFromFile:seq[PlayerKind] =
 proc playerKindsToFile*(playerKinds:openArray[PlayerKind]) =
   playerKindFile.writeFile(playerKinds.mapIt($it).join "\n")
 
-# proc initPlayers* =
-#   for i,kind in playerKindsFromFile(): playerKinds[i] = kind
-#   playerHandles = playerHandlesFromFile()
-#   players = newDefaultPlayers()
-
 template initGame* =
   randomize()
   board = newBoard "dat\\board.txt"
@@ -388,5 +357,3 @@ template initGame* =
   for i,kind in playerKindsFromFile(): playerKinds[i] = kind
   playerHandles = playerHandlesFromFile()
   players = newDefaultPlayers()
-
-# randomize()

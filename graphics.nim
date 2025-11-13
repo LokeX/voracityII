@@ -169,6 +169,12 @@ let keybarPainter* = DynamicImage[void](
   update:true
 )
 
+proc paintKeybar*(b:var Boxy) =
+  if updateKeybar:
+    keybarPainter.update = true
+    updateKeybar = false
+  b.drawDynamicImage keybarPainter
+
 proc paintSubText*:Image =
   var 
     spans:seq[Span]

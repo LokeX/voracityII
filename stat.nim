@@ -304,12 +304,8 @@ when isMainModule:
     setupNewGame()
     startNewGame()
     echo "game nr: ",i
-    # echo getFreeMem()
     while not gameWon:
         aiTakeTurnPhase()
-        # echo players[turn.player].color
-        # echo "turn.nr: ",turn.nr
-        # soundToPlay.setLen 0
     if recordStats:
       gameStats.add newGameStats()
       addVisits turnReports.reportedVisitsCount 

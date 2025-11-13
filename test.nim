@@ -1,23 +1,41 @@
-import malebolgia
+import std/locks
 
-proc dfs(depth, breadth: int): int {.gcsafe.} =
-  if depth == 0: return 1
+var
+  thr: array[0..4, Thread[tuple[a,b: int]]]
+  L: Lock
 
-  # The seq where we collect the results of the subtasks:
-  var sums = newSeq[int](breadth)
+proc threadFunc(interval: tuple[a,b: int]) {.thread.} =
+  for i in interval.a..interval.b:
+    acquire(L) # lock stdout
+    echo i
+    release(L)
 
-  # Create a Master object for task coordination:
-  var m = createMaster()
+initLock(L)
 
-  # Synchronize all spawned tasks using an AwaitAll block:
-  m.awaitAll:
-    for i in 0 ..< breadth:
-      # Spawn subtasks recursively, store the result in `sums[i]`:
-      m.spawn dfs(depth - 1, breadth) -> sums[i]
+for i in 0..high(thr):
+  createThread(thr[i], threadFunc, (i*10, i*10+5))
+joinThreads(thr)
 
-  result = 0
-  for i in 0 ..< breadth:
-    result += sums[i] # No `sync(sums[i])` required
+deinitLock(L)
 
-let answer = dfs(8, 8)
-echo answer
+type
+  Etest = enum Test1,Test2,Test3,Test4,
+
+var 
+  et:Etest
+
+while true:
+  echo et
+  if et == Etest.high:
+    et = Etest.low
+  else: inc et
+
+
+
+
+# echo et
+
+
+# for et in Etest:
+#   echo et
+

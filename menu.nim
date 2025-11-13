@@ -67,6 +67,16 @@ proc mouseOnMenuselection*:bool = mainMenu.mouseOnSelectionArea != -1
 
 proc menuIs*:MenuKind = menuKind
 
+proc drawMenuBackground*(b:var Boxy) =
+  if bgRect.w < scaledWidth.toFloat:
+    if bgRect.w+90 < scaledWidth.toFloat:
+      bgRect.w += 90
+    else: 
+      bgRect.w = scaledWidth.toFloat
+      oldBg = -1
+  if oldBg != -1: b.drawImage(backgrounds[oldBg].name,oldBgRect)
+  b.drawImage(backgrounds[bgSelected].name,bgRect)
+
 # setMenuTo menuKind
 for bg in backgrounds:
   addImage(bg.name,bg.img)

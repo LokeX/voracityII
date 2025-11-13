@@ -173,7 +173,7 @@ proc playMassacre =
 proc playCashPlansTo*(deck:var Deck) =
   let
     initialCash = turnPlayer.cash
-    cashedPlans = cashInPlansTo deck
+    cashedPlans = turnPlayer.cashInPlansTo deck
   if cashedPlans.len > 0:
     updateTurnReportCards(cashedPlans,Cashed)
     turnPlayer.update = true
@@ -316,30 +316,26 @@ proc killPieceAndMove*(confirmedKill:string) =
   if statGame: move()
   else: moveAnimation
 
-proc hostileFireEval(player:Player,pieceNr,toSquare:int):int =
+proc killEval(player:Player,pieceNr,toSquare:int):int =
   var hypoPlayer = player
   hypoPlayer.pieces[pieceNr] = toSquare
   hypoPlayer.hand = hypoPlayer.plans.notCashable
   hypoPlayer.hypotheticalInit.evalPos
 
-proc hostileFireAdviced(player:Player,fromSquare,toSquare:int):bool =
+proc killAdviced(player:Player,fromSquare,toSquare:int):bool =
   let pieceNr = player.pieces.find(fromSquare)
-  pieceNr != -1 and 
-  player.hostileFireEval(pieceNr,toSquare) < player.hostileFireEval(pieceNr,0)
+  pieceNr > -1 and 
+  player.killEval(pieceNr,toSquare) < player.killEval(pieceNr,0)
 
 proc shouldKillEnemyOn(killer:Player,toSquare:int): bool =
   if killer.hasPieceOn(toSquare) or 
     killer.cash-(killer.removedPieces*piecePrice) <= startCash div 2: false 
   else:
     let 
-      hostileFireAdviced = killer.hostileFireAdviced(moveSelection.fromSquare,toSquare)
+      killAdviced = killer.killAdviced(moveSelection.fromSquare,toSquare)
       agroKill = rand(1..100) <= killer.agro div 5
-      planChance = players[singlePiece.playerNr].cashChanceOn(toSquare,blueDeck)
-      barKill = toSquare.isBar and (
-        killer.nrOfPiecesOnBars > 0 or players.len < 3
-      )
-    (planChance > 0.1*(players.len.toFloat/2)) or 
-    agroKill or barKill or hostileFireAdviced
+      barKill = toSquare.isBar and (killer.nrOfPiecesOnBars > 0 or players.len < 3)
+    agroKill or barKill or killAdviced
 
 proc aiRemovePiece(move:Move):bool =
   turnPlayer.hypotheticalInit.friendlyFireAdviced(move) or 
@@ -473,7 +469,7 @@ proc aiMove(hypothetical:Hypothetic,dice:openArray[int]):(bool,Move) =
   )
 
 func betterThan(move:Move,hypothetical:Hypothetic):bool =
-  move.eval.toFloat >= hypothetical.evalPos().toFloat*0.85
+  move.eval.toFloat >= hypothetical.evalPos().toFloat*0.90
 
 proc moveAi =
   let (isWinningMove,move) = hypo.aiMove([diceRoll[1].ord,diceRoll[2].ord])
@@ -489,7 +485,6 @@ proc moveAi =
     echo "dice: ",diceRoll
     echo "pieces: ",turnPlayer.pieces
     echo "cards: ",turnPlayer.hand.mapIt it.title&"/"&($it.squares.required)
-    echo "covered: ",turnPlayer.hand.filterIt(turnPlayer.pieces.toSeq.covers it).mapIt it.title
     # echo "covers: ",turnPlayer.hand.mapIt(turnPlayer.pieces.covers it.squares.required)
   phase = PostMove
 

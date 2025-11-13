@@ -30,7 +30,6 @@ const
 
   asapCondensedItalic = "fonts\\AsapCondensed-Italic.ttf"
 
-# let
   squareTextBatchInit = BatchInit(
     kind:TextBatch,
     name:"squaretext",
@@ -46,7 +45,6 @@ const
 let
   flavourFont = setNewFont("fonts\\AsapCondensed-Italic.ttf",size = 16.0,color(1,1,1))
   boardImg* = readImage "pics\\engboard.jpg"
-
 
 var 
   moveAnimation*: MoveAnimations
@@ -105,7 +103,7 @@ proc paintSquares*(squareNrs:seq[int],color:Color):Image =
 
 proc paintMoveToSquares*(squares:seq[int]):Image =
   result = newImage(boardImg.width,boardImg.height)
-  result.paintSquares(squares.deduplicate, color(0,0,0,100))
+  result.paintSquares(squares.deduplicate,color(0,0,0,100))
 
 var
   moveToSquaresPainter* = DynamicImage[seq[int]](
@@ -151,14 +149,13 @@ proc paintPieces*:Image =
         piece = player.color.pieceOn square
       ctx.fillStyle = playerColors[player.color]
       ctx.fillRect piece
-      if turn.nr > 0 and i == turn.player and square ==
-          moveSelection.fromSquare:
+      if turn.nr > 0 and i == turn.player and square == moveSelection.fromSquare:
         ctx.fillStyle = contrastColors[player.color]
         ctx.fillRect Rect(x:piece.x+4,y:piece.y+4,w:piece.w-8,h:piece.h-8)
       if nrOfPiecesOnSquare > 1:
         ctx.fillStyle = contrastColors[player.color]
         ctx.fillText($nrOfPiecesOnSquare,piece.x+2,piece.y+10)
-  ctx.image
+  result = ctx.image
 
 var
   piecesImg* = DynamicImage[void](

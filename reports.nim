@@ -28,9 +28,8 @@ const
   killMatrixFont = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
   reportFont = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
   (rbx,rby) = (450,280)
-  (pbx,pby) = (20,20)
+  (pbx,pby) = (20,40)
 
-# let
   statsBatchInit = BatchInit(
     kind:TextBatch,
     name:"stats",
@@ -54,7 +53,6 @@ var
   selectedBatch*:int
   mouseOnBatchPlayerNr* = -1
   pinnedBatchNr* = -1
-  # inputBatch* = newBatch inputBatchInit
   playerBatches*: array[6,Batch]
   showCursor*: bool
 
@@ -80,11 +78,11 @@ proc mouseOnPlayerBatchNr*: int =
   for i, _ in players:
     if mouseOn playerBatches[i]: return i
 
-proc playerBatch(setup:BatchSetup,yOffset:int):Batch =
+proc playerBatch(setup:BatchSetup,yPos:int):Batch =
   newBatch BatchInit(
     kind: TextBatch,
     name: setup.name,
-    pos: (pbx, pby+yOffset),
+    pos: (pbx, yPos),
     padding: setup.padding,
     entries: setup.entries,
     hAlign: setup.hAlign,
@@ -106,13 +104,12 @@ proc playerBatchTxt(playerNr:int):seq[string] =
   else: @[
     "Turn Nr: "&($turn.nr)&"\n",
     "Cards: "&($players[playerNr].hand.len)&"\n",
-    "Cash: "&(insertSep($players[playerNr].cash, '.'))
+    "Cash: "&(insertSep($players[playerNr].cash,'.'))
   ]
 
 proc batchSetup(playerNr:int):BatchSetup =
-  let player = players[playerNr]
-  result.name = $player.color
-  result.bgColor = player.color
+  result.name = $players[playerNr].color
+  result.bgColor = players[playerNr].color
   if turn.nr == 0:
     result.hAlign = CenterAlign
     result.font = fjallaOneRegular
@@ -127,23 +124,22 @@ proc batchSetup(playerNr:int):BatchSetup =
 
 proc newPlayerBatches*:array[6,Batch] =
   var
-    yOffset = pby
+    yPos = pby
     setup: BatchSetup
-  for playerNr, _ in players:
-    if playerNr > 0:
-      yOffset = pby+((result[playerNr-1].rect.h.toInt+15)*playerNr)
-    setup = batchSetup playerNr
-    result[playerNr] = setup.playerBatch yOffset
+  for playerNr in 0..players.high:
+    setup = playerNr.batchSetup
+    result[playerNr] = setup.playerBatch yPos
     result[playerNr].update = true
     result[playerNr].dynMove(Right, 30)
+    yPos += result[playerNr].rect.h.toInt+15
 
 proc drawPlayerBatches*(b:var Boxy) =
-  for batchNr, _ in players:
-    if players[batchNr].update:
-      playerBatches[batchNr].setSpanTexts playerBatchTxt batchNr
-      playerBatches[batchNr].update = true
-      players[batchNr].update = false
-    b.drawBatch playerBatches[batchNr]
+  for playerNr in 0..players.high:
+    if players[playerNr].update:
+      playerBatches[playerNr].setSpanTexts playerBatchTxt playerNr
+      playerBatches[playerNr].update = true
+      players[playerNr].update = false
+    b.drawBatch playerBatches[playerNr]
 
 proc victims(killer:PlayerColor):seq[PlayerColor] =
   for report in turnReports:
@@ -157,43 +153,56 @@ proc killMatrix:KillMatrix =
     for victim in PlayerColor:
       result[victim][killer] = killer.victims.count victim
 
-proc typesetKillMatrix(width,height:float):Arrangement =
-  var 
-    spans:seq[Span]
-    font:Font
-    playerKills:array[PlayerColor,tuple[font:Font,kills:int]]
-  for player,row in killMatrix():
-    font = matrixFont.copy
-    font.paint = playerColors[PlayerColor(player)]
-    playerKills[player].font = font
-    for playerColumn,value in row:
-      spans.add newSpan(($value).align(8),font)
-      playerKills[playerColumn].kills += value
-      if playerColumn == row.high: 
-        spans.add newSpan(($row.sum).align(8)&"\n",font) 
-  spans.add playerKills.mapIt(newSpan(($it.kills).align(8),it.font))
-  spans.add newSpan("\U2211".align 8,font)
-  spans.typeset(bounds = vec2(width,height))
-
-proc paintMatrixShadow(img:Image):Image =
+proc paintMatrixShadow(img:var Image):Image =
   var ctx = newImage(img.width+5,img.height+5).newContext
   ctx.fillStyle = color(0,0,0,100)
   ctx.fillRect(Rect(x:5,y:5,w:img.width.toFloat,h:img.height.toFloat))
   ctx.image.draw(img,translate vec2(0,0))
   ctx.image
 
+template typeSetText(txt:untyped):untyped = typeset(
+  font,txt,
+  bounds = vec2(xo.toFloat,font.defaultLineHeight),
+  hAlign = RightAlign,
+  wrap = false
+)
+
+template paintText(txt:untyped):untyped =
+  img.fillText(typeSetText(txt),translate vec2(xPos.toFloat,yPos))
+
+proc paintKillText(img:Image,x,y,xo:int) =
+  var 
+    font = matrixFont
+    playersKills:array[PlayerColor,tuple[font:Font,kills:int]]
+    yo = font.defaultLineHeight
+    (xPos,yPos) = (x,y.toFloat)
+  for player,row in killMatrix():
+    font = matrixFont.copy
+    font.paint = playerColors[PlayerColor(player)]
+    playersKills[player].font = font
+    for column,value in row:
+      paintText $value
+      playersKills[column].kills += value
+      xPos += xo
+    paintText $row.sum
+    yPos += yo; xPos = x
+  for playerKills in playersKills:
+    font = playerKills.font
+    paintText $playerKills.kills
+    xPos += xo
+  paintText "\U2211"
+
 proc paintKillMatrix:Image =
-  let (width,height) = (250,210)
-  result = newImage(width,height)
+  result = newImage(250,210)
   result.fill color(0,100,100)
   var 
     ctx = result.newContext
-    xPos:int
+    (column,xOffset) = (0,32)
   for color in playerColors:
     ctx.fillStyle = color
-    ctx.fillRect(Rect(x:(20+(xPos*32)).toFloat,y:15,w:20,h:20))
-    inc xPos
-  ctx.image.fillText(typesetKillMatrix(width.toFloat,height.toFloat/2),translate vec2(0,50))
+    ctx.fillRect(Rect(x:(20+(column*xOffset)).toFloat,y:15,w:20,h:20))
+    inc column
+  ctx.image.paintKillText(6,50,xOffset)
   result = ctx.image.paintMatrixShadow
   result.applyOpacity 25
 
@@ -214,7 +223,7 @@ proc drawKillMatrix*(b:var Boxy) =
 proc initReportBatch:Batch = 
   newBatch BatchInit(
     kind:TextBatch,
-    name:"aireport",
+    name:"playerreport",
     pos:(rbx,rby),
     padding:(20,20,20,20),
     font:(reportFont,24,color(1,1,1)),
@@ -252,8 +261,9 @@ proc reportSpansFrom(turnReport:TurnReport):seq[Span] =
 
 proc writeEndOfGameReports =
   for player in players:
-    let report = if player.color == turnPlayer.color: turnReport else:
-      turnReports.filterIt(it.playerBatch.color == player.color)[^1]
+    let report = 
+      if player.color == turnPlayer.color: turnReport 
+      else: turnReports.filterIt(it.playerBatch.color == player.color)[^1]
     var reportLines = report.reportLines
     reportLines.add @[
       "Drawn: "&report.cards.drawn.mapIt(it.title).join(","),

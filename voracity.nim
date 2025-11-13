@@ -20,17 +20,12 @@ import board
 
 proc draw(b:var Boxy) =
   frames += 1
-  if oldBg != -1: b.drawImage(backgrounds[oldBg].name,oldBgRect)
-  b.drawImage(backgrounds[bgSelected].name,bgRect)
+  b.drawMenuBackground
   b.drawBoard
   b.drawDynamicImage piecesImg
   b.drawPlayerBatches
   b.drawStats
-  if showPanel: 
-    if updateKeybar:
-      keybarPainter.update = true
-      updateKeybar = false
-    b.drawDynamicImage keybarPainter
+  if showPanel: b.paintKeybar
   if showMenu: b.drawDynamicImage mainMenu
   if batchInputNr != -1: b.drawBatch inputBatch
   if showVolume > 0: b.drawImage(volumeImg,vec2(750,15))
@@ -85,10 +80,10 @@ proc menuSelection =
 proc togglePlayerKind* =
   if (let batchNr = mouseOnPlayerBatchNr(); batchNr != -1) and turn.nr == 0:
     playerKinds[batchNr] = 
-      case playerKinds[batchNr]
-      of Human:Computer
-      of Computer:None
-      of None:Human
+      case playerKinds[batchNr]:
+        of Human:Computer
+        of Computer:None
+        of None:Human
     players[batchNr].kind = playerKinds[batchNr]
     players[batchNr].update = true
     piecesImg.update = true
@@ -100,13 +95,13 @@ proc leftMousePlay* =
     playCashPlansTo blueDeck
     turnPlayer.hand = turnPlayer.sortBlues
   elif not isRollingDice():
-    if (let square = mouseOnSquare(); square != -1): 
-      if moveSelection.fromSquare == -1 or square notIn moveSelection.toSquares:
-        selectPiece square
-      elif moveSelection.fromSquare != -1:
-        movePiece square
+    if mouseSquare > -1: 
+      if moveSelection.fromSquare == -1 or mouseSquare notIn moveSelection.toSquares:
+        selectPiece mouseSquare
+      elif moveSelection.fromSquare > -1:
+        movePiece mouseSquare
     elif turnPlayer.hand.len > 3: 
-      if (let slotNr = turnPlayer.mouseOnCardSlot; slotNr != -1):
+      if (let slotNr = turnPlayer.mouseOnCardSlot; slotNr > -1):
         turnPlayer.hand.playTo blueDeck,slotNr
         turnPlayer.hand = turnPlayer.sortBlues
 
@@ -255,20 +250,16 @@ proc selectBar =
     selectBarMoveDest entries[0]
 
 proc startKillDialog(square:int) =
-  let 
-    targetPlayer = players[singlePiece.playerNr]
-    targetSquare = targetPlayer.pieces[singlePiece.pieceNr]
-    cashChance = targetPlayer.cashChanceOn(targetSquare,blueDeck)*100
-    entries:seq[string] = @[
-      "Remove piece on:\n",
-      board[square].name&" Nr."&($board[square].nr)&"?\n",
-      "Cash chance: "&cashChance.formatFloat(ffDecimal,2)&"%\n",
-      "\n",
-      "Yes\n",
-      "No",
-    ]
+  let entries:seq[string] = @[
+    "Remove piece on:\n",
+    board[square].name&" Nr."&($board[square].nr)&"?\n",
+    # "Cash chance: "&cashChance.formatFloat(ffDecimal,2)&"%\n",
+    "\n",
+    "Yes\n",
+    "No",
+  ]
   showMenu = false
-  startDialog(entries,4..5,killPieceAndMove)
+  startDialog(entries,3..4,killPieceAndMove)
 
 proc animateMove* =
   startMoveAnimation(
@@ -302,12 +293,6 @@ proc cycle =
   if soundToPlay.len > 0:
     playSound soundToPlay[0]
     soundToPlay.delete 0
-  if bgRect.w < scaledWidth.toFloat:
-    if bgRect.w+90 < scaledWidth.toFloat:
-      bgRect.w += 90
-    else: 
-      bgRect.w = scaledWidth.toFloat
-      oldBg = -1
   if turnPlayer.kind == Computer and not moveAnimationActive() and aiTurn():
     aiTakeTurnPhase()
 
@@ -386,7 +371,6 @@ initCards()
 initReports()
 initSettings()
 addCall voracityCall
-# addCall dialogCall 
 window.onCloseRequest = quitVoracity
 window.icon = readImage "pics\\BarMan.png"
 runWinWith: 

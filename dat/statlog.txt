@@ -1,174 +1,174 @@
 Cashed cards:
-Specimens: 8
-Broman escorte: 8
-Corruption: 8
-Spy: 9
-Aiding and abetting: 10
-Heartless: 10
-Terrorism: 11
-Sweethearts: 12
-Judicial murder: 13
-Addictions: 13
-Trans-action: 14
-Transitions: 14
-Lord of War: 16
-Healthplan: 17
-Ramtheft: 17
-VIP Lounge: 17
-Deadweight: 17
-Informer: 17
-Mayor: 17
-Burial at sea: 17
-White collars: 18
-Bodycount: 18
-Coup: 18
-Razia: 18
-Bodyguard: 18
-Slumlord: 18
-Circle jerk: 18
-Gangbangers: 18
-Lipstick on a pig: 18
-Recycling: 19
-Meat grinder: 19
-Pimp: 19
-Underhanded: 20
-Laundry: 20
-Financier: 20
-Infiltration: 20
-Golden chains: 20
-Insurgency: 21
-Open house: 21
-Brotherhood: 21
-Occupational hazard: 22
-Stove away: 22
-Rentals: 22
-Higher powers: 22
-Lucky bastard: 22
-Blood diamants: 22
-Financing: 23
-Home invasion: 23
-Color revolution: 23
-Blood suckers: 23
-Diamonds are...: 23
-Borderless: 24
-Outstanding: 24
-Hooters: 24
-Nose job: 24
-Lawfare: 24
-Broken bones: 25
-Rock solid claims: 26
-Drugdealer: 26
-Stiffs: 26
-Prescriptions: 26
-Agent: 26
-Side effects: 27
-Safe bet: 27
-Demolition: 28
-Deadly cargo: 28
-Concuctions: 28
-Bootlegging: 28
-Small arms: 29
-Faulty towers: 30
-Acquittal: 30
-Ludomania: 30
-Rentseeking: 30
-Outsider: 30
-Globalist: 31
-Redemption: 31
-Grapevine: 31
-Trance: 31
-Usery: 31
-Homebrew: 31
-Up yours: 31
-Duty free: 31
-Express demands: 32
-Projects: 32
-Hooked: 32
-Et spiritus sancti: 33
-Bouncing: 34
-Secret weapon: 34
-Choireboys: 34
-Advisory board: 35
-High society: 35
-Containment: 36
-Sing a long song: 37
-Debt to society: 37
-Knock knock: 37
-Human resources: 37
-Legalese: 38
-Grand designs: 39
-Cold meds: 39
-Bail: 40
-Knocked out: 40
-Foreign aid: 40
-Loads of stuff: 41
-Protection: 44
-Chicks in cages: 45
-Flay'em: 46
-Moonshine: 57
-Polterabend: 70
+Spy: 87
+Corruption: 88
+Aiding and abetting: 92
+White collars: 95
+Heartless: 97
+Addictions: 102
+Informer: 120
+Broman escorte: 121
+Coup: 126
+Sweethearts: 139
+Bodycount: 139
+Terrorism: 142
+Transitions: 144
+Mayor: 158
+Blood suckers: 160
+Specimens: 162
+Bodyguard: 164
+Lord of War: 165
+Healthplan: 165
+Meat grinder: 166
+Judicial murder: 166
+Trans-action: 166
+Laundry: 178
+Razia: 182
+Circle jerk: 182
+Open house: 184
+Infiltration: 191
+Lucky bastard: 192
+Slumlord: 193
+Safe bet: 197
+Underhanded: 199
+Deadweight: 201
+Stove away: 202
+Ramtheft: 203
+Blood diamants: 204
+Financier: 206
+Lipstick on a pig: 208
+Recycling: 212
+Rentals: 217
+Gangbangers: 220
+Diamonds are...: 221
+Concuctions: 225
+VIP Lounge: 226
+Projects: 229
+Color revolution: 229
+Globalist: 233
+Financing: 233
+Demolition: 235
+Side effects: 240
+Stiffs: 242
+Rentseeking: 245
+Golden chains: 252
+Hooters: 253
+Higher powers: 256
+Insurgency: 256
+Agent: 258
+Secret weapon: 258
+Burial at sea: 260
+Choireboys: 261
+Homebrew: 261
+Express demands: 264
+Bootlegging: 266
+Prescriptions: 267
+Duty free: 267
+Small arms: 267
+Pimp: 272
+Ludomania: 274
+Nose job: 276
+Debt to society: 278
+Grand designs: 278
+Drugdealer: 282
+Faulty towers: 283
+Broken bones: 285
+Deadly cargo: 287
+Occupational hazard: 288
+Flay'em: 289
+Acquittal: 290
+Borderless: 290
+Home invasion: 292
+Outsider: 294
+Outstanding: 298
+Grapevine: 300
+Brotherhood: 305
+Lawfare: 307
+Et spiritus sancti: 308
+Usery: 316
+Sing a long song: 317
+Hooked: 318
+Cold meds: 318
+Bail: 318
+Redemption: 322
+High society: 334
+Trance: 336
+Up yours: 339
+Foreign aid: 340
+Human resources: 348
+Knocked out: 351
+Knock knock: 356
+Advisory board: 358
+Legalese: 371
+Loads of stuff: 385
+Containment: 394
+Protection: 400
+Rock solid claims: 402
+Chicks in cages: 411
+Bouncing: 417
+Moonshine: 560
+Polterabend: 585
 Square visits:
-Bar Nr. 1: 111
-Gas Station Nr. 2: 15
-Bank Nr. 3: 67
-Town Hall Nr. 4: 518
-Highway Nr. 5: 215
-Barracks Nr. 6: 514
-Church Nr. 7: 313
-Villa Nr. 8: 277
-Embassey Nr. 9: 240
-Courthouse Nr. 10: 326
-Airport Nr. 11: 301
-Casino Nr. 12: 168
-Jeweler Nr. 13: 186
-Bank Nr. 14: 53
-Gas Station Nr. 15: 56
-Bar Nr. 16: 505
-Highway Nr. 17: 152
-Bar Nr. 18: 160
-Disco Nr. 19: 302
-Bar Nr. 20: 300
-Brothel Nr. 21: 775
-Realestate Nr. 22: 187
-Shop Nr. 23: 47
-Bank Nr. 24: 43
-Hospital Nr. 25: 242
-Undertaker Nr. 26: 223
-Gas Station Nr. 27: 27
-Bar Nr. 28: 160
-Highway Nr. 29: 130
-McLeans Nr. 30: 859
-Condo Nr. 31: 105
-Condo Nr. 32: 94
-Lawyers Nr. 33: 420
-Shop Nr. 34: 33
-Bar Nr. 35: 293
-Prison Nr. 36: 221
-Gas Station Nr. 37: 9
-Bank Nr. 38: 45
-Debt Inc Nr. 39: 347
-Bar Nr. 40: 455
-Highway Nr. 41: 238
-Shop Nr. 42: 56
-Entreprenour Nr. 43: 252
-Shop Nr. 44: 49
-Pharmacy Nr. 45: 399
-Bar Nr. 46: 209
-Gas Station Nr. 47: 11
-Brewery Nr. 48: 348
-Harbour Nr. 49: 371
-Shop Nr. 50: 30
-Bar Nr. 51: 420
-Bank Nr. 52: 44
-Highway Nr. 53: 189
-Bar Nr. 54: 161
-Import inc Nr. 55: 210
-Slum Nr. 56: 90
-Alley Nr. 57: 304
-Slum Nr. 58: 73
-Slum Nr. 59: 48
-Police Nr. 60: 260
-Time: 58
-Games: 100
-Turns: 2179
-avgTurns: 21.79
+Bar Nr. 1: 1046
+Gas Station Nr. 2: 152
+Bank Nr. 3: 656
+Town Hall Nr. 4: 4085
+Highway Nr. 5: 2326
+Barracks Nr. 6: 3988
+Church Nr. 7: 3127
+Villa Nr. 8: 2806
+Embassey Nr. 9: 2561
+Courthouse Nr. 10: 3255
+Airport Nr. 11: 3113
+Casino Nr. 12: 1763
+Jeweler Nr. 13: 1988
+Bank Nr. 14: 651
+Gas Station Nr. 15: 491
+Bar Nr. 16: 5141
+Highway Nr. 17: 1734
+Bar Nr. 18: 1376
+Disco Nr. 19: 3143
+Bar Nr. 20: 2682
+Brothel Nr. 21: 5393
+Realestate Nr. 22: 1786
+Shop Nr. 23: 411
+Bank Nr. 24: 492
+Hospital Nr. 25: 2446
+Undertaker Nr. 26: 2309
+Gas Station Nr. 27: 321
+Bar Nr. 28: 1614
+Highway Nr. 29: 1533
+McLeans Nr. 30: 6394
+Condo Nr. 31: 984
+Condo Nr. 32: 816
+Lawyers Nr. 33: 3824
+Shop Nr. 34: 443
+Bar Nr. 35: 3150
+Prison Nr. 36: 2289
+Gas Station Nr. 37: 97
+Bank Nr. 38: 365
+Debt Inc Nr. 39: 3229
+Bar Nr. 40: 4773
+Highway Nr. 41: 2530
+Shop Nr. 42: 630
+Entreprenour Nr. 43: 2249
+Shop Nr. 44: 502
+Pharmacy Nr. 45: 3474
+Bar Nr. 46: 2115
+Gas Station Nr. 47: 107
+Brewery Nr. 48: 3458
+Harbour Nr. 49: 3491
+Shop Nr. 50: 369
+Bar Nr. 51: 4043
+Bank Nr. 52: 405
+Highway Nr. 53: 1928
+Bar Nr. 54: 1480
+Import inc Nr. 55: 2036
+Slum Nr. 56: 777
+Alley Nr. 57: 2841
+Slum Nr. 58: 625
+Slum Nr. 59: 479
+Police Nr. 60: 2225
+Time: 6:29
+Games: 1000
+Turns: 20560
+avgTurns: 20.56

@@ -6,7 +6,6 @@ const
   thisDialog = "dialog"
   robotoRegular* = "fonts\\Roboto-Regular_1.ttf"
 
-# let
   selectorBorder*:Border = (0,10,color(1,0,0))
   menuBatchInit* = BatchInit(
     kind:MenuBatch,
@@ -14,7 +13,6 @@ const
     pos:(875,275),
     padding:(50,50,20,20),
     hAlign:CenterAlign,
-    # entries: @["test"],
     font:(robotoRegular,26.0,color(1,1,0)),
     bgColor:color(0,0,0),
     opacity:25,
@@ -69,9 +67,7 @@ proc startDialog*(entries:seq[string],selRange:HSlice[int,int],call:proc(s:strin
   returnSelection = call
   pushCalls()
   excludeCalls()
-  # excludeCallsExcept thisDialog
   addCall dialogCall
-  # dialogCall.active = true
   dialogBatch.isActive = true
   dialogBatch.update = true
   dialogBatch.dynMove(Up,13)
@@ -84,5 +80,3 @@ proc really*(title:string,answer:string -> void) =
     "No",
   ]
   startDialog(entries,2..3,answer)
-
-# dialogBatch.isActive = false

@@ -56,7 +56,7 @@ let
     ivec2(800,600),
     WindowStyle.DecoratedResizable, 
     visible = false,
-    # vsync = false
+    vsync = false
   )
   scr = getScreens()[0]
   scrWidth* = (int32)scr.right
@@ -78,8 +78,13 @@ var
   pushedCalls,calls:seq[Call]
   specialKeys:SpecialKeys
   bxy = newBoxy()
+  fpsTime = 1/60
+  lastTime = cpuTime()
 
 bxy.scale(boxyScale)
+
+proc setFps*(fps:int) =
+  fpsTime = 1/fps
 
 proc pushCalls* =
   pushedCalls = calls
@@ -240,8 +245,21 @@ proc zoomImage*(frames:float32):proc:float32 =
       if scale > 1: scale = 1
       scale
 
+proc expandImage(r:Rect,frames:float):proc:Rect =
+  var 
+    expRect = Rect(x:r.x,y:r.y,w:0,h:r.h)
+    rate = r.w/frames
+  proc:Rect =
+    expRect.w += rate
+    if expRect.w > r.w: 
+      expRect.w = r.w
+    expRect
+
 proc dynMove*[T](dynImg:var DynamicImage[T],direction:Direction,frames:int) =
   dynImg.move = dynImg.rect.moveImage(direction,frames)
+
+proc dynExpand*[T](dynImg:var DynamicImage[T],frames:int) =
+  dynImg.move = dynImg.rect.expandImage frames
 
 proc drawDynamicImage*[T](b:var Boxy,dynImg:DynamicImage[T]) =
   if dynImg.update: 
@@ -289,19 +307,8 @@ func isMouseKey(button:Button):bool =
     DoubleClick,TripleClick,QuadrupleClick
   ]
 
-# proc callBack(button:Button) =
-#   for call in calls:
-#     # if call.active:
-#     if call.active:
-#       if button.isMouseKey:
-#         if call.mouseClick != nil: 
-#           call.mouseClick(newKeyEvent(button))
-#       elif call.keyboard != nil: 
-#         call.keyboard(newKeyboardEvent(button,"¤".toRunes[0]))
-
 proc callBack(button:Button) =
   for call in calls.filterIt it.active:
-    # if call.active:
     if button.isMouseKey:
       if call.mouseClick != nil: 
         call.mouseClick(newKeyEvent(button))
@@ -315,68 +322,33 @@ window.onButtonPress = proc(button:Button) =
     window.closeRequested = true
   else: button.callBack
 
-# window.onFrame = proc() =
-#   glClear(GL_COLOR_BUFFER_BIT)  
-#   bxy.beginFrame(window.size)
-#   for call in calls:
-#     if call.draw != nil:
-#       call.draw(bxy)
-#   bxy.endFrame()
-#   window.swapBuffers()
-
 window.onFrame = proc() =
-  glClear(GL_COLOR_BUFFER_BIT)  
-  bxy.beginFrame(window.size)
-  for call in calls.filterIt it.draw != nil:
-    call.draw(bxy)
-  bxy.endFrame()
-  window.swapBuffers()
-
-# window.onRune = proc(rune:Rune) =
-#   var button:Button
-#   for call in calls:
-#     if call.keyboard != nil and call.active:
-#       call.keyboard(newKeyboardEvent(button,rune))
+  if (let cpt = cpuTime(); cpt-lastTime >= fpsTime):
+    lastTime = cpt
+    glClear(GL_COLOR_BUFFER_BIT)  
+    bxy.beginFrame(window.size)
+    for call in calls.filterIt it.draw != nil:
+      call.draw(bxy)
+    bxy.endFrame()
+    window.swapBuffers()
 
 window.onRune = proc(rune:Rune) =
   var button:Button
   for call in calls.filterIt it.keyboard != nil and it.active:
     call.keyboard(newKeyboardEvent(button,rune))
 
-# window.onMouseMove = proc() =
-#   for call in calls:
-#     if call.mouseMoved != nil and call.active:
-#       call.mouseMoved()
-
 window.onMouseMove = proc() =
   for call in calls.filterIt it.mouseMoved != nil and it.active:
     call.mouseMoved()
-
-# proc callCycles* =
-#   for call in calls:
-#     if call.cycle != nil and call.active:
-#       call.cycle()
 
 proc callCycles* =
   for call in calls.filterIt it.cycle != nil and it.active:
     call.cycle()
 
-proc timerCalls:seq[(int,Call)] =
-  for idx,call in calls:
-    if call.timer.call != nil and call.active:
-      result.add (idx,call)
-
-# proc callTimers* =
-#   for call in calls.mitems:
-#     if call.timer.call != nil and call.active:
-#       if cpuTime()-call.timer.lastTime > call.timer.secs:
-#         call.timer.lastTime = cpuTime()
-#         call.timer.call()
-
 proc callTimers* =
-  for (idx,call) in timerCalls():
-    if cpuTime()-call.timer.lastTime > call.timer.secs:
-      calls[idx].timer.lastTime = cpuTime()
+  for idx,call in calls.filterIt(it.timer.call != nil and it.active):
+    if (let time = cpuTime(); time-call.timer.lastTime > call.timer.secs):
+      calls[idx].timer.lastTime = time
       call.timer.call()
 
 template runWinWith*(body:untyped) =
