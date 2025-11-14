@@ -40,7 +40,7 @@ const
   showVolTime* = 2.4
   settingsFile* = "dat\\settings.cfg"
 
-  logoFontPath = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
+  logoFontPath* = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
   logoText = [
     "Created by",
     "Sebastian Tue Øltieng",

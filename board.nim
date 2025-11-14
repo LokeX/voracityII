@@ -43,6 +43,7 @@ const
   )
 
 let
+  squareHeaderFont = setNewFont(logoFontPath,size = 16.0,color(50,50,0))
   flavourFont = setNewFont("fonts\\AsapCondensed-Italic.ttf",size = 16.0,color(1,1,1))
   boardImg* = readImage "pics\\engboard.jpg"
 
@@ -61,6 +62,7 @@ proc buildSquareTexts(path:string):SquareTexts =
   for line in path.lines:
     if line.startsWith("square:"):
       square = line[7..line.high].splitWhitespace[^1].parseInt
+      result[square].add squares[square].name&" Nr. "&($squares[square].nr)
     else: result[square].add line
 
 func squareDims:array[61,Dims] =
@@ -243,7 +245,11 @@ proc drawBoard*(b:var Boxy) =
 
 proc squareTextSpans(square:int):seq[Span] =
   for idx,text in squareTexts[square]:
-    result.add newSpan(text,flavourFont)
+    if idx == 0: 
+      result.add newSpan(text&"\n",squareHeaderFont)
+    elif idx == 1: 
+      result.add newSpan(text,flavourFont)
+    else: result[^1].text.add text
     if idx < squareTexts[square].high:
       result[^1].text.add "\n"
 

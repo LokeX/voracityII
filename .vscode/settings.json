@@ -7,7 +7,7 @@
     "editor.tabSize": 2,
     "files.autoSave": "afterDelay",
     "git.enableSmartCommit": true,
-    "workbench.productIconTheme": "material-product-icons",
+    "workbench.productIconTheme": "Default",
     "explorer.confirmDelete": false,
     "nim.runOutputDirectory": "exe",
     "window.commandCenter": false,
@@ -19,10 +19,10 @@
     "workbench.editor.enablePreview": false,
     "git.openRepositoryInParentFolders": "never",
     "editor.multiCursorModifier": "ctrlCmd",
-    "lldb.suppressUpdateNotifications": true,
+    // "lldb.suppressUpdateNotifications": true,
     "terminal.integrated.cursorBlinking": true,
     "window.zoomLevel": -1,
-    "workbench.iconTheme": "gruvbox-material-icon-theme",
+    // "workbench.iconTheme": "gruvbox-material-icon-theme",
     "workbench.colorCustomizations": {
         
     "[Sunset Theme]": {},
@@ -52,8 +52,8 @@
         
         "[Sunset Theme]": {
             // "functions": "#c17d6a",
-            "functions": "#1c8a48",
-            "keywords": "#984e64",
+            "functions": "#271c8a",
+            "keywords": "#5f4e98",
             "types": "#cb806b",
             // "types": "#2ada70",
             "strings": "#cd78bc"
@@ -75,6 +75,7 @@
             "enabled": true,
         }
     },
+    "editor.minimap.scale": 2,
     // "terminal.integrated.automationProfile.windows": {
 
     // },
