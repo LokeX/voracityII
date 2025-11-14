@@ -1,68 +1,68 @@
 Redemption: 45
 Stiffs: 20
-Ludomania: 28
-Broken bones: 31
-Safe bet: 22
-Grapevine: 32
-Sweethearts: 16
-Polterabend: 62
-Faulty towers: 32
-Loads of stuff: 48
-High society: 38
+Ludomania: 29
+Broken bones: 32
+Safe bet: 23
+Grapevine: 34
+Sweethearts: 17
+Polterabend: 63
+Faulty towers: 34
+Loads of stuff: 49
+High society: 39
 Knocked out: 37
 Chicks in cages: 45
 Drugdealer: 28
 Trans-action: 22
 Secret weapon: 30
-Moonshine: 64
-Outstanding: 33
-Containment: 35
+Moonshine: 65
+Outstanding: 35
+Containment: 37
 Deadweight: 18
-Hooters: 26
-Brotherhood: 25
+Hooters: 29
+Brotherhood: 27
 Bail: 31
 Recycling: 23
 Specimens: 15
-Home invasion: 46
+Home invasion: 47
 Stove away: 19
 Grand designs: 31
 Demolition: 32
-Human resources: 46
-Deadly cargo: 28
+Human resources: 47
+Deadly cargo: 29
 Agent: 32
 Borderless: 26
-Globalist: 25
-Bootlegging: 25
-Lawfare: 33
-Terrorism: 21
+Globalist: 26
+Bootlegging: 26
+Lawfare: 35
+Terrorism: 22
 Lord of War: 15
-Rentseeking: 28
+Rentseeking: 29
 Protection: 42
 Duty free: 43
-Hooked: 37
-Open house: 19
-Rock solid claims: 45
-Pimp: 33
+Hooked: 38
+Open house: 21
+Rock solid claims: 46
+Pimp: 34
 Concuctions: 29
-Circle jerk: 22
+Circle jerk: 23
 Legalese: 40
 Higher powers: 27
 Nose job: 31
-Insurgency: 30
+Insurgency: 31
 Outsider: 34
 Prescriptions: 30
-Bouncing: 41
+Bouncing: 42
 Side effects: 26
-Diamonds are...: 28
+Diamonds are...: 30
 Blood diamants: 26
 Foreign aid: 36
-Color revolution: 29
+Color revolution: 30
 Acquittal: 28
-Financier: 22
-Underhanded: 30
-Up yours: 24
+Financier: 23
+Underhanded: 31
+Up yours: 25
 Choireboys: 26
-Knock knock: 35
+Knock knock: 37
 Sing a long song: 50
 White collars: 15
 Broman escorte: 13
@@ -73,36 +73,36 @@ VIP Lounge: 25
 Small arms: 28
 Express demands: 28
 Ramtheft: 25
-Golden chains: 20
+Golden chains: 22
 Bodyguard: 17
 Mayor: 25
 Homebrew: 31
 Meat grinder: 24
-Judicial murder: 20
-Flay'em: 25
-Projects: 27
-Advisory board: 31
+Judicial murder: 21
+Flay'em: 26
+Projects: 28
+Advisory board: 32
 Usery: 29
 Financing: 27
-Lucky bastard: 23
-Lipstick on a pig: 23
+Lucky bastard: 24
+Lipstick on a pig: 24
 Laundry: 22
 Debt to society: 25
 Transitions: 14
 Trance: 38
 Bodycount: 16
 Informer: 16
-Rentals: 24
-Healthplan: 24
+Rentals: 25
+Healthplan: 25
 Slumlord: 22
-Heartless: 8
+Heartless: 9
 Gangbangers: 22
 Aiding and abetting: 14
 Coup: 14
-Blood suckers: 17
+Blood suckers: 18
 Infiltration: 19
 Spy: 7
 Addictions: 12
 Corruption: 10
 Burial at sea: 22
-Razia: 13
+Razia: 14

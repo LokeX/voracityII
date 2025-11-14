@@ -138,7 +138,7 @@ func coverOneInMany(coverPieces,squares:seq[int],requiredSquare:int):bool =
       else:discard
   pieces.any piece => squares.anyIt piece.covers it
 
-func legalPieces(hypothetical:Hypothetic):seq[int] =
+func legalPieces*(hypothetical:Hypothetic):seq[int] =
   let nrAllowed = hypothetical.cash div piecePrice
   var count = 0
   for piece in hypothetical.pieces:

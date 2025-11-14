@@ -16,11 +16,13 @@ type
   EventMoveFmt* = tuple[fromSquare,toSquare:string]
   TurnReport* = object
     turnNr*:int
-    playerBatch*:tuple[color:PlayerColor,kind:PlayerKind]
+    player*:tuple[color:PlayerColor,kind:PlayerKind]
     diceRolls*:seq[Dice]
     moves*:seq[Move]
     cards*:tuple[drawn,played,cashed,discarded,hand:seq[BlueCard]]
     kills*:seq[PlayerColor]
+    cash*:int
+    agro*:int
 
 var
   # Interface controls
@@ -45,7 +47,6 @@ var
 
   # Interface state
   configState*:proc(config:ConfigState)
-  singlePiece*:SinglePiece
   dialogBarMoves*:seq[Move]
   soundToPlay*:seq[string]
   phase*:Phase
@@ -53,6 +54,7 @@ var
   turnReport*:TurnReport
 
   # Internals
+  killPiece:SinglePiece
   hypo:Hypothetic
   diceReroll:DiceReroll
   bestDiceMoves:seq[Move]
@@ -112,6 +114,8 @@ template updatePiecesPainter =
 proc initTurnReport* =
   turnReport = TurnReport()
   turnReport.turnNr = turnPlayer.turnNr+1
+  turnReport.player.color = turnPlayer.color
+  turnReport.player.kind = turnPlayer.kind
   initTurnReportBatches()
 
 proc updateTurnReport*[T](item:T) =
@@ -143,15 +147,11 @@ proc updateTurnReportCards*(blues:seq[BlueCard],playedCard:PlayedCard) =
 #       echo fn,": ",$item
 
 proc recordTurnReport* =
-  execIf recordStats:
+  if recordStats:
     turnReport.cards.hand = turnPlayer.hand
+    turnReport.cash = turnPlayer.cash
+    turnReport.agro = turnPlayer.agro
     turnReports.add turnReport
-
-proc setupNewGame* =
-  turn = (0,0,false,0)
-  blueDeck.resetDeck
-  players = newDefaultPlayers()
-  setConfigStateTo SetupGame
 
 proc barToMassacre(player:Player,allPlayers:seq[Player]):int =
   if (let playerBars = turnPlayer.piecesOnBars; playerBars.len > 0):
@@ -309,63 +309,59 @@ proc move* =
 
 proc killPieceAndMove*(confirmedKill:string) =
   if confirmedKill == "Yes":
-    players[singlePiece.playerNr].pieces[singlePiece.pieceNr] = 0
-    updateTurnReport players[singlePiece.playerNr].color
+    players[killPiece.playerNr].pieces[killPiece.pieceNr] = 0
+    updateTurnReport players[killPiece.playerNr].color
     playSound "Gunshot"
     playSound "Deanscream-2"
   if statGame: move()
   else: moveAnimation
 
-proc killEval(player:Player,pieceNr,toSquare:int):int =
+proc killEvalBetterFor(player:Player,move:Move):bool =
   var hypoPlayer = player
-  hypoPlayer.pieces[pieceNr] = toSquare
+  hypoPlayer.pieces[move.pieceNr] = move.toSquare
   hypoPlayer.hand = hypoPlayer.plans.notCashable
-  hypoPlayer.hypotheticalInit.evalPos
+  var hypo = hypoPlayer.hypotheticalInit
+  let noKillEval = hypo.evalPos
+  hypo.pieces[move.pieceNr] = 0
+  let killEval = hypo.evalPos
+  killEval > noKillEval
 
-proc killAdviced(player:Player,fromSquare,toSquare:int):bool =
-  let pieceNr = player.pieces.find(fromSquare)
-  pieceNr > -1 and 
-  player.killEval(pieceNr,toSquare) < player.killEval(pieceNr,0)
-
-proc shouldKillEnemyOn(killer:Player,toSquare:int): bool =
-  if killer.hasPieceOn(toSquare) or 
-    killer.cash-(killer.removedPieces*piecePrice) <= startCash div 2: false 
-  else:
-    let 
-      killAdviced = killer.killAdviced(moveSelection.fromSquare,toSquare)
-      agroKill = rand(1..100) <= killer.agro div 5
-      barKill = toSquare.isBar and (killer.nrOfPiecesOnBars > 0 or players.len < 3)
-    agroKill or barKill or killAdviced
-
-proc aiRemovePiece(move:Move):bool =
-  turnPlayer.hypotheticalInit.friendlyFireAdviced(move) or 
-  turnPlayer.shouldKillEnemyOn move.toSquare
-
-proc aiKillDecision =
-  killPieceAndMove(
-    if aiRemovePiece getMove(): 
-      "Yes" 
-    else: 
-      "No"
+proc shouldKillEnemyOn(player:Player,move:Move):bool =
+  player.cash-(player.nrOfRemovedPieces*piecePrice) >= startCash div 2 and 
+  not player.hasPieceOn(move.toSquare) and (
+    (move.toSquare.isBar and (player.nrOfPiecesOnBars > 0 or players.len < 3)) or
+    rand(0..99) <= player.agro or
+    player.killEvalBetterFor move
   )
 
-proc hasKillablePiece(square:int):bool =
-  singlePiece = players.singlePieceOn square
-  singlePiece.playerNr != -1 and canKillPieceOn square
+proc aiRemovePiece(move:Move):bool =
+  turnPlayer.shouldKillEnemyOn(move) or
+  turnPlayer.hypotheticalInit.friendlyFireAdviced(move)
 
 proc movePiece(square:int) =
   moveSelection.toSquare = square
-  if square.hasKillablePiece:
-    if turnPlayer.kind == Human:
-      startKillDialog square
-    else: aiKillDecision()
-  elif statGame: 
-    move()
+  killPiece = players.singlePieceOn square
+  if killPiece.playerNr != -1 and canKillPieceOn square:
+    if turnPlayer.kind == Human: startKillDialog square
+    else: killPieceAndMove(
+      if aiRemovePiece(getMove()): "Yes" 
+      else: "No"
+    )
+  elif statGame: move()
   else: moveAnimation
 
-proc endGame =
-  if turnPlayer.kind == Human:
-    recordTurnReport()
+proc setupNewGame* =
+  turn = (0,0,false,0)
+  blueDeck.resetDeck
+  players = newDefaultPlayers()
+  setConfigStateTo SetupGame
+
+proc endGame* =
+  # echo turnPlayer.color
+  # if turnPlayer.kind == Human:
+  recordTurnReport()
+  # echo turnReports[^1].player.color
+  # echo turnReport.player.color
   setupNewGame()
   soundToPlay.setLen 0
 
@@ -447,19 +443,8 @@ proc winningMove(hypothetical:Hypothetic,dice:openArray[int]):Move =
         return move
   result.pieceNr = -1
 
-# proc winningMove(hypothetical:Hypothetic,dice:openArray[int]):Move =
-#   if bestDiceMoves.len > 0: 
-#     for i,move in bestDiceMoves:
-#       if move.die == dice[0] and hypothetical.cashTotal(move) >= cashToWin:
-#         return bestDiceMoves[i]
-#   else: 
-#     for move in hypothetical.movesResolvedWith dice:
-#       if hypothetical.cashTotal(move) >= cashToWin: 
-#         return move
-#   result.pieceNr = -1
-
 proc aiMove(hypothetical:Hypothetic,dice:openArray[int]):(bool,Move) =
-  if(let winMove = hypothetical.winningMove dice; winMove.pieceNr != -1):
+  if (let winMove = hypothetical.winningMove dice; winMove.pieceNr != -1):
     (true,winMove) 
   else: (
     false,
@@ -493,9 +478,13 @@ proc startTurn =
   #   echo ""
   #   echo "game nr: ",gameStats.len
   #   echo $turnPlayer.color," start turn: ",turn.nr
+  # echo "starting turn"
   hypo = hypotheticalInit(turnPlayer)
   bestDiceMoves.setLen 0
-  phase = Draw
+  if hypo.legalPieces.len == 0:
+    echo $turnPlayer.color&" has no legal pieces and has left the game in shame"
+    phase = EndTurn
+  else: phase = Draw
 
 proc rerollPhase =
   if statGame:

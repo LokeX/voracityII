@@ -1,5 +1,6 @@
 # import boxy, opengl 
-import boxy/src/boxy, opengl 
+# import boxy/src/boxy, opengl 
+import boxy, opengl 
 import windy
 import times
 import sequtils

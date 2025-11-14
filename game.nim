@@ -234,13 +234,13 @@ func anyComputer*(players:seq[Player]):bool =
 func anyHandles*(handles:seq[string]):bool =
   handles.anyIt it.len > 0
 
-func removedPieces*(player:Player):int =
+func nrOfRemovedPieces*(player:Player):int =
   player.pieces.count 0
 
-func indexFromColor*(players:seq[Player],playerColor:PlayerColor):int =
-  for i,player in players:
-    if player.color == playerColor: return i
-  result = -1
+# func indexFromColor*(players:seq[Player],playerColor:PlayerColor):int =
+#   for i,player in players:
+#     if player.color == playerColor: return i
+#   result = -1
 
 func piecesOn*(players:seq[Player],square:int):seq[tuple[playerNr,pieceNr:int]] =
   for playerNr,player in players:
@@ -314,7 +314,7 @@ proc newPlayers*:seq[Player] =
       kind:player.kind,
       pieces:highways,
       cash:startCash,
-      agro:rand 1..100
+      agro:rand 0..9
     )
   result = playerSlots.filterIt it.kind != None
 

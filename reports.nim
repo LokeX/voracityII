@@ -143,7 +143,7 @@ proc drawPlayerBatches*(b:var Boxy) =
 
 proc victims(killer:PlayerColor):seq[PlayerColor] =
   for report in turnReports:
-    if report.playerBatch.color == killer:
+    if report.player.color == killer:
       result.add report.kills
   if killer == turnPlayer.color:
     result.add turnReport.kills
@@ -241,11 +241,11 @@ proc initReportBatches*:ReportBatches =
     result[PlayerColor(i)] = batch
 
 proc reports*(playerColor:PlayerColor):seq[TurnReport] =
-  turnReports.filterIt(it.playerBatch.color == playerColor)
+  turnReports.filterIt(it.player.color == playerColor)
 
 func reportLines(report:TurnReport):seq[string] = @[
   "Turn nr: "&($report.turnNr),
-  "Player: "&($report.playerBatch),
+  "Player: "&($report.player),
   "Dice Rolls:\n"&report.diceRolls.mapIt($it).join("\n"),
   "Moves:\n"&report.moves.mapIt($it).join("\n"),
   "Kills: "&($report.kills),
@@ -263,7 +263,7 @@ proc writeEndOfGameReports =
   for player in players:
     let report = 
       if player.color == turnPlayer.color: turnReport 
-      else: turnReports.filterIt(it.playerBatch.color == player.color)[^1]
+      else: turnReports.filterIt(it.player.color == player.color)[^1]
     var reportLines = report.reportLines
     reportLines.add @[
       "Drawn: "&report.cards.drawn.mapIt(it.title).join(","),
@@ -273,8 +273,8 @@ proc writeEndOfGameReports =
     reportBatches[player.color].setSpans reportLines.mapIt newSpan(it&"\n",plainFont)
 
 proc initReportBatchesTurn* =
-  turnReport.playerBatch.color = turnPlayer.color
-  turnReport.playerBatch.kind = turnPlayer.kind
+  # turnReport.playerBatch.color = turnPlayer.color
+  # turnReport.playerBatch.kind = turnPlayer.kind
   reportBatches[turnPlayer.color].setSpans reportSpansFrom turnReport
   reportBatches[turnPlayer.color].update = true
 

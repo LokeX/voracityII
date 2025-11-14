@@ -18,17 +18,15 @@ joinThreads(thr)
 
 deinitLock(L)
 
-type
-  Etest = enum Test1,Test2,Test3,Test4,
+import algorithm
+import sugar
 
-var 
-  et:Etest
+var dice = [2,1,4,3,5,6]
+# for die in 1..6:
+#   dice[die] = die
 
-while true:
-  echo et
-  if et == Etest.high:
-    et = Etest.low
-  else: inc et
+dice.sort
+echo dice
 
 
 
