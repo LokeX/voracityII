@@ -363,6 +363,12 @@ proc drawStats*(b:var Boxy) =
 template mouseOnStatsBatch*:bool =
   mouseOn statsBatch
 
+proc resetReports* =
+  for batch in reportBatches.mitems:
+    batch.setSpans @[]
+  selectedBatch = -1
+  killMatrixPainter.update = true
+
 template initReports* =
   playerBatches = newPlayerBatches()
   reportBatches = initReportBatches()

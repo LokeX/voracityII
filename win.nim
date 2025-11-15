@@ -246,21 +246,8 @@ proc zoomImage*(frames:float32):proc:float32 =
       if scale > 1: scale = 1
       scale
 
-proc expandImage(r:Rect,frames:float):proc:Rect =
-  var 
-    expRect = Rect(x:r.x,y:r.y,w:0,h:r.h)
-    rate = r.w/frames
-  proc:Rect =
-    expRect.w += rate
-    if expRect.w > r.w: 
-      expRect.w = r.w
-    expRect
-
 proc dynMove*[T](dynImg:var DynamicImage[T],direction:Direction,frames:int) =
   dynImg.move = dynImg.rect.moveImage(direction,frames)
-
-proc dynExpand*[T](dynImg:var DynamicImage[T],frames:int) =
-  dynImg.move = dynImg.rect.expandImage frames
 
 proc drawDynamicImage*[T](b:var Boxy,dynImg:DynamicImage[T]) =
   if dynImg.update: 

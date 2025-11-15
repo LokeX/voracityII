@@ -138,14 +138,6 @@ proc updateTurnReportCards*(blues:seq[BlueCard],playedCard:PlayedCard) =
       of Discarded: turnReport.cards.discarded.add blues
     updateTurnReport()
 
-# proc echoTurn(report:TurnReport) =
-#   for fn,item in turnReport.fieldPairs:
-#     when typeOf(item) is tuple:
-#       for n,i in item.fieldPairs: 
-#         echo n,": ",$i
-#     else: 
-#       echo fn,": ",$item
-
 proc recordTurnReport* =
   if recordStats:
     turnReport.cards.hand = turnPlayer.hand
@@ -282,6 +274,7 @@ proc getMove:Move =
   result.pieceNr = turnPlayer.pieceOnSquare moveSelection.fromSquare
 
 proc move* =
+  moveAnimation()
   var move = getMove()
   if not turn.diceMoved and not moveSelection.event:
     turn.diceMoved = diceMoved(
@@ -294,7 +287,6 @@ proc move* =
   turnPlayer.pieces[move.pieceNr] = moveSelection.toSquare
   if moveSelection.fromSquare == 0: 
     turnPlayer.cash -= piecePrice
-    turnPlayer.update = true
   playCashPlansTo blueDeck
   turnPlayer.hand = turnPlayer.sortBlues
   turnPlayer.update = true
@@ -307,16 +299,15 @@ proc move* =
     undrawnBluesUpdate()
     playSound "can-open-1"
 
-proc killPieceAndMove*(confirmedKill:string) =
+proc decideKillAndMove*(confirmedKill:string) =
   if confirmedKill == "Yes":
     players[killPiece.playerNr].pieces[killPiece.pieceNr] = 0
     updateTurnReport players[killPiece.playerNr].color
     playSound "Gunshot"
     playSound "Deanscream-2"
-  if statGame: move()
-  else: moveAnimation
+  move()
 
-proc killEvalBetterFor(player:Player,move:Move):bool =
+proc wantsNoProtectionAfter(player:Player,move:Move):bool =
   var hypoPlayer = player
   hypoPlayer.pieces[move.pieceNr] = move.toSquare
   hypoPlayer.hand = hypoPlayer.plans.notCashable
@@ -331,10 +322,10 @@ proc shouldKillEnemyOn(player:Player,move:Move):bool =
   not player.hasPieceOn(move.toSquare) and (
     (move.toSquare.isBar and (player.nrOfPiecesOnBars > 0 or players.len < 3)) or
     rand(0..99) <= player.agro or
-    player.killEvalBetterFor move
+    player.wantsNoProtectionAfter move
   )
 
-proc aiRemovePiece(move:Move):bool =
+proc aiRemovesPiece(move:Move):bool =
   turnPlayer.shouldKillEnemyOn(move) or
   turnPlayer.hypotheticalInit.friendlyFireAdviced(move)
 
@@ -342,13 +333,14 @@ proc movePiece(square:int) =
   moveSelection.toSquare = square
   killPiece = players.singlePieceOn square
   if killPiece.playerNr != -1 and canKillPieceOn square:
-    if turnPlayer.kind == Human: startKillDialog square
-    else: killPieceAndMove(
-      if aiRemovePiece(getMove()): "Yes" 
+    if turnPlayer.kind == Human: 
+      startKillDialog square
+    else: decideKillAndMove(
+      if aiRemovesPiece(getMove()): 
+        "Yes" 
       else: "No"
     )
-  elif statGame: move()
-  else: moveAnimation
+  else: move()
 
 proc setupNewGame* =
   turn = (0,0,false,0)
@@ -357,11 +349,7 @@ proc setupNewGame* =
   setConfigStateTo SetupGame
 
 proc endGame* =
-  # echo turnPlayer.color
-  # if turnPlayer.kind == Human:
   recordTurnReport()
-  # echo turnReports[^1].player.color
-  # echo turnReport.player.color
   setupNewGame()
   soundToPlay.setLen 0
 
@@ -398,7 +386,15 @@ proc nextGameState* =
 
 template phaseIs*:untyped = phase
 
-proc drawCards =
+proc aiStartTurn = 
+  hypo = hypotheticalInit(turnPlayer)
+  bestDiceMoves.setLen 0
+  if hypo.legalPieces.len == 0:
+    echo $turnPlayer.color&" has no legal pieces and has left the game in shame"
+    phase = EndTurn
+  else: phase = Draw
+
+proc aiDrawCards =
   playCashPlansTo blueDeck
   while turn.undrawnBlues > 0:
     drawCardFrom blueDeck
@@ -413,6 +409,23 @@ proc reroll(hypothetical:Hypothetic):bool =
       bestDiceMoves = hypothetical.bestDiceMoves()
     bestDiceMoves[0..4].anyIt diceRoll[1].ord == it.die
   else: false
+
+proc aiRerollPhase =
+  if statGame:
+    if not diceReroll.isPausing or hypo.reroll:
+      rollDice()
+      diceReroll.isPausing = true
+    else:
+      diceReroll.isPausing = false
+      phase = AiMove
+  elif diceReroll.isPausing and cpuTime() - diceReroll.pauseStartTime >= 0.25:
+    diceReroll.isPausing = false
+    startDiceRoll()
+  elif not diceReroll.isPausing:
+    if hypo.reroll: 
+      diceReroll.isPausing = true
+      diceReroll.pauseStartTime = cpuTime()
+    else: phase = AiMove
 
 proc bestDieMove(dice:openArray[int]):Move =
   var dieIndex:array[2,int]
@@ -459,53 +472,19 @@ func betterThan(move:Move,hypothetical:Hypothetic):bool =
 proc moveAi =
   let (isWinningMove,move) = hypo.aiMove([diceRoll[1].ord,diceRoll[2].ord])
   if isWinningMove or move.betterThan hypo:
-    if turnPlayer.skipped > 0: 
-      turnPlayer.skipped = 0
     moveSelection.fromSquare = move.fromSquare
     movePiece move.toSquare
   else:
-    inc turnPlayer.skipped
     echo $turnPlayer.color," skips move"
     echo "turn nr: ",turnPlayer.turnNr
     echo "dice: ",diceRoll
     echo "pieces: ",turnPlayer.pieces
     echo "cards: ",turnPlayer.hand.mapIt it.title&"/"&($it.squares.required)
-    # echo "covers: ",turnPlayer.hand.mapIt(turnPlayer.pieces.covers it.squares.required)
   phase = PostMove
-
-proc startTurn = 
-  # if statGame:
-  #   echo ""
-  #   echo "game nr: ",gameStats.len
-  #   echo $turnPlayer.color," start turn: ",turn.nr
-  # echo "starting turn"
-  hypo = hypotheticalInit(turnPlayer)
-  bestDiceMoves.setLen 0
-  if hypo.legalPieces.len == 0:
-    echo $turnPlayer.color&" has no legal pieces and has left the game in shame"
-    phase = EndTurn
-  else: phase = Draw
-
-proc rerollPhase =
-  if statGame:
-    if not diceReroll.isPausing or hypo.reroll:
-      rollDice()
-      diceReroll.isPausing = true
-    else:
-      diceReroll.isPausing = false
-      phase = AiMove
-  elif diceReroll.isPausing and cpuTime() - diceReroll.pauseStartTime >= 0.25:
-    diceReroll.isPausing = false
-    startDiceRoll()
-  elif not diceReroll.isPausing:
-    if hypo.reroll: 
-      diceReroll.isPausing = true
-      diceReroll.pauseStartTime = cpuTime()
-    else: phase = AiMove
 
 proc postMovePhase =
   moveSelection.fromSquare = -1
-  drawCards()
+  aiDrawCards()
   phase = EndTurn
 
 proc endTurn* = 
@@ -517,11 +496,11 @@ proc endTurnPhase =
     endTurn()
   else: showMenu true
 
-proc aiTakeTurnPhase*() =
+proc aiTakeTurn*() =
   case phase
-  of Await: startTurn()
-  of Draw: drawCards()
-  of Reroll: rerollPhase()
+  of Await: aiStartTurn()
+  of Draw: aiDrawCards()
+  of Reroll: aiRerollPhase()
   of AiMove: moveAi()
   of PostMove: postMovePhase()
   of EndTurn: endTurnPhase()

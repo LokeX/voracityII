@@ -33,7 +33,7 @@ proc endDialog(selected:string) =
   returnSelection selected
 
 proc draw(b:var Boxy) =
-  if dialogBatch != nil and dialogBatch.isActive:
+  if dialogBatch.isActive:
     b.drawDynamicImage dialogBatch
 
 proc keyboard(k:KeyboardEvent) = 
@@ -42,9 +42,10 @@ proc keyboard(k:KeyboardEvent) =
   else: k.batchKeyb dialogBatch
 
 proc mouseClicked(m:KeyEvent) =
-  if dialogBatch.isActive and m.leftMousePressed and dialogBatch.mouseOnSelectionArea != -1:
-    dialogBatch.mouseSelect
-    endDialog dialogBatch.stringSelection
+  if dialogBatch.isActive and m.leftMousePressed: 
+    if dialogBatch.mouseOnSelectionArea != -1:
+      dialogBatch.mouseSelect
+      endDialog dialogBatch.stringSelection
 
 proc mouseMoved =
   if dialogBatch.isActive and mouseOn dialogBatch:
@@ -70,7 +71,7 @@ proc startDialog*(entries:seq[string],selRange:HSlice[int,int],call:proc(s:strin
   addCall dialogCall
   dialogBatch.isActive = true
   dialogBatch.update = true
-  dialogBatch.dynMove(Up,13)
+  dialogBatch.dynMove(Up,20)
 
 proc really*(title:string,answer:string -> void) =
   let entries = @[

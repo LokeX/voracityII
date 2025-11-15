@@ -22,26 +22,19 @@ type
     allPlayersPieces:seq[int]
     cards:seq[BlueCard]
     cash:int
-    skipped:int
+    # skipped:int
 
 # var tp = Taskpool.new(num_threads = countProcessors() div 2)
 
 # template syncem:untyped =
 #   tp.syncAll
 
-func countBars*(hypothetical:Hypothetic):int = 
-  hypothetical.pieces.countIt(it.isBar)
-  # hypothetical.pieces.countIt(it in bars)
-
-func piecesOn(hypothetical:Hypothetic,square:int):int =
-  hypothetical.pieces.count(square)
-
 func requiredPiecesOn*(hypothetical:Hypothetic,square:int):int =
-  if hypothetical.cards.len == 0: 0 else:
-    hypothetical.cards.mapIt(it.squares.required.count(square)).max
+  if hypothetical.cards.len == 0: 0 
+  else: hypothetical.cards.mapIt(it.squares.required.count(square)).max
 
 func freePiecesOn(hypothetical:Hypothetic,square:int):int =
-  hypothetical.piecesOn(square) - hypothetical.requiredPiecesOn(square)
+  hypothetical.pieces.count(square) - hypothetical.requiredPiecesOn(square)
 
 func covers(pieceSquare,coverSquare:int):bool =
   if pieceSquare == coverSquare:
@@ -154,19 +147,17 @@ func cover*(pieces:seq[int],card:BlueCard):bool =
   (card.squares.oneInMany.len > 0 and 
     pieces.coverOneInMany(card.squares.oneInMany,card.squares.required[0]))
 
-func cardVal(hypothetical:Hypothetic): int =
-  let legalPieces = hypothetical.legalPieces
-  (3-hypothetical.cards.countIt(legalPieces.cover it))*30000
-
 func barVal*(hypothetical:Hypothetic):int = 
-  valBar-(3000*hypothetical.countBars)+hypothetical.cardVal
+  let 
+    legalPieces = hypothetical.legalPieces
+    cardVal = (3-hypothetical.cards.countIt(legalPieces.cover it))*30000
+  valBar-(3000*hypothetical.pieces.countIt(it.isBar))+cardVal
 
 func rewardValue(hypothetical:Hypothetic,card:BlueCard):int =
   let 
     deed = card.squares.required.len == 1
     fd = hypothetical.cash < 10000
     close = hypothetical.cash+card.cash > cashToWin
-    # adjust = if (fd or close) and deed: 10 else: 1
   card.cash*(if (fd or close) and deed: 10 else: 1)
 
 func oneInMoreBonus(hypothetical:Hypothetic,blueCard:BlueCard,square:int):int =
@@ -174,14 +165,14 @@ func oneInMoreBonus(hypothetical:Hypothetic,blueCard:BlueCard,square:int):int =
     reward = hypothetical.rewardValue blueCard
     requiredSquare = blueCard.squares.required[0]
   if square == requiredSquare:
-    if blueCard.squares.oneInMany.anyIt hypothetical.piecesOn(it) > 0: 
+    if blueCard.squares.oneInMany.anyIt hypothetical.pieces.count(it) > 0: 
       result = reward
     else: result = 
-      case hypothetical.piecesOn(requiredSquare)
+      case hypothetical.pieces.count(requiredSquare)
       of 0:reward div 2
       of 1:reward
       else:0
-  elif hypothetical.piecesOn(requiredSquare) > 0: 
+  elif hypothetical.pieces.count(requiredSquare) > 0: 
     result = reward
   else: result = reward div 2
 
@@ -250,8 +241,7 @@ func evalPos*(hypothetical:Hypothetic):int =
     hypo.cards = hypothetical.cards.filterIt legalPieces.cover it
   evals.add ordSquares.mapIt hypo.evalSquare it
   if ordSquares.len < legalPieces.len:
-    gasstationEvals = 
-      gasStations.mapIt hypo.evalSquare it
+    gasstationEvals = gasStations.mapIt hypo.evalSquare it
     if removedCount > 0: highwayEvals = highways.mapIt hypo.evalSquare it
   for highwaySquare in highwaySquares:
     let 
@@ -281,7 +271,6 @@ func evalBlue(hypothetical:Hypothetic,card:BlueCard):int =
     hypothetical.allPlayersPieces,
     @[card],
     hypothetical.cash,
-    hypothetical.skipped
   )
 
 # proc evalBlues*(hypothetical:Hypothetic):seq[BlueCard] =
@@ -295,7 +284,7 @@ func evalBlue(hypothetical:Hypothetic,card:BlueCard):int =
 proc evalBlues*(hypothetical:Hypothetic):seq[BlueCard] =
   let evals = hypothetical.cards.mapIt hypothetical.evalBlue it
   result = hypothetical.cards
-  for i,_ in evals:
+  for i in 0..evals.high:
     result[i].eval = evals[i]
   result.sort (a,b) => b.eval - a.eval
 
@@ -324,7 +313,7 @@ func friendlyFireBest(hypothetical:Hypothetic,move:Move):bool =
 func friendlyFireAdviced*(hypothetical:Hypothetic,move:Move):bool =
   move.fromSquare != 0 and
   canKillPieceOn(move.toSquare) and
-  hypothetical.piecesOn(move.toSquare) == 1 and 
+  hypothetical.pieces.count(move.toSquare) == 1 and 
   hypothetical.allPlayersPieces.countIt(it == move.toSquare) == 1 and
   hypothetical.requiredPiecesOn(move.toSquare) < 2 and
   hypothetical.friendlyFireBest(move)
@@ -336,10 +325,10 @@ func evalMove*(hypothetical:Hypothetic,pieceNr,toSquare:int):int =
   else: hypo.pieces[pieceNr] = toSquare
   hypo.evalPos
 
-func bestMoveFrom(hypothetical:Hypothetic,generic:Move):Move =
+func bestMoveFrom(hypothetical:Hypothetic,generic:sink Move):Move =
   let squares = moveToSquares(generic.fromSquare,generic.die)
   if squares.len > 0:
-    result = generic
+    result = move generic
     result.toSquare = squares[0]
     result.eval = hypothetical.evalMove(result.pieceNr,squares[0])
     var eval = 0
@@ -375,7 +364,7 @@ func player*(hypothetical:Hypothetic,move:Move):Player =
 #   syncem
 
 proc move*(hypothetical:Hypothetic,dice:openArray[int]):Move = 
-  result = hypothetical.genericMoves(dice)
+  hypothetical.genericMoves(dice)
     .map(genericMove => hypothetical.bestMoveFrom genericMove)
     .reduce (a,b) => (if a.eval >= b.eval: a else: b)
 
@@ -413,7 +402,6 @@ proc boardInit(player:Player):EvalBoard =
     @[],
     player.hand,
     player.cash,
-    turn.nr
   )
  
 proc hypotheticalInit*(player:Player,hand:seq[BlueCard]):Hypothetic = (
@@ -422,7 +410,6 @@ proc hypotheticalInit*(player:Player,hand:seq[BlueCard]):Hypothetic = (
   players.allPlayersPieces,
   hand,
   player.cash,
-  player.skipped
 )
 
 template hypotheticalInit*(player:untyped):untyped =

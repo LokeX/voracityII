@@ -312,7 +312,7 @@ when isMainModule:
     startNewGame()
     echo "game nr: ",i
     while not gameWon:
-        aiTakeTurnPhase()
+        aiTakeTurn()
     endGame()
     if recordStats:
       gameStats.add newGameStats()

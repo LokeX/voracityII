@@ -57,6 +57,8 @@ proc setMenuTo*(kind:MenuKind) =
   bgRect.w = 0
   mainMenu.resetMenu menuEntries[menuKind],0..menuEntries[menuKind].high
   mainMenu.update = true
+  showMenu = true
+  mainMenu.dynMove(Up,20)
 
 proc mouseOnMenuSelection*(s:string):bool =
   if (let selection = mainMenu.mouseOnSelectionArea; selection != -1):

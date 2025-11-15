@@ -240,6 +240,13 @@ proc doMoveAnimation*(b:var Boxy) =
         nextMoveAnimation()
       else: moveAnimation.active = false
 
+proc animateMoveSelection* =
+  startMoveAnimation(
+    turnPlayer.color,
+    moveSelection.fromSquare,
+    moveSelection.toSquare
+  )
+
 proc drawBoard*(b:var Boxy) =
   b.drawImage("board", boardPos)
 
@@ -265,10 +272,10 @@ proc drawSquareText*(b:var Boxy) =
     lastTextSquare = -1
     b.drawBatch squareTextBatch
 
-proc createBoardTextFile* =
-  let f = open("dat\\boardtxt.txt",fmWrite)
-  for idx in 0..60:
-    f.write("square:"&($idx)&"\nThis is a test text for square: "&($idx)&"\n")
+# proc createBoardTextFile* =
+#   let f = open("dat\\boardtxt.txt",fmWrite)
+#   for idx in 0..60:
+#     f.write("square:"&($idx)&"\nThis is a test text for square: "&($idx)&"\n")
 
 template initBoard* =
   addImage("board",boardImg)

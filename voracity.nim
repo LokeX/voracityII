@@ -189,7 +189,6 @@ proc configSetupGame =
   playerBatches = newPlayerBatches()
   piecesImg.update = true
   setMenuTo SetupMenu
-  showMenu = true
   playSound "carhorn-1"
 
 proc configStartGame =
@@ -207,7 +206,6 @@ proc configGameWon =
     playSound "sad-trombone"
     setMenuTo LostGameMenu
   updateKeybar = true
-  showMenu = true
   turn.undrawnBlues = 0
 
 proc barMoveMouseMoved(entries:seq[string]):proc =
@@ -259,26 +257,13 @@ proc startKillDialog(square:int) =
     "No",
   ]
   showMenu = false
-  startDialog(entries,3..4,killPieceAndMove)
+  startDialog(entries,3..4,decideKillAndMove)
 
-proc animateMove* =
-  startMoveAnimation(
-    turnPlayer.color,
-    moveSelection.fromSquare,
-    moveSelection.toSquare
-  )
-  move()
-
-proc aiTurn(): bool =
+template isAiTurn():untyped =
   turn.nr != 0 and 
   turnPlayer.kind == Computer and 
-  not isRollingDice()
-
-proc resetReports* =
-  for batch in reportBatches.mitems:
-    batch.setSpans @[]
-  selectedBatch = -1
-  killMatrixPainter.update = true
+  not isRollingDice() and
+  not moveAnimationActive()
 
 proc menuShow(show:bool) =
   showMenu = show
@@ -293,8 +278,7 @@ proc cycle =
   if soundToPlay.len > 0:
     playSound soundToPlay[0]
     soundToPlay.delete 0
-  if turnPlayer.kind == Computer and not moveAnimationActive() and aiTurn():
-    aiTakeTurnPhase()
+  if isAiTurn(): aiTakeTurn()
 
 proc timer = 
   if squareTimer > 0: dec squareTimer
@@ -355,7 +339,7 @@ template initPlay =
   turnReportUpdate = writeTurnReportUpdate
   turnReportBatchesInit = initReportBatchesTurn
   resetReportsUpdate = resetReports
-  runMoveAnimation = animateMove
+  runMoveAnimation = animateMoveSelection
 
 template initSettings =
   if fileExists(settingsFile): 
