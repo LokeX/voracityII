@@ -6,6 +6,11 @@ import times
 # import taskpools,cpuinfo
 # export spawn
 
+func indexOf*[T](list:openArray[T],cmp:T -> bool):int {.effectsOf:cmp.} =
+  for i in 0..list.high:
+    if cmp(list[i]): return i
+  -1
+
 func timeHMS*[T:int or float](secs:T):array[3,int] =
   let
     time = when typeOf(T) is float: secs.toInt else: secs
@@ -18,15 +23,13 @@ func timeHMS*[T:int or float](secs:T):array[3,int] =
 
 func timeFmt*[T:int or float](secs:T):string =
   let timeUnitVals = timeHMS secs
-  var first = true
   for idx,timeUnit in timeUnitVals:
     if timeUnit > 0:
-      if timeUnit < 10: 
-        if first: first = false
-        else: result.add "0"
       result.add $timeUnit
-      if idx < timeUnitVals.high: 
-        result.add ":"
+      case idx:
+        of 0:result.add "h, "
+        of 1:result.add "m and "
+        of 2:result.add "s"
 
 template echoStats*(s:string,code:untyped):untyped =
   debugEcho ""

@@ -3,7 +3,7 @@ import batch
 import sequtils
 import strutils
 import game
-import graphics
+import miscui
 import misc
 import play
 import stat
@@ -368,6 +368,18 @@ proc resetReports* =
     batch.setSpans @[]
   selectedBatch = -1
   killMatrixPainter.update = true
+
+proc togglePlayerKind* =
+  if (let batchNr = mouseOnPlayerBatchNr(); batchNr != -1) and turn.nr == 0:
+    playerKinds[batchNr] = 
+      case playerKinds[batchNr]:
+        of Human:Computer
+        of Computer:None
+        of None:Human
+    players[batchNr].kind = playerKinds[batchNr]
+    players[batchNr].update = true
+    piecesImg.update = true
+    updateStatsBatch()
 
 template initReports* =
   playerBatches = newPlayerBatches()

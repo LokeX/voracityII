@@ -259,12 +259,12 @@ when isMainModule:
   var
     visitsCount:array[1..60,int]
     cashedCards:CashedCards
-    agroRanches:array[20,int]
+    # agroRanches:array[20,int]
 
-  proc addAgroRanches =
-    for rep in turnReports:
-      if rep.cash >= cashToWin:
-        inc agroRanches[rep.agro div 5]
+  # proc addAgroRanches =
+  #   for rep in turnReports:
+  #     if rep.cash >= cashToWin:
+  #       inc agroRanches[rep.agro div 5]
 
   func indexOf(cards:CashedCards,title:string):int =
     for i,card in cards:
@@ -318,7 +318,7 @@ when isMainModule:
       gameStats.add newGameStats()
       addVisits turnReports.reportedVisitsCount 
       addCards reportedCashedCards()
-      addAgroRanches()
+      # addAgroRanches()
 
   if recordStats:
     let
@@ -331,5 +331,5 @@ when isMainModule:
     echo stats
     echo "Wrote to file: "&fileName
 
-    for i,agro in agroRanches:
-      echo $(i*5),"..",$(((i+1)*5)-1),": ",agro
+    # for i,agro in agroRanches:
+    #   echo $(i*5),"..",$(((i+1)*5)-1),": ",agro

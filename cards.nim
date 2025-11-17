@@ -1,4 +1,4 @@
-import graphics
+import miscui
 import win
 import batch
 import game

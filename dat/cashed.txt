@@ -1,32 +1,32 @@
 Redemption: 49
-Stiffs: 23
+Stiffs: 24
 Ludomania: 31
 Broken bones: 33
 Safe bet: 24
-Grapevine: 37
-Sweethearts: 17
+Grapevine: 38
+Sweethearts: 18
 Polterabend: 66
-Faulty towers: 35
+Faulty towers: 36
 Loads of stuff: 50
 High society: 41
-Knocked out: 39
+Knocked out: 40
 Chicks in cages: 48
-Drugdealer: 32
+Drugdealer: 33
 Trans-action: 22
-Secret weapon: 31
+Secret weapon: 32
 Moonshine: 69
-Outstanding: 36
+Outstanding: 37
 Containment: 38
 Deadweight: 19
-Hooters: 29
+Hooters: 30
 Brotherhood: 31
 Bail: 31
-Recycling: 25
+Recycling: 26
 Specimens: 15
-Home invasion: 49
+Home invasion: 50
 Stove away: 20
-Grand designs: 32
-Demolition: 32
+Grand designs: 33
+Demolition: 33
 Human resources: 50
 Deadly cargo: 34
 Agent: 37
@@ -37,72 +37,72 @@ Lawfare: 38
 Terrorism: 23
 Lord of War: 18
 Rentseeking: 31
-Protection: 44
+Protection: 45
 Duty free: 44
-Hooked: 41
+Hooked: 42
 Open house: 24
 Rock solid claims: 47
 Pimp: 37
 Concuctions: 31
 Circle jerk: 24
 Legalese: 41
-Higher powers: 28
-Nose job: 31
+Higher powers: 29
+Nose job: 32
 Insurgency: 33
 Outsider: 34
 Prescriptions: 32
-Bouncing: 46
+Bouncing: 47
 Side effects: 26
-Diamonds are...: 36
+Diamonds are...: 37
 Blood diamants: 28
-Foreign aid: 37
+Foreign aid: 38
 Color revolution: 32
-Acquittal: 28
+Acquittal: 29
 Financier: 23
 Underhanded: 31
 Up yours: 26
-Choireboys: 29
-Knock knock: 41
+Choireboys: 30
+Knock knock: 42
 Sing a long song: 52
 White collars: 16
 Broman escorte: 14
 Cold meds: 46
 Et spiritus sancti: 44
 Occupational hazard: 30
-VIP Lounge: 27
-Small arms: 31
+VIP Lounge: 28
+Small arms: 32
 Express demands: 31
 Ramtheft: 27
 Golden chains: 22
 Bodyguard: 17
-Mayor: 27
+Mayor: 28
 Homebrew: 33
 Meat grinder: 24
 Judicial murder: 22
 Flay'em: 28
-Projects: 28
-Advisory board: 35
-Usery: 30
-Financing: 27
+Projects: 29
+Advisory board: 36
+Usery: 31
+Financing: 28
 Lucky bastard: 26
-Lipstick on a pig: 27
+Lipstick on a pig: 28
 Laundry: 24
 Debt to society: 27
 Transitions: 14
 Trance: 39
 Bodycount: 18
 Informer: 18
-Rentals: 25
-Healthplan: 26
+Rentals: 26
+Healthplan: 27
 Slumlord: 25
 Heartless: 9
 Gangbangers: 23
 Aiding and abetting: 15
 Coup: 15
-Blood suckers: 19
+Blood suckers: 20
 Infiltration: 21
 Spy: 10
 Addictions: 14
 Corruption: 10
 Burial at sea: 23
-Razia: 16
+Razia: 17

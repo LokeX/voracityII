@@ -1,5 +1,3 @@
-# import boxy, opengl 
-# import boxy/src/boxy, opengl 
 import boxy, opengl 
 import windy
 import times
@@ -79,13 +77,13 @@ var
   pushedCalls,calls:seq[Call]
   specialKeys:SpecialKeys
   bxy = newBoxy()
-  fpsTime = 1/60
+  deltaTime = 1/60
   lastTime = cpuTime()
 
 bxy.scale(boxyScale)
 
 proc setFps*(fps:int) =
-  fpsTime = 1/fps
+  deltaTime = 1/fps
 
 proc pushCalls* =
   pushedCalls = calls
@@ -275,16 +273,17 @@ proc drawDynamicImage*[T](b:var Boxy,dynImg:DynamicImage[T]) =
 proc keyState(b:Button):KeyState =
   (window.buttonDown[b],window.buttonReleased[b],window.buttonToggle[b])
 
-proc specKeys(b:Button):SpecialKeys =
+proc specKeys(b:Button,state:KeyState):SpecialKeys =
   case b:
-    of KeyLeftShift,KeyRightShift: specialKeys.shift = b.keyState.down
-    of KeyLeftControl,KeyRightControl: specialKeys.ctrl = b.keyState.down
-    of KeyLeftAlt,KeyRightAlt: specialKeys.alt = b.keyState.down
+    of KeyLeftShift,KeyRightShift: specialKeys.shift = state.down
+    of KeyLeftControl,KeyRightControl: specialKeys.ctrl = state.down
+    of KeyLeftAlt,KeyRightAlt: specialKeys.alt = state.down
     else:discard
   specialKeys
 
 proc newKeyboardEvent(b:Button,r:Rune):KeyboardEvent = 
-  KeyboardEvent(pressed:specKeys(b),rune:r,keyState:keyState(b),button:b)
+  let state = b.keyState
+  KeyboardEvent(pressed:b.specKeys(state),rune:r,keyState:state,button:b)
 
 proc newKeyEvent(b:Button):KeyEvent = 
   KeyEvent(keyState:keyState(b),button:b)
@@ -311,7 +310,7 @@ window.onButtonPress = proc(button:Button) =
   else: button.callBack
 
 window.onFrame = proc() =
-  if (let cpt = cpuTime(); cpt-lastTime >= fpsTime):
+  if (let cpt = cpuTime(); cpt-lastTime >= deltaTime):
     lastTime = cpt
     glClear(GL_COLOR_BUFFER_BIT)  
     bxy.beginFrame(window.size)

@@ -15,7 +15,6 @@ const
     WonGameMenu: @["New Game\n","Quit Voracity"],
   ]
 
-# let
   selectorBorder:Border = (0,10,color(1,0,0))
   menuBatchInit = BatchInit(
     kind:MenuBatch,
@@ -42,13 +41,13 @@ let
   ]
 
 var
-  bgRect* = Rect(x:0,y:0,w:scaledWidth.toFloat,h:scaledHeight.toFloat)
-  showMenu* = true
-  bgSelected* = 0
-  oldBg* = -1
-  oldBgRect* = bgRect
+  bgRect = Rect(x:0,y:0,w:scaledWidth.toFloat,h:scaledHeight.toFloat)
+  bgSelected = 0
+  oldBg = -1
+  oldBgRect = bgRect
   menuKind = SetupMenu
   mainMenu* = newBatch menuBatchInit
+  showMenu* = true
 
 proc setMenuTo*(kind:MenuKind) =
   oldBg = bgSelected
@@ -79,6 +78,6 @@ proc drawMenuBackground*(b:var Boxy) =
   if oldBg != -1: b.drawImage(backgrounds[oldBg].name,oldBgRect)
   b.drawImage(backgrounds[bgSelected].name,bgRect)
 
-# setMenuTo menuKind
-for bg in backgrounds:
-  addImage(bg.name,bg.img)
+template initMenu* = 
+  for bg in backgrounds:
+    addImage(bg.name,bg.img)

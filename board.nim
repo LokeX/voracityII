@@ -1,5 +1,5 @@
 import win except splitWhitespace
-import graphics
+import miscui
 import game
 import play
 import batch
@@ -8,9 +8,9 @@ import sequtils
 import megasound
 
 type
-  SquareTexts = array[61,seq[string]]
+  SquareTexts = array[61,tuple[text:seq[string],spans:seq[Span]]]
   BoardSquares* = array[61,Square]
-  Square* = tuple[nr:int,name:string,dims:graphics.Dims]
+  Square* = tuple[nr:int,name:string,dims:Dims]
   AnimationMove* = tuple[fromSquare,toSquare:int]
   MoveAnimations* = object
     active*:bool
@@ -56,14 +56,6 @@ var
   mouseSquare* = -1
   lastTextSquare = -1
   hoverSquare = -1
-
-proc buildSquareTexts(path:string):SquareTexts =
-  var square = 0
-  for line in path.lines:
-    if line.startsWith("square:"):
-      square = line[7..line.high].splitWhitespace[^1].parseInt
-      result[square].add squares[square].name&" Nr. "&($squares[square].nr)
-    else: result[square].add line
 
 func squareDims:array[61,Dims] =
   result[0].rect = Rect(x:1225,y:150,w:35,h:100)
@@ -250,22 +242,30 @@ proc animateMoveSelection* =
 proc drawBoard*(b:var Boxy) =
   b.drawImage("board", boardPos)
 
-proc squareTextSpans(square:int):seq[Span] =
-  for idx,text in squareTexts[square]:
+proc buildSquareTexts(path:string):SquareTexts =
+  var square = 0
+  for line in path.lines:
+    if line.startsWith("square:"):
+      square = line[7..line.high].splitWhitespace[^1].parseInt
+      result[square].text.add squares[square].name&" Nr. "&($squares[square].nr)
+    else: result[square].text.add line
+
+proc buildSquareTextSpans(square:int):seq[Span] =
+  for idx,text in squareTexts[square].text:
     if idx == 0: 
       result.add newSpan(text&"\n",squareHeaderFont)
     elif idx == 1: 
       result.add newSpan(text,flavourFont)
     else: result[^1].text.add text
-    if idx < squareTexts[square].high:
+    if idx < squareTexts[square].text.high:
       result[^1].text.add "\n"
 
 proc drawSquareText*(b:var Boxy) =
   if (mouseSquare > -1):
     if mouseSquare != lastTextSquare:
-      squareTimer = 2 # times the timer tick of 0.4 secs
+      squareTimer = 1 # times the timer tick of 0.4 secs
       lastTextSquare = mouseSquare
-      squareTextBatch.setSpans mouseSquare.squareTextSpans
+      squareTextBatch.setSpans squareTexts[mouseSquare].spans
       squareTextBatch.update = true
     b.drawBatch squareTextBatch
   elif squareTimer > 0:
@@ -281,3 +281,5 @@ template initBoard* =
   addImage("board",boardImg)
   squares = buildBoardSquares board
   squareTexts = buildSquareTexts "dat\\boardtxt.txt"
+  for square in 0..squareTexts.high:
+    squareTexts[square].spans = buildSquareTextSpans square

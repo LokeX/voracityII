@@ -89,37 +89,6 @@ func cover(pieces,squares:seq[int]):bool =
       .cover(squares[1..squares.high])
   )
 
-# None recursive alternative to covers - DO NOT REMOVE
-
-# func covers(pieces,squares:seq[int]):int = 
-#   var 
-#     covers,nextCovers:seq[tuple[pieces,squares,usedPieces:seq[int],idx:int]]
-#     count:int
-#     usedPieces:seq[int]
-  
-#   template computeNextCovers(nextPieces,nextSquares:untyped) = 
-#     for i in 0..nextSquares.high:  
-#       usedPieces = nextPieces.filterIt it.covers nextSquares[i]
-#       if usedPieces.len > 0:
-#         nextCovers.add (@nextPieces,@nextSquares,usedPieces,i)
-#         break
-
-#   covers.setLen 1
-#   computeNextCovers(pieces,squares)
-#   while covers.len > 0:
-#     covers = nextCovers.filterIt it.usedPieces.len > 0
-#     if covers.len > 0: 
-#       inc count
-#       covers = covers.filterIt it.idx < it.squares.high
-#       nextCovers.setLen 0
-#       for cover in covers:
-#         for usedPiece in cover.usedPieces:
-#           computeNextCovers(
-#             cover.pieces.exclude(usedPiece),
-#             cover.squares[cover.idx+1..cover.squares.high]
-#           )
-#   count
-
 func coverOneInMany(coverPieces,squares:seq[int],requiredSquare:int):bool = 
   var pieces = coverPieces
   if (let idx = pieces.find requiredSquare; idx > -1): pieces.del idx
@@ -222,10 +191,10 @@ func evalSquare(hypothetical:Hypothetic,square:int):int =
     posPercent = hypothetical.posPercentages squares
     blueVals = hypothetical.blueVals squares
   for idx in 0..squares.high:
-    squares[idx] = (
+    squares[idx] = toInt(
       posPercent[idx]*
       (hypothetical.board[squares[idx]]+blueVals[idx]).toFloat
-    ).toInt
+    )
   squares.sum
 
 func evalPos*(hypothetical:Hypothetic):int =
@@ -348,13 +317,13 @@ func moves*(hypothetical:Hypothetic,dice:openArray[int]):seq[Move] =
       result.add move
       result[^1].toSquare = toSquare
 
-func player*(hypothetical:Hypothetic,move:Move):Player =
-  var pieces = hypothetical.pieces
-  pieces[move.pieceNr] = move.toSquare
-  Player(
-    pieces:pieces,
-    hand:hypothetical.cards
-  )
+# func player(hypothetical:Hypothetic,move:Move):Player =
+#   var pieces = hypothetical.pieces
+#   pieces[move.pieceNr] = move.toSquare
+#   Player(
+#     pieces:pieces,
+#     hand:hypothetical.cards
+#   )
 
 # proc move*(hypothetical:Hypothetic,dice:openArray[int]):Move = 
 #   result = hypothetical.genericMoves(dice)
@@ -415,7 +384,7 @@ proc hypotheticalInit*(player:Player,hand:seq[BlueCard]):Hypothetic = (
 template hypotheticalInit*(player:untyped):untyped =
   player.hypotheticalInit player.hand
 
-func coversDif(pieces:seq[int],card:BlueCard):int =
+func coversDif*(pieces:seq[int],card:BlueCard):int =
   var 
     coversRequired = card.squares.required.len
     covers = pieces.nrOfcovers card.squares.required

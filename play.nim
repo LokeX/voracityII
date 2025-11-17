@@ -399,8 +399,7 @@ proc aiDrawCards =
   while turn.undrawnBlues > 0:
     drawCardFrom blueDeck
     playCashPlansTo blueDeck
-  hypo.pieces = turnPlayer.pieces
-  hypo.cards = turnPlayer.sortBlues
+  hypo = turnPlayer.hypotheticalInit
   phase = Reroll
 
 proc reroll(hypothetical:Hypothetic):bool =
@@ -414,7 +413,7 @@ proc aiRerollPhase =
   if statGame:
     if not diceReroll.isPausing or hypo.reroll:
       rollDice()
-      diceReroll.isPausing = true
+      diceReroll.isPausing = true # appropriating an existing flag - don't EVER do that ;-)
     else:
       diceReroll.isPausing = false
       phase = AiMove
@@ -434,29 +433,19 @@ proc bestDieMove(dice:openArray[int]):Move =
     dieIndex[i] = bestDice.find dice[i]
   bestDiceMoves[max dieIndex]
 
-func cashTotal(hypothetical:Hypothetic,move:Move):int =
-  let cashReward = hypothetical.player(move).plans.cashable.mapIt(it.cash).sum
-  cashReward+hypothetical.cash-(if move.fromSquare == 0: piecePrice else: 0)
-
-proc dieIndex(die:int):int =
-  for i,move in bestDiceMoves:
-    if die == move.die:
-      return i
-  -1
+func winsOn(player:Player,move:Move):bool =
+  var hypoPlayer = player
+  hypoPlayer.pieces[move.pieceNr] = move.toSquare
+  let cashReward = hypoPlayer.plans.cashable.mapIt(it.cash).sum
+  cashReward+player.cash-(if move.fromSquare == 0: piecePrice else: 0) >= cashToWin
 
 proc winningMove(hypothetical:Hypothetic,dice:openArray[int]):Move =
-  if bestDiceMoves.len > 0: 
-    for die in dice.deduplicate:
-      if (let idx = dieIndex die; idx != -1):
-        if hypothetical.cashTotal(bestDiceMoves[idx]) >= cashToWin:
-          return bestDiceMoves[idx]
-  else: 
-    for move in hypothetical.moves dice:
-      if hypothetical.cashTotal(move) >= cashToWin: 
-        return move
+  for move in hypothetical.moves dice:
+    if turnPlayer.winsOn(move): 
+      return move
   result.pieceNr = -1
 
-proc aiMove(hypothetical:Hypothetic,dice:openArray[int]):(bool,Move) =
+proc bestMove(hypothetical:Hypothetic,dice:openArray[int]):(bool,Move) =
   if (let winMove = hypothetical.winningMove dice; winMove.pieceNr != -1):
     (true,winMove) 
   else: (
@@ -466,20 +455,17 @@ proc aiMove(hypothetical:Hypothetic,dice:openArray[int]):(bool,Move) =
     else: hypothetical.move dice
   )
 
-func betterThan(move:Move,hypothetical:Hypothetic):bool =
-  move.eval.toFloat >= hypothetical.evalPos().toFloat*0.90
-
 proc moveAi =
-  let (isWinningMove,move) = hypo.aiMove([diceRoll[1].ord,diceRoll[2].ord])
-  if isWinningMove or move.betterThan hypo:
+  let (isWinningMove,move) = hypo.bestMove([diceRoll[1].ord,diceRoll[2].ord])
+  if isWinningMove or move.eval > hypo.evalPos:
     moveSelection.fromSquare = move.fromSquare
     movePiece move.toSquare
   else:
     echo $turnPlayer.color," skips move"
-    echo "turn nr: ",turnPlayer.turnNr
-    echo "dice: ",diceRoll
-    echo "pieces: ",turnPlayer.pieces
-    echo "cards: ",turnPlayer.hand.mapIt it.title&"/"&($it.squares.required)
+    # echo "turn nr: ",turnPlayer.turnNr
+    # echo "dice: ",diceRoll
+    # echo "pieces: ",turnPlayer.pieces
+    # echo "cards: ",turnPlayer.hand.mapIt it.title&"/"&($it.squares.required)
   phase = PostMove
 
 proc postMovePhase =

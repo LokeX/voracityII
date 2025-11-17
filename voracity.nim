@@ -1,5 +1,5 @@
 import win except splitWhitespace
-import graphics
+import miscui
 import game
 import play
 import times
@@ -76,18 +76,6 @@ proc menuSelection =
     else: 
       showMenu = false
       confirmEndGame()
-
-proc togglePlayerKind* =
-  if (let batchNr = mouseOnPlayerBatchNr(); batchNr != -1) and turn.nr == 0:
-    playerKinds[batchNr] = 
-      case playerKinds[batchNr]:
-        of Human:Computer
-        of Computer:None
-        of None:Human
-    players[batchNr].kind = playerKinds[batchNr]
-    players[batchNr].update = true
-    piecesImg.update = true
-    updateStatsBatch()
 
 proc leftMousePlay* =
   if turn.undrawnBlues > 0 and mouseOn drawPileArea: 
@@ -349,7 +337,8 @@ template initSettings =
 
 initGame()
 initPlay()
-initGraphics()
+initMiscUi()
+initMenu()
 initBoard()
 initCards()
 initReports()

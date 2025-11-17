@@ -282,7 +282,7 @@ proc endDiceRoll* = dieRollFrame = maxRollFrames
 
 proc mayReroll*:bool = isDouble() and not isRollingDice()
 
-template initGraphics* =
+template initMiscUi* =
   addImage(logoImg,paintLogo())
   addImage(barmanImg,paintBarman())
   addImage(adviceImg,paintSubText())
