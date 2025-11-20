@@ -273,8 +273,6 @@ proc writeEndOfGameReports =
     reportBatches[player.color].setSpans reportLines.mapIt newSpan(it&"\n",plainFont)
 
 proc initReportBatchesTurn* =
-  # turnReport.playerBatch.color = turnPlayer.color
-  # turnReport.playerBatch.kind = turnPlayer.kind
   reportBatches[turnPlayer.color].setSpans reportSpansFrom turnReport
   reportBatches[turnPlayer.color].update = true
 

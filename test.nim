@@ -50,3 +50,9 @@ let
   squares = @[8,18]
 
 echo nrOfcoverPieces(pieces,squares,squares,0)
+
+let t = "test"
+
+case t
+of "test":echo "1"
+

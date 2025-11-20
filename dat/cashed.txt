@@ -9,10 +9,10 @@ Polterabend: 66
 Faulty towers: 36
 Loads of stuff: 50
 High society: 41
-Knocked out: 40
-Chicks in cages: 48
+Knocked out: 41
+Chicks in cages: 49
 Drugdealer: 33
-Trans-action: 22
+Trans-action: 23
 Secret weapon: 32
 Moonshine: 69
 Outstanding: 37
@@ -25,26 +25,26 @@ Recycling: 26
 Specimens: 15
 Home invasion: 50
 Stove away: 20
-Grand designs: 33
+Grand designs: 34
 Demolition: 33
 Human resources: 50
 Deadly cargo: 34
-Agent: 37
+Agent: 38
 Borderless: 27
 Globalist: 29
 Bootlegging: 26
-Lawfare: 38
+Lawfare: 39
 Terrorism: 23
 Lord of War: 18
 Rentseeking: 31
-Protection: 45
+Protection: 46
 Duty free: 44
 Hooked: 42
 Open house: 24
 Rock solid claims: 47
 Pimp: 37
 Concuctions: 31
-Circle jerk: 24
+Circle jerk: 25
 Legalese: 41
 Higher powers: 29
 Nose job: 32
@@ -53,21 +53,21 @@ Outsider: 34
 Prescriptions: 32
 Bouncing: 47
 Side effects: 26
-Diamonds are...: 37
+Diamonds are...: 38
 Blood diamants: 28
 Foreign aid: 38
 Color revolution: 32
-Acquittal: 29
-Financier: 23
+Acquittal: 30
+Financier: 24
 Underhanded: 31
 Up yours: 26
-Choireboys: 30
+Choireboys: 31
 Knock knock: 42
 Sing a long song: 52
 White collars: 16
 Broman escorte: 14
 Cold meds: 46
-Et spiritus sancti: 44
+Et spiritus sancti: 45
 Occupational hazard: 30
 VIP Lounge: 28
 Small arms: 32
@@ -76,12 +76,12 @@ Ramtheft: 27
 Golden chains: 22
 Bodyguard: 17
 Mayor: 28
-Homebrew: 33
+Homebrew: 34
 Meat grinder: 24
 Judicial murder: 22
 Flay'em: 28
 Projects: 29
-Advisory board: 36
+Advisory board: 37
 Usery: 31
 Financing: 28
 Lucky bastard: 26
@@ -98,11 +98,11 @@ Slumlord: 25
 Heartless: 9
 Gangbangers: 23
 Aiding and abetting: 15
-Coup: 15
+Coup: 16
 Blood suckers: 20
 Infiltration: 21
 Spy: 10
 Addictions: 14
 Corruption: 10
 Burial at sea: 23
-Razia: 17
+Razia: 18

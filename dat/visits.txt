@@ -1,60 +1,60 @@
 Bar Nr.1: 127
 Gas Station Nr.2: 12
 Bank Nr.3: 90
-Town Hall Nr.4: 581
-Highway Nr.5: 224
-Barracks Nr.6: 514
-Church Nr.7: 379
+Town Hall Nr.4: 585
+Highway Nr.5: 225
+Barracks Nr.6: 519
+Church Nr.7: 380
 Villa Nr.8: 369
-Embassey Nr.9: 289
-Courthouse Nr.10: 393
-Airport Nr.11: 405
-Casino Nr.12: 202
-Jeweler Nr.13: 230
+Embassey Nr.9: 291
+Courthouse Nr.10: 394
+Airport Nr.11: 407
+Casino Nr.12: 204
+Jeweler Nr.13: 232
 Bank Nr.14: 75
 Gas Station Nr.15: 53
-Bar Nr.16: 553
+Bar Nr.16: 557
 Highway Nr.17: 176
-Bar Nr.18: 169
-Disco Nr.19: 366
-Bar Nr.20: 362
-Brothel Nr.21: 782
+Bar Nr.18: 170
+Disco Nr.19: 369
+Bar Nr.20: 367
+Brothel Nr.21: 785
 Realestate Nr.22: 219
 Shop Nr.23: 41
-Bank Nr.24: 47
-Hospital Nr.25: 271
+Bank Nr.24: 48
+Hospital Nr.25: 272
 Undertaker Nr.26: 240
 Gas Station Nr.27: 27
 Bar Nr.28: 163
 Highway Nr.29: 169
-McLeans Nr.30: 825
-Condo Nr.31: 114
-Condo Nr.32: 96
-Lawyers Nr.33: 422
+McLeans Nr.30: 828
+Condo Nr.31: 115
+Condo Nr.32: 97
+Lawyers Nr.33: 425
 Shop Nr.34: 41
-Bar Nr.35: 294
-Prison Nr.36: 227
+Bar Nr.35: 298
+Prison Nr.36: 228
 Gas Station Nr.37: 12
-Bank Nr.38: 35
+Bank Nr.38: 36
 Debt Inc Nr.39: 336
-Bar Nr.40: 467
+Bar Nr.40: 472
 Highway Nr.41: 269
-Shop Nr.42: 66
-Entreprenour Nr.43: 255
-Shop Nr.44: 59
-Pharmacy Nr.45: 427
+Shop Nr.42: 67
+Entreprenour Nr.43: 257
+Shop Nr.44: 60
+Pharmacy Nr.45: 431
 Bar Nr.46: 281
 Gas Station Nr.47: 6
-Brewery Nr.48: 390
-Harbour Nr.49: 367
+Brewery Nr.48: 395
+Harbour Nr.49: 368
 Shop Nr.50: 36
-Bar Nr.51: 469
+Bar Nr.51: 473
 Bank Nr.52: 43
-Highway Nr.53: 202
+Highway Nr.53: 203
 Bar Nr.54: 232
-Import inc Nr.55: 222
+Import inc Nr.55: 224
 Slum Nr.56: 98
-Alley Nr.57: 371
+Alley Nr.57: 372
 Slum Nr.58: 89
 Slum Nr.59: 71
-Police Nr.60: 283
+Police Nr.60: 285

@@ -3,7 +3,7 @@ import strutils
 import batch
 
 type
-  Background* = tuple[name:string,img:Image]
+  Background = tuple[name:string,img:Image]
   MenuKind* = enum SetupMenu,GameMenu,LostGameMenu,WonGameMenu
 
 const
@@ -59,10 +59,18 @@ proc setMenuTo*(kind:MenuKind) =
   showMenu = true
   mainMenu.dynMove(Up,20)
 
-proc mouseOnMenuSelection*(s:string):bool =
+proc menuSelectionString*:string =
   if (let selection = mainMenu.mouseOnSelectionArea; selection != -1):
-    menuEntries[menuKind][selection].strip == s
-  else: false
+    menuEntries[menuKind][selection].strip
+  else: "N/A"
+
+proc mouseOnMenuSelection*(s:string):bool =
+  menuSelectionString() == s
+
+# proc mouseOnMenuSelection*(s:string):bool =
+#   if (let selection = mainMenu.mouseOnSelectionArea; selection != -1):
+#     menuEntries[menuKind][selection].strip == s
+#   else: false
 
 proc mouseOnMenuselection*:bool = mainMenu.mouseOnSelectionArea != -1
 

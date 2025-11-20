@@ -265,6 +265,10 @@ func piecesOnBars*(player:Player):seq[int] =
   for square in player.pieces:
     if square.isBar: result.add square
 
+func pieceNrsOnBars*(player:Player):seq[int] =
+  for nr,square in player.pieces:
+    if square.isBar: result.add nr
+
 template requiredSquaresOk(player,plan:untyped):untyped =
   plan.squares.required.deduplicate
     .allIt player.pieces.count(it) >= plan.squares.required.count it
@@ -328,7 +332,7 @@ proc nextPlayerTurn* =
   else: inc turn.player
   turn.undrawnBlues = turnPlayer.nrOfPiecesOnBars
   blueDeck.lastDrawn = ""
-
+ 
 proc playerHandlesToFile*(playerHandles:openArray[string]) =
   writeFile(handlesFile,playerHandles.mapIt(if it.len > 0: it else: "n/a").join "\n")
 

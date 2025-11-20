@@ -168,7 +168,7 @@ let keybarPainter* = DynamicImage[void](
   update:true
 )
 
-proc paintKeybar*(b:var Boxy) =
+proc drawKeybar*(b:var Boxy) =
   if updateKeybar:
     keybarPainter.update = true
     updateKeybar = false
