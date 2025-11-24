@@ -3,11 +3,11 @@ import batch
 import sequtils
 import strutils
 import game
-import miscui
+import menu
 import misc
 import play
 import stat
-import board
+import gameplay
 
 type 
   KillMatrix = array[PlayerColor,array[PlayerColor,int]]
@@ -25,8 +25,6 @@ const
   fjallaOneRegular* = "fonts\\FjallaOne-Regular.ttf"
   kalam = "fonts\\Kalam-Bold.ttf"
   robotoRegular = "fonts\\Roboto-Regular_1.ttf"
-  killMatrixFont = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
-  reportFont = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
   (rbx,rby) = (450,280)
   (pbx,pby) = (20,40)
 
@@ -43,8 +41,8 @@ const
   )
 
 let
-  plainFont = setNewFont(reportFont,18,color(1,1,1,1))
-  matrixFont = setNewFont(killMatrixFont,size = 16.0)
+  plainFont = setNewFont(ibmSemiBold,18,color(1,1,1,1))
+  matrixFont = setNewFont(ibmSemiBold,size = 16.0)
   roboto = setNewFont(robotoRegular,size = 15.0)
 
 var
@@ -226,7 +224,7 @@ proc initReportBatch:Batch =
     name:"playerreport",
     pos:(rbx,rby),
     padding:(20,20,20,20),
-    font:(reportFont,24,color(1,1,1)),
+    font:(ibmSemiBold,24,color(1,1,1)),
     border:(5,15,color(0,0,0)),
     bgColor:color(245,0,0),
     blur:2,

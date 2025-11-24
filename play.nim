@@ -4,16 +4,13 @@ import game
 import sequtils
 import eval
 import random
-import strutils
 import times
-import sugar
 
 type
   Phase* = enum Await,Draw,Reroll,AiMove,PostMove,EndTurn
   DiceReroll = tuple[isPausing:bool,pauseStartTime:float]
   ConfigState* = enum StartGame,SetupGame,GameWon
   SinglePiece = tuple[playerNr,pieceNr:int]
-  EventMoveFmt* = tuple[fromSquare,toSquare:string]
   TurnReport* = object
     turnNr*:int
     player*:tuple[color:PlayerColor,kind:PlayerKind]
@@ -35,7 +32,7 @@ var
   updateUndrawnBlues*:proc()
   turnReportBatchesInit*:proc()
   rollTheDice*:proc()
-  runSelectBar*:proc()
+  runSelectBar*:proc(dialogMoves:seq[Move])
   killDialog*:proc(square:int)
 
   # Interface flags
@@ -47,7 +44,6 @@ var
 
   # Interface state
   configState*:proc(config:ConfigState)
-  dialogBarMoves*:seq[Move]
   soundToPlay*:seq[string]
   phase*:Phase
   turnReports*:seq[TurnReport]
@@ -67,9 +63,9 @@ template startKillDialog(square:int) =
   if killDialog != nil:
     killDialog square
 
-template selectBar =
+template selectBar(dialogMoves:seq[Move]) =
   if runSelectBar != nil:
-    runSelectBar()
+    runSelectBar dialogMoves
 
 template startDiceRoll =
   if rollTheDice != nil:
@@ -122,8 +118,6 @@ proc updateTurnReport*[T](item:T) =
   execIf recordStats:
     when typeOf(T) is Move: 
       turnReport.moves.add item
-    # when typeof(T) is Dice: 
-    #   turnReport.diceRolls.add item
     when typeof(T) is PlayerColor: 
       turnReport.kills.add item
       killMatrixUpdate()
@@ -180,31 +174,15 @@ proc playCashPlansTo*(deck:var Deck) =
       ).sum
       undrawnBluesUpdate()
 
-proc movePiece*(square:int)
-proc eventMoveFmt*(move:Move):EventMoveFmt =
-  ("from:"&board[move.fromSquare].name&" Nr. "&($board[move.fromSquare].nr)&"\n",
-   "to:"&board[move.toSquare].name&" Nr. "&($board[move.toSquare].nr)&"\n")
-
-proc dialogEntries*(moves:seq[Move],f:EventMoveFmt -> string):seq[string] =
-  var ms = moves.mapIt(it.eventMoveFmt).mapIt(f it).deduplicate
-  stripLineEnd ms[^1]
-  ms
-
-proc endBarMoveSelection*(selection:string) =
-  if (let toSquare = selection.splitWhitespace[^1].parseInt; toSquare != -1):
-    moveSelection.toSquare = toSquare
-    moveSelection.event = true
-    movePiece moveSelection.toSquare
-
 proc barMove(moveEvent:BlueCard):bool =
-  dialogBarMoves = turnPlayer.eventMovesEval moveEvent
+  let dialogBarMoves = turnPlayer.eventMovesEval moveEvent
   if dialogBarMoves.len > 0:
     if dialogBarMoves.len == 1 or turnPlayer.kind == Computer:
       moveSelection.event = true
       moveSelection.fromSquare = dialogBarMoves[0].fromSquare
       moveSelection.toSquare = dialogBarMoves[0].toSquare
       return true
-    else: selectBar()
+    else: selectBar dialogBarMoves
 
 proc playNews =
   updatePiecesPainter()
@@ -228,6 +206,7 @@ proc playDejaVue =
       of News: playNews()
       else:discard
 
+proc movePiece*(square:int)
 proc playEvent =
   let event = turnPlayer.hand[^1]
   turnPlayer.hand.playTo blueDeck,turnPlayer.hand.high
@@ -336,8 +315,7 @@ proc movePiece(square:int) =
     if turnPlayer.kind == Human: 
       startKillDialog square
     else: decideKillAndMove(
-      if aiRemovesPiece(getMove()): 
-        "Yes" 
+      if aiRemovesPiece(getMove()): "Yes" 
       else: "No"
     )
   else: move()

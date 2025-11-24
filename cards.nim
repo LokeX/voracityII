@@ -1,9 +1,8 @@
-import miscui
 import win
 import batch
 import game
 import play
-import board
+import gameplay
 import reports
 import sequtils
 import strutils

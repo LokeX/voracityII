@@ -54,7 +54,7 @@ proc mouseMoved =
       dialogOnMouseMoved()
 
 var 
-  dialogCall* = Call(
+  dialogCall = Call(
     reciever:thisDialog,
     draw:draw,
     keyboard:keyboard,

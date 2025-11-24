@@ -1,5 +1,4 @@
 import win except splitWhitespace
-import miscui
 import game
 import play
 import times
@@ -12,11 +11,10 @@ import reports
 import sequtils
 import misc
 import eval
-import strutils
 import os
 import stat
 import cards
-import board
+import gameplay
 
 proc draw(b:var Boxy) =
   frames += 1
@@ -198,63 +196,6 @@ proc configGameWon =
   updateKeybar = true
   turn.undrawnBlues = 0
 
-proc barMoveMouseMoved(entries:seq[string]):proc =
-  var square = -1
-  proc =
-    let selectedSquare = try:
-      entries[dialogBatch.selection]
-      .splitWhitespace[^1]
-      .parseInt
-    except: -1
-    if selectedSquare notin [-1,square]:
-      square = selectedSquare
-      moveToSquaresPainter.context = @[square]
-      moveToSquaresPainter.update = true
-      if entries[dialogBatch.selection].startsWith "from":
-        moveSelection.fromSquare = square #yeah, it's a hack
-
-proc selectBarMoveDest(selection:string) =
-  let
-    entries = dialogBarMoves.dialogEntries move => move.toSquare
-    fromSquare = selection.splitWhitespace[^1].parseInt
-  if fromSquare != -1:
-    moveSelection.fromSquare = fromSquare
-  if entries.len > 1:
-    dialogOnMouseMoved = entries.barMoveMouseMoved()
-    startDialog(entries,0..entries.high,endBarMoveSelection)
-  elif entries.len == 1:
-    moveSelection.toSquare = dialogBarMoves[0].toSquare
-    moveSelection.event = true
-    movePiece moveSelection.toSquare
-
-proc selectBar =
-  showMenu = false
-  let entries = dialogBarMoves.dialogEntries move => move.fromSquare
-  if entries.len > 1:
-    dialogOnMouseMoved = entries.barMoveMouseMoved()
-    startDialog(entries,0..entries.high,selectBarMoveDest)
-  elif entries.len == 1:
-    moveSelection.fromSquare = dialogBarMoves[0].fromSquare
-    selectBarMoveDest entries[0]
-
-proc startKillDialog(square:int) =
-  let entries:seq[string] = @[
-    "Remove piece on:\n",
-    board[square].name&" Nr."&($board[square].nr)&"?\n",
-    # "Cash chance: "&cashChance.formatFloat(ffDecimal,2)&"%\n",
-    "\n",
-    "Yes\n",
-    "No",
-  ]
-  showMenu = false
-  startDialog(entries,3..4,decideKillAndMove)
-
-template isAiTurn():untyped =
-  turn.nr != 0 and
-  turnPlayer.kind == Computer and
-  not isRollingDice() and
-  not moveAnimationActive()
-
 proc menuShow(show:bool) =
   showMenu = show
 
@@ -263,6 +204,12 @@ proc setConfigState(config:ConfigState) =
   of StartGame: configStartGame()
   of SetupGame: configSetupGame()
   of GameWon: configGameWon()
+
+template isAiTurn():untyped =
+  turn.nr != 0 and
+  turnPlayer.kind == Computer and
+  not isRollingDice() and
+  not moveAnimationActive()
 
 proc cycle =
   if soundToPlay.len > 0:
@@ -339,9 +286,9 @@ template initSettings =
 
 initGame()
 initPlay()
-initMiscUi()
+# initMiscUi()
 initMenu()
-initBoard()
+initGamePlay()
 initCards()
 initReports()
 initSettings()

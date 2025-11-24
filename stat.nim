@@ -232,6 +232,7 @@ proc resetMatchingStats* =
   writeGameStatsTo statsFile
   # updateStatsBatch()
 
+
 when isMainModule:
   import times
   import algorithm

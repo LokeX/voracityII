@@ -9,7 +9,7 @@ import misc except reversed
 # import malebolgia
 
 const
-  highwayVal* = 12000
+  highwayVal = 12000
   valBar = 15000
   # posPercent = [1.0,0.5,0.5,0.5,0.5,0.5,0.5,0.25,0.24,0.22,0.20,0.18,0.15]
   posPercent = [1.0,0.3,0.3,0.3,0.3,0.3,0.3,0.15,0.14,0.12,0.10,0.08,0.05]
@@ -28,13 +28,6 @@ type
 
 # template syncem:untyped =
 #   tp.syncAll
-
-func requiredPiecesOn*(hypothetical:Hypothetic,square:int):int =
-  if hypothetical.cards.len == 0: 0 
-  else: hypothetical.cards.mapIt(it.squares.required.count(square)).max
-
-func freePiecesOn(hypothetical:Hypothetic,square:int):int =
-  hypothetical.pieces.count(square) - hypothetical.requiredPiecesOn(square)
 
 func legalPieces*(hypothetical:Hypothetic):seq[int] =
   let nrAllowed = hypothetical.cash div game.piecePrice
@@ -85,7 +78,7 @@ func nrOfcovers(pieces,squares:seq[int],maxDepth,depth:int):int =
         break
     coverDepth
 
-template nrOfcovers*(pieces,squares:untyped):untyped = 
+template nrOfcovers(pieces,squares:untyped):untyped = 
   pieces.nrOfcovers(squares,squares.len,0)
 
 func cover(pieces,squares:seq[int]):bool = 
@@ -110,17 +103,11 @@ func coverOneInMany(coverPieces,squares:seq[int],requiredSquare:int):bool =
       else:discard
   pieces.any piece => squares.anyIt piece.covers it
 
-func cover*(pieces:seq[int],card:BlueCard):bool =
+func cover(pieces:seq[int],card:BlueCard):bool =
   (card.squares.oneInMany.len == 0 and 
     pieces.cover(card.squares.required)) or 
   (card.squares.oneInMany.len > 0 and 
     pieces.coverOneInMany(card.squares.oneInMany,card.squares.required[0]))
-
-func barVal*(hypothetical:Hypothetic):int = 
-  let 
-    legalPieces = hypothetical.legalPieces
-    cardVal = (3-hypothetical.cards.countIt(legalPieces.cover it))*30000
-  valBar-(3000*hypothetical.pieces.countIt(it.isBar))+cardVal
 
 func rewardValue(hypothetical:Hypothetic,card:BlueCard):int =
   let 
@@ -171,13 +158,19 @@ func blueVals(hypothetical:Hypothetic,squares:openArray[int]):array[12,int] =
         if (square == card.squares.required[0] or square in card.squares.oneInMany):
           result[idx] += hypothetical.oneInMoreBonus(card,square)
 
+func requiredPiecesOn(hypothetical:Hypothetic,square:int):int =
+  if hypothetical.cards.len == 0: 0 
+  else: hypothetical.cards.mapIt(it.squares.required.count(square)).max
+
 func posPercentages(hypothetical:Hypothetic,squares:openArray[int]):array[12,float] =
   var freePieces,freePiecesOnSquare:int
   for i,square in squares:
-    freePiecesOnSquare = hypothetical.freePiecesOn square
-    if freePiecesOnSquare > 0: 
-      freePieces += freePiecesOnSquare
-    if freePieces == 0: 
+    freePiecesOnSquare = hypothetical.pieces.count(square) 
+    if freePiecesOnSquare > 0:   
+      freePiecesOnSquare -= hypothetical.requiredPiecesOn(square)    
+      if freePiecesOnSquare > 0: 
+        freePieces += freePiecesOnSquare
+    if freePieces < 2: 
       result[i] = posPercent[i]
     else: result[i] = posPercent[i].pow freePieces.toFloat
 
@@ -253,7 +246,7 @@ func evalBlue(hypothetical:Hypothetic,card:BlueCard):int =
 #   result.sort (a,b) => b.eval - a.eval
 #   syncem
 
-proc evalBlues*(hypothetical:Hypothetic):seq[BlueCard] =
+proc evalBlues(hypothetical:Hypothetic):seq[BlueCard] =
   let evals = hypothetical.cards.mapIt hypothetical.evalBlue it
   result = hypothetical.cards
   for i in 0..evals.high:
@@ -351,6 +344,12 @@ func allPlayersPieces(players:seq[Player]):seq[int] =
   for player in players:
     result.add player.pieces
 
+func barVal(hypothetical:Hypothetic):int = 
+  let 
+    legalPieces = hypothetical.legalPieces
+    cardVal = (3-hypothetical.cards.countIt(legalPieces.cover it))*30000
+  valBar-(3000*hypothetical.pieces.countIt(it.isBar))+cardVal
+
 func baseEvalBoard(hypothetical:Hypothetic):EvalBoard =
   result[0] = 24000
   for highway in highways: 
@@ -379,14 +378,14 @@ proc hypotheticalInit*(player:Player,hand:seq[BlueCard]):Hypothetic = (
 template hypotheticalInit*(player:untyped):untyped =
   player.hypotheticalInit player.hand
 
-func coversDif*(pieces:seq[int],card:BlueCard):int =
+func coversDif(pieces:seq[int],card:BlueCard):int =
   var 
     coversRequired = card.squares.required.len
     covers = pieces.nrOfcovers card.squares.required
   if card.squares.oneInMany.len > 0: 
     inc coversRequired
     if pieces.coverOneInMany(card.squares.oneInMany,card.squares.required[0]):
-      inc covers
+      covers += pieces.nrOfcovers card.squares.oneInMany
   covers-coversRequired
 
 func squareBase(cards:seq[BlueCard]):seq[int] =
@@ -394,7 +393,7 @@ func squareBase(cards:seq[BlueCard]):seq[int] =
     result.add card.squares.required.deduplicate
     if card.squares.oneInMany.len > 0:
       result.add card.squares.oneInMany[0]
- 
+
 proc sortBlues*(player:Player):seq[BlueCard] =
   if player.hand.len <= 3: result = player.hand
   else:
@@ -405,16 +404,13 @@ proc sortBlues*(player:Player):seq[BlueCard] =
     let legalPieces = hypo.legalPieces
     for card in player.hand:
       coversDif = legalPieces.coversDif card
-      if coversDif > -1: 
-        hypo.cards.add card
+      if coversDif > -1: hypo.cards.add card
       else: uncovered.add (card,coversDif)
-    if hypo.cards.len > 3: 
-      result.add hypo.evalBlues
+    if hypo.cards.len > 3: result.add hypo.evalBlues
     else: result.add hypo.cards
     if hypo.cards.len < 3 and uncovered.len > 1:
       let squareBase = 
-        if hypo.cards.len == 0: 
-          uncovered.mapIt(it.card).squareBase
+        if hypo.cards.len == 0: uncovered.mapIt(it.card).squareBase
         else: hypo.cards.squareBase
       for (card,value) in uncovered.mItems:
         value += card.squares.required.deduplicate.mapIt(squareBase.count it).sum
@@ -422,7 +418,7 @@ proc sortBlues*(player:Player):seq[BlueCard] =
           value += squareBase.count card.squares.oneInMany[0]
       uncovered.sort (a,b) => b.value-a.value
     result.add uncovered.mapIt it.card
- 
+
 proc eventMovesEval*(player:Player,event:BlueCard):seq[Move] =
   var hypothetical = player.hypotheticalInit
   hypothetical.cards = player.sortBlues
