@@ -286,7 +286,6 @@ template initSettings =
 
 initGame()
 initPlay()
-# initMiscUi()
 initMenu()
 initGamePlay()
 initCards()

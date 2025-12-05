@@ -139,18 +139,14 @@ proc recordTurnReport* =
     turnReport.agro = turnPlayer.agro
     turnReports.add turnReport
 
-proc barToMassacre(player:Player,allPlayers:seq[Player]):int =
-  if (let playerBars = turnPlayer.piecesOnBars; playerBars.len > 0):
-    let 
-      maxPieces = playerBars.mapIt(allPlayers.nrOfPiecesOn it).max
-      barsWithMaxPieces = playerBars.filterIt(allPlayers.nrOfPiecesOn(it) == maxPieces)
-      chosenBar = barsWithMaxPieces[rand 0..barsWithMaxPieces.high]
-    chosenBar
-  else: -1
-
 proc playMassacre =
-  if (let bar = turnPlayer.barToMassacre players; bar != -1):
-    for (playerNr,pieceNr) in players.piecesOn bar:
+  if (let playerBars = turnPlayer.piecesOnBars.deduplicate; playerBars.len > 0):
+    let
+      allPlayerPiecesOnBars = playerBars.mapIt players.nrOfPiecesOn it
+      maxPieces = allPlayerPiecesOnBars.max
+      barsWithMaxPieces = allPlayerPiecesOnBars.filterIt it == maxPieces
+      chosenBar = barsWithMaxPieces[rand 0..barsWithMaxPieces.high]
+    for (playerNr,pieceNr) in players.piecesOn chosenBar:
       players[playerNr].pieces[pieceNr] = 0
     playSound "Deanscream-2"
     playSound "Gunshot"
@@ -384,7 +380,8 @@ proc reroll(hypothetical:Hypothetic):bool =
   if isDouble():
     if bestDiceMoves.len == 0: 
       bestDiceMoves = hypothetical.bestDiceMoves()
-    bestDiceMoves[0..4].anyIt diceRoll[1].ord == it.die
+    bestDiceMoves[^1].die != diceRoll[1].ord
+    # bestDiceMoves[0..4].anyIt diceRoll[1].ord == it.die
   else: false
 
 proc aiRerollPhase =
@@ -438,8 +435,8 @@ proc moveAi =
   if isWinningMove or move.eval > hypo.evalPos:
     moveSelection.fromSquare = move.fromSquare
     movePiece move.toSquare
-  else:
-    echo $turnPlayer.color," skips move"
+  # else:
+  #   echo $turnPlayer.color," skips move"
     # echo "turn nr: ",turnPlayer.turnNr
     # echo "dice: ",diceRoll
     # echo "pieces: ",turnPlayer.pieces
