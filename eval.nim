@@ -49,7 +49,9 @@ func nrOfcovers(pieces,squares:seq[int],maxDepth,depth:int):int =
     idx:int
   for i,square in squares:  
     coverPieces = pieces.filterIt it.covers square
-    if coverPieces.len > 0: idx = i+1; break
+    if coverPieces.len > 0: 
+      idx = i+1
+      break
   if coverPieces.len == 0: 
     depth
   elif idx == squares.len:
@@ -60,8 +62,8 @@ func nrOfcovers(pieces,squares:seq[int],maxDepth,depth:int):int =
       coverDepth = max(
         coverDepth,
         pieces
-          .remove(coverPiece)
-          .nrOfcovers(squares[idx..squares.high],maxDepth,depth+1)
+        .remove(coverPiece)
+        .nrOfcovers(squares[idx..squares.high],maxDepth,depth+1)
       )
       if coverDepth == maxDepth: 
         break
@@ -77,13 +79,13 @@ func cover(pieces,squares:seq[int]):bool =
   elif squares.len == 1: 
     true
   else: coverPieces.anyIt(
-    pieces.remove(it)
-      .cover(squares[1..squares.high])
+    pieces.remove(it).cover(squares[1..squares.high])
   )
 
 func coverOneInMany(coverPieces,squares:seq[int],requiredSquare:int):bool = 
   var pieces = coverPieces
-  if (let idx = pieces.find requiredSquare; idx > -1): pieces.del idx
+  if (let idx = pieces.find requiredSquare; idx > -1): 
+    pieces.del idx
   else:
     let requiredCovers = pieces.filterIt it.covers requiredSquare
     case requiredCovers.len:
@@ -107,15 +109,15 @@ func oneInMoreBonus(hypothetical:Hypothetic,blueCard:BlueCard,square,reward:int)
   let requiredSquare = blueCard.squares.required[0]
   if square == requiredSquare:
     if blueCard.squares.oneInMany.anyIt hypothetical.pieces.count(it) > 0: 
-      result = reward
-    else: result = 
-      case hypothetical.pieces.count(requiredSquare):
+      reward
+    else: 
+      case hypothetical.pieces.count requiredSquare:
         of 0:reward div 2
         of 1:reward
         else:0
   elif hypothetical.pieces.count(requiredSquare) > 0: 
-    result = reward
-  else: result = reward div 2
+    reward
+  else: reward div 2
 
 func blueVals(hypothetical:Hypothetic,squares:openArray[int]):array[12,int] =
   for card in hypothetical.cards:
@@ -127,7 +129,7 @@ func blueVals(hypothetical:Hypothetic,squares:openArray[int]):array[12,int] =
         let
           piecesOn = requiredSquares.mapIt hypothetical.pieces.count it
           requiredPiecesOn = requiredSquares.mapIt card.squares.required.count it
-          requiredIndexes = toSeq(0..requiredSquares.high)
+          requiredIndexes = toSeq 0..requiredSquares.high
           piecesVsRequired = requiredIndexes.mapIt piecesOn[it] - requiredPiecesOn[it]
           bonus = 
             (hypothetical.rewardValue(card) div card.squares.required.len)*
@@ -137,11 +139,11 @@ func blueVals(hypothetical:Hypothetic,squares:openArray[int]):array[12,int] =
             result[squareIndexes[idx]] += bonus
     elif card.squares.oneInMany.len == 0:
       if (let idx = squares.find(card.squares.required[0]); idx > -1):
-        result[idx] += hypothetical.rewardValue(card)
+        result[idx] += hypothetical.rewardValue card
     else:
-      let rewardValue = hypothetical.rewardValue(card)
+      let rewardValue = hypothetical.rewardValue card
       for idx,square in squares:
-        if (square == card.squares.required[0] or square in card.squares.oneInMany):
+        if square == card.squares.required[0] or square in card.squares.oneInMany:
           result[idx] += hypothetical.oneInMoreBonus(card,square,rewardValue)
 
 func requiredPiecesOn(hypothetical:Hypothetic,square:int):int =
@@ -151,11 +153,10 @@ func requiredPiecesOn(hypothetical:Hypothetic,square:int):int =
 func posPercentages(hypothetical:Hypothetic,squares:openArray[int]):array[12,float] =
   var freePieces,freePiecesOnSquare:int
   for i,square in squares:
-    freePiecesOnSquare = hypothetical.pieces.count(square) 
+    freePiecesOnSquare = hypothetical.pieces.count square
     if freePiecesOnSquare > 0:   
-      freePiecesOnSquare -= hypothetical.requiredPiecesOn(square)    
-      if freePiecesOnSquare > 0: 
-        freePieces += freePiecesOnSquare
+      freePiecesOnSquare -= hypothetical.requiredPiecesOn square
+      freePieces += freePiecesOnSquare
     if freePieces < 2: 
       result[i] = posPercent[i]
     else: result[i] = posPercent[i].pow freePieces.toFloat
@@ -171,8 +172,7 @@ func evalSquare(hypothetical:Hypothetic,square:int):int =
     blueVals = hypothetical.blueVals squares
   for idx in 0..squares.high:
     squares[idx] = toInt(
-      posPercent[idx]*
-      (hypothetical.board[squares[idx]]+blueVals[idx]).toFloat
+      posPercent[idx]*(hypothetical.board[squares[idx]]+blueVals[idx]).toFloat
     )
   squares.sum
 
@@ -194,7 +194,7 @@ func evalPos*(hypothetical:Hypothetic):int =
       highwayEvals = highways.mapIt hypo.evalSquare it
   for highwaySquare in highwaySquares:
     let 
-      highwayIdx = highways.find highwaySquare
+      highwayIdx = if highwayEvals.len > 0: highways.find highwaySquare else: -1
       highwayEval = 
         if highwayEvals.len > 0: highwayEvals[highwayIdx]
         else: hypo.evalSquare highwaySquare
@@ -252,7 +252,7 @@ iterator genericMoves(hypothetical:Hypothetic,dice:openArray[int]):Move =
       yield (pieceNr,die,fromSquare,0,0)
 
 iterator moves*(hypothetical:Hypothetic,dice:openArray[int]):Move =
-  for genericMove in hypothetical.genericMoves(dice):
+  for genericMove in hypothetical.genericMoves dice:
     for toSquare in moveToSquares(genericMove.fromSquare,genericMove.die):
       yield (
         genericMove.pieceNr,
@@ -311,21 +311,33 @@ proc hypotheticalInit*(player:Player,hand:seq[BlueCard]):Hypothetic = (
 template hypotheticalInit*(player:untyped):untyped =
   player.hypotheticalInit player.hand
 
-func evalBlue(hypothetical:Hypothetic,card:BlueCard):int =
-  evalPos (
-    hypothetical.board,
-    hypothetical.pieces,
-    hypothetical.allPlayersPieces,
-    @[card],
-    hypothetical.cash,
-  )
+# func evalBlue(hypothetical:Hypothetic,card:BlueCard):int =
+#   evalPos (
+#     hypothetical.board,
+#     hypothetical.pieces,
+#     hypothetical.allPlayersPieces,
+#     @[card],
+#     hypothetical.cash,
+#   )
 
 func evalBlues(hypothetical:Hypothetic):seq[BlueCard] =
-  let evals = hypothetical.cards.mapIt hypothetical.evalBlue it
-  result = hypothetical.cards
-  for i in 0..evals.high:
-    result[i].eval = evals[i]
+  for card in hypothetical.cards:
+    result.add card
+    result[^1].eval = evalPos (
+      hypothetical.board,
+      hypothetical.pieces,
+      hypothetical.allPlayersPieces,
+      @[card],
+      hypothetical.cash,
+    )
   result.sort (a,b) => b.eval - a.eval
+
+# func evalBlues(hypothetical:Hypothetic):seq[BlueCard] =
+#   let evals = hypothetical.cards.mapIt hypothetical.evalBlue it
+#   result = hypothetical.cards
+#   for i in 0..evals.high:
+#     result[i].eval = evals[i]
+#   result.sort (a,b) => b.eval - a.eval
 
 func coversDif(pieces:seq[int],card:BlueCard):int =
   var 

@@ -1,5 +1,5 @@
 from math import sum
-import misc
+# import misc
 import game
 import sequtils
 import eval
@@ -115,16 +115,16 @@ proc initTurnReport* =
   initTurnReportBatches()
 
 proc updateTurnReport*[T](item:T) =
-  execIf recordStats:
+  if recordStats:
     when typeOf(T) is Move: 
       turnReport.moves.add item
     when typeof(T) is PlayerColor: 
       turnReport.kills.add item
       killMatrixUpdate()
     updateTurnReport()
-  
+
 proc updateTurnReportCards*(blues:seq[BlueCard],playedCard:PlayedCard) =
-  execIf recordStats:
+  if recordStats:
     case playedCard:
       of Drawn: turnReport.cards.drawn.add blues
       of Played: turnReport.cards.played.add blues
@@ -144,10 +144,18 @@ proc playMassacre =
     let
       allPlayerPiecesOnBars = playerBars.mapIt players.nrOfPiecesOn it
       maxPieces = allPlayerPiecesOnBars.max
-      barsWithMaxPieces = allPlayerPiecesOnBars.filterIt it == maxPieces
+      playerBarsAndPieces = zip(playerBars,allPlayerPiecesOnBars)
+      barsWithMaxPieces = playerBarsAndPieces.filterIt(it[1] == maxPieces).mapIt(it[0])
+      # barsWithMaxPieces = allPlayerPiecesOnBars.filterIt it == maxPieces
       chosenBar = barsWithMaxPieces[rand 0..barsWithMaxPieces.high]
+    # echo "playerBars = ",playerBars
+    # echo "allPlayerPiecesOnBars = ",allPlayerPiecesOnBars
+    # echo "maxPieces = ",maxPieces
+    # echo "barsWithMaxPieces = ",barsWithMaxPieces
+    # echo "chosenBar = ",chosenBar
     for (playerNr,pieceNr) in players.piecesOn chosenBar:
       players[playerNr].pieces[pieceNr] = 0
+      # echo "eliminated: playerNr (",playerNr,") / pieceNr(",pieceNr,")"
     playSound "Deanscream-2"
     playSound "Gunshot"
     updatePiecesPainter()
@@ -366,7 +374,8 @@ proc aiStartTurn =
   if hypo.legalPieces.len == 0:
     echo $turnPlayer.color&" has no legal pieces and has left the game in shame"
     phase = EndTurn
-  else: phase = Draw
+  else: 
+    phase = Draw
 
 proc aiDrawCards =
   playCashPlansTo blueDeck
@@ -406,7 +415,13 @@ proc bestDieMove(dice:openArray[int]):Move =
   let bestDice = bestDiceMoves.mapIt(it.die)
   for i in 0..dice.high:
     dieIndex[i] = bestDice.find dice[i]
-  bestDiceMoves[max dieIndex]
+  try: result = bestDiceMoves[max dieIndex]
+  except:
+    echo "pieces: ",hypo.pieces
+    echo "bestDice: ",bestDice
+    echo "dice: ",dice
+    echo "bestDieIndexes: ",dieIndex
+    raise newException(CatchableError,getCurrentException().msg)
 
 func winsOn(player:Player,move:Move):bool =
   var hypoPlayer = player
@@ -431,17 +446,22 @@ proc bestMove(hypothetical:Hypothetic,dice:openArray[int]):(bool,Move) =
   )
 
 proc moveAi =
-  let (isWinningMove,move) = hypo.bestMove([diceRoll[1].ord,diceRoll[2].ord])
-  if isWinningMove or move.eval > hypo.evalPos:
-    moveSelection.fromSquare = move.fromSquare
-    movePiece move.toSquare
-  # else:
-  #   echo $turnPlayer.color," skips move"
-    # echo "turn nr: ",turnPlayer.turnNr
-    # echo "dice: ",diceRoll
-    # echo "pieces: ",turnPlayer.pieces
-    # echo "cards: ",turnPlayer.hand.mapIt it.title&"/"&($it.squares.required)
-  phase = PostMove
+  # echo hypo.pieces
+  if hypo.legalPieces.len > 0:
+    let (isWinningMove,move) = hypo.bestMove([diceRoll[1].ord,diceRoll[2].ord])
+    if isWinningMove or move.eval > hypo.evalPos:
+      moveSelection.fromSquare = move.fromSquare
+      movePiece move.toSquare
+    # else:
+    #   echo $turnPlayer.color," skips move"
+      # echo "turn nr: ",turnPlayer.turnNr
+      # echo "dice: ",diceRoll
+      # echo "pieces: ",turnPlayer.pieces
+      # echo "cards: ",turnPlayer.hand.mapIt it.title&"/"&($it.squares.required)
+    phase = PostMove
+  else:
+    echo $turnPlayer.color&" has no pieces to move"
+    phase = EndTurn
 
 proc postMovePhase =
   moveSelection.fromSquare = -1

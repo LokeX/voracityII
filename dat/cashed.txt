@@ -1,108 +1,108 @@
-Redemption: 52
+Redemption: 53
 Stiffs: 24
 Ludomania: 31
-Broken bones: 34
+Broken bones: 35
 Safe bet: 25
 Grapevine: 39
-Sweethearts: 18
-Polterabend: 68
+Sweethearts: 19
+Polterabend: 69
 Faulty towers: 36
-Loads of stuff: 52
-High society: 43
-Knocked out: 41
-Chicks in cages: 51
-Drugdealer: 35
-Trans-action: 23
+Loads of stuff: 54
+High society: 45
+Knocked out: 44
+Chicks in cages: 53
+Drugdealer: 36
+Trans-action: 24
 Secret weapon: 32
-Moonshine: 72
-Outstanding: 38
-Containment: 40
-Deadweight: 21
-Hooters: 31
+Moonshine: 77
+Outstanding: 40
+Containment: 42
+Deadweight: 22
+Hooters: 32
 Brotherhood: 31
-Bail: 31
-Recycling: 27
-Specimens: 15
-Home invasion: 52
+Bail: 33
+Recycling: 29
+Specimens: 17
+Home invasion: 53
 Stove away: 22
-Grand designs: 35
+Grand designs: 37
 Demolition: 34
-Human resources: 51
-Deadly cargo: 36
-Agent: 38
+Human resources: 52
+Deadly cargo: 37
+Agent: 40
 Borderless: 28
-Globalist: 30
-Bootlegging: 28
+Globalist: 31
+Bootlegging: 29
 Lawfare: 40
 Terrorism: 23
 Lord of War: 18
-Rentseeking: 32
-Protection: 50
-Duty free: 46
-Hooked: 43
-Open house: 26
-Rock solid claims: 48
-Pimp: 38
+Rentseeking: 33
+Protection: 51
+Duty free: 48
+Hooked: 45
+Open house: 28
+Rock solid claims: 49
+Pimp: 39
 Concuctions: 34
-Circle jerk: 27
+Circle jerk: 28
 Legalese: 42
-Higher powers: 31
-Nose job: 33
+Higher powers: 33
+Nose job: 34
 Insurgency: 34
 Outsider: 36
 Prescriptions: 33
-Bouncing: 48
+Bouncing: 52
 Side effects: 27
-Diamonds are...: 38
+Diamonds are...: 39
 Blood diamants: 29
-Foreign aid: 40
-Color revolution: 33
+Foreign aid: 41
+Color revolution: 34
 Acquittal: 30
 Financier: 24
-Underhanded: 32
+Underhanded: 35
 Up yours: 26
 Choireboys: 31
-Knock knock: 44
-Sing a long song: 55
-White collars: 16
+Knock knock: 46
+Sing a long song: 56
+White collars: 17
 Broman escorte: 16
 Cold meds: 46
-Et spiritus sancti: 47
-Occupational hazard: 31
-VIP Lounge: 28
+Et spiritus sancti: 48
+Occupational hazard: 33
+VIP Lounge: 29
 Small arms: 32
-Express demands: 32
+Express demands: 33
 Ramtheft: 27
 Golden chains: 23
 Bodyguard: 18
-Mayor: 30
-Homebrew: 34
-Meat grinder: 25
+Mayor: 31
+Homebrew: 35
+Meat grinder: 26
 Judicial murder: 22
-Flay'em: 30
-Projects: 29
-Advisory board: 38
+Flay'em: 31
+Projects: 30
+Advisory board: 39
 Usery: 33
-Financing: 28
+Financing: 29
 Lucky bastard: 27
-Lipstick on a pig: 28
-Laundry: 26
-Debt to society: 27
+Lipstick on a pig: 29
+Laundry: 27
+Debt to society: 29
 Transitions: 14
-Trance: 41
-Bodycount: 18
-Informer: 18
-Rentals: 26
-Healthplan: 29
-Slumlord: 28
+Trance: 44
+Bodycount: 19
+Informer: 20
+Rentals: 27
+Healthplan: 31
+Slumlord: 30
 Heartless: 10
 Gangbangers: 24
-Aiding and abetting: 16
-Coup: 16
-Blood suckers: 21
+Aiding and abetting: 17
+Coup: 17
+Blood suckers: 22
 Infiltration: 21
-Spy: 10
+Spy: 11
 Addictions: 14
 Corruption: 10
-Burial at sea: 24
-Razia: 19
+Burial at sea: 26
+Razia: 20
