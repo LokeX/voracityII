@@ -1,4 +1,5 @@
 import boxy, opengl 
+# import ./boxy/src/boxy, opengl 
 import windy
 import times
 import sequtils
@@ -249,7 +250,6 @@ proc dynMove*[T](dynImg:var DynamicImage[T],direction:Direction,frames:int) =
 
 proc drawDynamicImage*[T](b:var Boxy,dynImg:DynamicImage[T]) =
   if dynImg.update: 
-    b.removeImage(dynImg.name)
     when T is void: b.addImage(dynImg.name,dynImg.updateImage())
     else: b.addImage(dynImg.name,dynImg.updateImage(dynImg.context))
     let wh = b.getImageSize dynImg.name
@@ -318,6 +318,7 @@ window.onFrame = proc() =
       call.draw(bxy)
     bxy.endFrame()
     window.swapBuffers()
+    # bxy.addImage
 
 window.onRune = proc(rune:Rune) =
   var button:Button

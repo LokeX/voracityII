@@ -100,7 +100,7 @@ proc playerBatchTxt(playerNr:int):seq[string] =
     else:
       @[$playerKinds[playerNr]]
   else: @[
-    "Turn Nr: "&($turn.nr)&"\n",
+    "Turn Nr: "&($(players[playerNr].turnNr))&"\n",
     "Cards: "&($players[playerNr].hand.len)&"\n",
     "Cash: "&(insertSep($players[playerNr].cash,'.'))
   ]

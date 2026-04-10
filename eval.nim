@@ -166,15 +166,14 @@ func squareNrs(square:int):array[12,int] =
     result[idx-square] = adjustToSquareNr idx
 
 func evalSquare(hypothetical:Hypothetic,square:int):int =
-  var squares = square.squareNrs
   let 
+    squares = square.squareNrs
     posPercent = hypothetical.posPercentages squares
     blueVals = hypothetical.blueVals squares
   for idx in 0..squares.high:
-    squares[idx] = toInt(
+    result += toInt(
       posPercent[idx]*(hypothetical.board[squares[idx]]+blueVals[idx]).toFloat
     )
-  squares.sum
 
 func evalPos*(hypothetical:Hypothetic):int =
   var
@@ -273,10 +272,6 @@ func bestDiceMoves*(hypothetical:Hypothetic):seq[Move] =
     result.add hypothetical.move [die,die]
   result.sort (a,b) => a.eval-b.eval
 
-func allPlayersPieces(players:seq[Player]):seq[int] =
-  for player in players:
-    result.add player.pieces
-
 func barVal(hypothetical:Hypothetic):int = 
   let 
     legalPieces = hypothetical.legalPieces
@@ -300,6 +295,10 @@ func boardInit(player:Player):EvalBoard =
     player.cash,
   )
  
+func allPlayersPieces(players:seq[Player]):seq[int] =
+  for player in players:
+    result.add player.pieces
+
 proc hypotheticalInit*(player:Player,hand:seq[BlueCard]):Hypothetic = (
   player.boardInit,
   player.pieces,

@@ -324,12 +324,13 @@ proc newPlayers*:seq[Player] =
 
 proc nextPlayerTurn* =
   turn.diceMoved = false
-  turnPlayer.turnNr = turn.nr
-  turnPlayer.update = true
+  # inc turnPlayer.turnNr
   if turn.player == players.high:
     inc turn.nr
     turn.player = players.low
   else: inc turn.player
+  turnPlayer.turnNr = turn.nr
+  turnPlayer.update = true
   turn.undrawnBlues = turnPlayer.nrOfPiecesOnBars
   blueDeck.lastDrawn = ""
  

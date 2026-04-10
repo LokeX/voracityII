@@ -59,7 +59,8 @@ type
       inputCursor*:Cursor
       inputMaxChars*:int
       inputNumbers*:HSlice[int,int]
-    else:discard
+    else:
+      test:int
     titleOn*:bool
     titleLine*:Line
     name*:string

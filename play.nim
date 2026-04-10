@@ -271,7 +271,7 @@ proc move* =
   if moveSelection.fromSquare == 0: 
     turnPlayer.cash -= piecePrice
   playCashPlansTo blueDeck
-  turnPlayer.hand = turnPlayer.sortBlues
+  # turnPlayer.hand = turnPlayer.sortBlues
   turnPlayer.update = true
   moveSelection.fromSquare = -1
   updatePiecesPainter()
@@ -340,6 +340,7 @@ proc startNewGame* =
   turnReports.setLen 0
   inc turn.nr
   players = newPlayers()
+  players[0].turnNr = 1
   setConfigStateTo StartGame
   reportUpdateReset()
   gameWon = false
@@ -411,18 +412,26 @@ proc aiRerollPhase =
     else: phase = AiMove
 
 proc bestDieMove(dice:openArray[int]):Move =
-  var dieIndex:array[2,int]
-  let bestDice = bestDiceMoves.mapIt(it.die)
-  for i in 0..dice.high:
-    dieIndex[i] = bestDice.find dice[i]
-  try: result = bestDiceMoves[max dieIndex]
-  except:
-    echo "pieces: ",hypo.pieces
-    echo "bestDice: ",bestDice
-    echo "dice: ",dice
-    echo "bestDieIndexes: ",dieIndex
-    raise newException(CatchableError,getCurrentException().msg)
-
+  if dice[0] == dice[1]:
+    for move in bestDiceMoves:
+      if move.die == dice[0]:
+        return move
+  else:
+    var diceFound = 0
+    for move in bestDiceMoves:
+      if move.die in dice:
+        if diceFound == 1:
+          return move
+        else: inc diceFound
+ 
+# proc bestDieMove(dice:openArray[int]):Move =
+#   var diceChecked = 0
+#   for move in bestDiceMoves:
+#     if move.die in dice:
+#       if diceChecked == 1 or dice[0] == dice[1]:
+#         return move
+#       else: inc diceChecked
+ 
 func winsOn(player:Player,move:Move):bool =
   var hypoPlayer = player
   hypoPlayer.pieces[move.pieceNr] = move.toSquare
@@ -431,7 +440,7 @@ func winsOn(player:Player,move:Move):bool =
 
 proc winningMove(hypothetical:Hypothetic,dice:openArray[int]):Move =
   for move in hypothetical.moves dice:
-    if turnPlayer.winsOn(move): 
+    if turnPlayer.winsOn move: 
       return move
   result.pieceNr = -1
 
@@ -452,6 +461,7 @@ proc moveAi =
     if isWinningMove or move.eval > hypo.evalPos:
       moveSelection.fromSquare = move.fromSquare
       movePiece move.toSquare
+    # else: turnPlayer.hand = turnPlayer.sortBlues
     # else:
     #   echo $turnPlayer.color," skips move"
       # echo "turn nr: ",turnPlayer.turnNr
@@ -466,6 +476,7 @@ proc moveAi =
 proc postMovePhase =
   moveSelection.fromSquare = -1
   aiDrawCards()
+  turnPlayer.hand = turnPlayer.sortBlues
   phase = EndTurn
 
 proc endTurn* = 
