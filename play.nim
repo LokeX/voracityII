@@ -109,7 +109,7 @@ template updatePiecesPainter =
 
 proc initTurnReport* =
   turnReport = TurnReport()
-  turnReport.turnNr = turnPlayer.turnNr+1
+  turnReport.turnNr = turnPlayer.turnNr
   turnReport.player.color = turnPlayer.color
   turnReport.player.kind = turnPlayer.kind
   initTurnReportBatches()
@@ -271,7 +271,7 @@ proc move* =
   if moveSelection.fromSquare == 0: 
     turnPlayer.cash -= piecePrice
   playCashPlansTo blueDeck
-  # turnPlayer.hand = turnPlayer.sortBlues
+  turnPlayer.hand = turnPlayer.sortBlues
   turnPlayer.update = true
   moveSelection.fromSquare = -1
   updatePiecesPainter()
@@ -336,11 +336,11 @@ proc endGame* =
   soundToPlay.setLen 0
 
 proc startNewGame* =
-  initTurnReport()
-  turnReports.setLen 0
   inc turn.nr
   players = newPlayers()
   players[0].turnNr = 1
+  turnReports.setLen 0
+  initTurnReport()
   setConfigStateTo StartGame
   reportUpdateReset()
   gameWon = false

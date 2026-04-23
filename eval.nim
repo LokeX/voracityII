@@ -235,15 +235,15 @@ func evalMove*(hypothetical:Hypothetic,pieceNr,toSquare:int):int =
   else: hypo.pieces[pieceNr] = toSquare
   hypo.evalPos
 
-func bestMoveFrom(hypothetical:Hypothetic,generic:sink Move):Move =
-  let squares = moveToSquares(generic.fromSquare,generic.die)
-  if squares.len > 0:
-    var eval = 0
-    result = move generic
-    for square in squares:
-      eval = hypothetical.evalMove(result.pieceNr,square)
-      if eval > result.eval:
-        (result.toSquare,result.eval) = (square,eval)
+# func bestMoveFrom(hypothetical:Hypothetic,generic:sink Move):Move =
+#   let squares = moveToSquares(generic.fromSquare,generic.die)
+#   if squares.len > 0:
+#     var eval = 0
+#     result = move generic
+#     for square in squares:
+#       eval = hypothetical.evalMove(result.pieceNr,square)
+#       if eval > result.eval:
+#         (result.toSquare,result.eval) = (square,eval)
 
 iterator genericMoves(hypothetical:Hypothetic,dice:openArray[int]):Move =
   for die in dice.deduplicate:
@@ -262,10 +262,18 @@ iterator moves*(hypothetical:Hypothetic,dice:openArray[int]):Move =
       )
 
 func move*(hypothetical:Hypothetic,dice:openArray[int]):Move = 
-  var move:Move
-  for genericMove in hypothetical.genericMoves dice:
-    move = hypothetical.bestMoveFrom genericMove
-    if move.eval > result.eval: result = move
+  var eval = 0
+  for move in hypothetical.moves dice:
+    eval = hypothetical.evalMove(move.pieceNr,move.toSquare)
+    if eval > result.eval:
+      result = move
+      result.eval = eval
+
+# func move*(hypothetical:Hypothetic,dice:openArray[int]):Move = 
+#   var move:Move
+#   for genericMove in hypothetical.genericMoves dice:
+#     move = hypothetical.bestMoveFrom genericMove
+#     if move.eval > result.eval: result = move
 
 func bestDiceMoves*(hypothetical:Hypothetic):seq[Move] =
   for die in 1..6:
