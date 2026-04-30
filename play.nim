@@ -54,6 +54,7 @@ var
   hypo:Hypothetic
   diceReroll:DiceReroll
   bestDiceMoves:seq[Move]
+  diceMoves:DiceMoves
 
 template setConfigStateTo(config:ConfigState) =
   if configState != nil:
@@ -293,7 +294,7 @@ proc decideKillAndMove*(confirmedKill:string) =
 proc wantsNoProtectionAfter(player:Player,move:Move):bool =
   var hypoPlayer = player
   hypoPlayer.pieces[move.pieceNr] = move.toSquare
-  hypoPlayer.hand = hypoPlayer.plans.notCashable
+  hypoPlayer.hand = hypoPlayer.pieces.plans(hypoPlayer.hand).notCashable
   var hypo = hypoPlayer.hypotheticalInit
   let noKillEval = hypo.evalPos
   hypo.pieces[move.pieceNr] = 0
@@ -372,6 +373,10 @@ template phaseIs*:untyped = phase
 proc aiStartTurn = 
   hypo = hypotheticalInit(turnPlayer)
   bestDiceMoves.setLen 0
+  # debugEcho "before: ",diceMoves[DieFace3].moves.len
+  if diceMoves[^1].moves.len > 0:
+    diceMoves = default DiceMoves
+  # debugEcho "after: ",diceMoves[DieFace3].moves.len
   if hypo.legalPieces.len == 0:
     echo $turnPlayer.color&" has no legal pieces and has left the game in shame"
     phase = EndTurn
@@ -386,13 +391,42 @@ proc aiDrawCards =
   hypo = turnPlayer.hypotheticalInit
   phase = Reroll
 
+# func winsOn(player:Player,move:Move):bool =
+#   var hypoPlayer = player
+#   hypoPlayer.pieces[move.pieceNr] = move.toSquare
+#   let cashReward = hypoPlayer.plans.cashable.mapIt(it.cash).sum
+#   cashReward+player.cash-(if move.fromSquare == 0: piecePrice else: 0) >= cashToWin
+
+# func winningMoveIn(player:Player,moves:seq[Move]):Move =
+#   for move in moves:
+#     if player.winsOn move: 
+#       return move
+#   result.pieceNr = -1
+
+# template hasWinningMove:untyped =
+#   let move = hypo.winningMoveIn hypo.moves [diceRoll[1].ord,diceRoll[2].ord]
+#   move.pieceNr != -1
+
 proc reroll(hypothetical:Hypothetic):bool =
   if isDouble():
-    if bestDiceMoves.len == 0: 
-      bestDiceMoves = hypothetical.bestDiceMoves()
-    bestDiceMoves[^1].die != diceRoll[1].ord
+    if diceMoves[^1].moves.len == 0: 
+      diceMoves = hypothetical.allDiceMoves()
+    not diceRoll[^1].isBestIn diceMoves
+    # bestDiceMoves[^1].die != diceRoll[1].ord and not hasWinningMove
     # bestDiceMoves[0..4].anyIt diceRoll[1].ord == it.die
   else: false
+
+# template hasWinningMove:untyped =
+#   let move = hypo.winningMoveIn hypo.moves [diceRoll[1].ord,diceRoll[2].ord]
+#   move.pieceNr != -1
+
+# proc reroll(hypothetical:Hypothetic):bool =
+#   if isDouble():
+#     if bestDiceMoves.len == 0: 
+#       bestDiceMoves = hypothetical.bestDiceMoves()
+#     bestDiceMoves[^1].die != diceRoll[1].ord and not hasWinningMove
+#     # bestDiceMoves[0..4].anyIt diceRoll[1].ord == it.die
+#   else: false
 
 proc aiRerollPhase =
   if statGame:
@@ -411,18 +445,18 @@ proc aiRerollPhase =
       diceReroll.pauseStartTime = cpuTime()
     else: phase = AiMove
 
-proc bestDieMove(dice:openArray[int]):Move =
-  if dice[0] == dice[1]:
-    for move in bestDiceMoves:
-      if move.die == dice[0]:
-        return move
-  else:
-    var diceFound = 0
-    for move in bestDiceMoves:
-      if move.die in dice:
-        if diceFound == 1:
-          return move
-        else: inc diceFound
+# proc bestDieMove(dice:openArray[int]):Move =
+#   if dice[0] == dice[1]:
+#     for move in bestDiceMoves:
+#       if move.die == dice[0]:
+#         return move
+#   else:
+#     var diceFound = 0
+#     for move in bestDiceMoves:
+#       if move.die in dice:
+#         if diceFound == 1:
+#           return move
+#         else: inc diceFound
  
 # proc bestDieMove(dice:openArray[int]):Move =
 #   var diceChecked = 0
@@ -432,32 +466,22 @@ proc bestDieMove(dice:openArray[int]):Move =
 #         return move
 #       else: inc diceChecked
  
-func winsOn(player:Player,move:Move):bool =
-  var hypoPlayer = player
-  hypoPlayer.pieces[move.pieceNr] = move.toSquare
-  let cashReward = hypoPlayer.plans.cashable.mapIt(it.cash).sum
-  cashReward+player.cash-(if move.fromSquare == 0: piecePrice else: 0) >= cashToWin
-
-proc winningMove(hypothetical:Hypothetic,dice:openArray[int]):Move =
-  for move in hypothetical.moves dice:
-    if turnPlayer.winsOn move: 
-      return move
-  result.pieceNr = -1
-
-proc bestMove(hypothetical:Hypothetic,dice:openArray[int]):(bool,Move) =
-  if (let winMove = hypothetical.winningMove dice; winMove.pieceNr != -1):
-    (true,winMove) 
-  else: (
-    false,
-    if bestDiceMoves.len > 0: 
-      bestDieMove dice 
-    else: hypothetical.move dice
-  )
+# proc bestMove(hypothetical:Hypothetic,dice:openArray[int]):(bool,Move) =
+#   let moves = hypothetical.moves dice
+#   if (let winMove = hypothetical.winningMoveIn moves; winMove.pieceNr != -1):
+#     (true,winMove) 
+#   else: (
+#     false,
+#     if bestDiceMoves.len > 0: 
+#       bestDieMove dice 
+#     else: hypothetical.bestMoveIn moves
+#   )
 
 proc moveAi =
   # echo hypo.pieces
   if hypo.legalPieces.len > 0:
-    let (isWinningMove,move) = hypo.bestMove([diceRoll[1].ord,diceRoll[2].ord])
+    let (isWinningMove,move) = hypo.bestMove(diceRoll,diceMoves)
+    # let (isWinningMove,move) = hypo.bestMove([diceRoll[1].ord,diceRoll[2].ord])
     if isWinningMove or move.eval > hypo.evalPos:
       moveSelection.fromSquare = move.fromSquare
       movePiece move.toSquare

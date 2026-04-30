@@ -10,6 +10,7 @@ const
   posPercent = [1.0,0.3,0.3,0.3,0.3,0.3,0.3,0.15,0.14,0.12,0.10,0.08,0.05]
 
 type
+  DiceMoves* = array[DieFace,tuple[moves:seq[Move],bestMove:Move,isWinningMove:bool]]
   EvalBoard* = array[61,int]
   Hypothetic* = tuple
     board:array[61,int]
@@ -250,10 +251,10 @@ iterator genericMoves(hypothetical:Hypothetic,dice:openArray[int]):Move =
     for pieceNr,fromSquare in hypothetical.legalPieces:
       yield (pieceNr,die,fromSquare,0,0)
 
-iterator moves*(hypothetical:Hypothetic,dice:openArray[int]):Move =
+func moves*(hypothetical:Hypothetic,dice:openArray[int]):seq[Move] =
   for genericMove in hypothetical.genericMoves dice:
     for toSquare in moveToSquares(genericMove.fromSquare,genericMove.die):
-      yield (
+      result.add (
         genericMove.pieceNr,
         genericMove.die,
         genericMove.fromSquare,
@@ -261,9 +262,20 @@ iterator moves*(hypothetical:Hypothetic,dice:openArray[int]):Move =
         genericMove.eval
       )
 
-func move*(hypothetical:Hypothetic,dice:openArray[int]):Move = 
+# iterator moves*(hypothetical:Hypothetic,dice:openArray[int]):Move =
+#   for genericMove in hypothetical.genericMoves dice:
+#     for toSquare in moveToSquares(genericMove.fromSquare,genericMove.die):
+#       yield (
+#         genericMove.pieceNr,
+#         genericMove.die,
+#         genericMove.fromSquare,
+#         toSquare,
+#         genericMove.eval
+#       )
+
+func bestMoveIn*(hypothetical:Hypothetic,moves:seq[Move]):Move = 
   var eval = 0
-  for move in hypothetical.moves dice:
+  for move in moves:
     eval = hypothetical.evalMove(move.pieceNr,move.toSquare)
     if eval > result.eval:
       result = move
@@ -275,10 +287,110 @@ func move*(hypothetical:Hypothetic,dice:openArray[int]):Move =
 #     move = hypothetical.bestMoveFrom genericMove
 #     if move.eval > result.eval: result = move
 
-func bestDiceMoves*(hypothetical:Hypothetic):seq[Move] =
-  for die in 1..6:
-    result.add hypothetical.move [die,die]
-  result.sort (a,b) => a.eval-b.eval
+# func bestDiceMoves*(hypothetical:Hypothetic):seq[Move] =
+#   for die in 1..6:
+#     result.add hypothetical.bestMoveIn hypothetical.moves [die,die]
+#   result.sort (a,b) => a.eval-b.eval
+
+# func winsOn*(hypothetical:Hypothetic,move:Move):bool =
+#   var hypo = hypothetical
+#   hypo.pieces[move.pieceNr] = move.toSquare
+#   let cashReward = hypo.pieces.plans(hypo.cards).cashable.mapIt(it.cash).sum
+#   cashReward+hypo.cash-(if move.fromSquare == 0: piecePrice else: 0) >= cashToWin
+
+func winningMoveIn*(hypothetical:Hypothetic,moves:seq[Move]):Move =
+  var 
+    hypo = hypothetical
+    cashReward:int
+  for move in moves:
+    hypo.pieces[move.pieceNr] = move.toSquare
+    cashReward = hypo.pieces.plans(hypo.cards).cashable.mapIt(it.cash).sum
+    if cashReward+hypo.cash-(if move.fromSquare == 0: piecePrice else: 0) >= cashToWin:
+      return move
+  result.pieceNr = -1
+
+# func winsOn*(hypothetical:Hypothetic,move:Move):bool =
+#   var hypo = hypothetical
+#   hypo.pieces[move.pieceNr] = move.toSquare
+#   let cashReward = hypo.pieces.plans(hypo.cards).cashable.mapIt(it.cash).sum
+#   cashReward+hypo.cash-(if move.fromSquare == 0: piecePrice else: 0) >= cashToWin
+
+# func winningMoveIn*(hypothetical:Hypothetic,moves:seq[Move]):Move =
+#   for move in moves:
+#     if hypothetical.winsOn move: 
+#        return move
+#   result.pieceNr = -1
+
+func allDiceMoves*(hypothetical:Hypothetic):DiceMoves =
+  # var winningMove:Move
+  for die in DieFace:
+    result[die].moves = hypothetical.moves [die.ord,die.ord]
+    result[die].bestMove = hypothetical.winningMoveIn result[die].moves
+    if result[die].bestMove.pieceNr > -1:
+      # result[die].bestMove = winningMove
+      result[die].isWinningMove = true
+    else:result[die].bestMove = hypothetical.bestMoveIn result[die].moves
+
+func isBestIn*(dieQuery:DieFace,diceMoves:DiceMoves):bool =
+  if diceMoves[dieQuery].isWinningMove:
+    return true
+  var 
+    bestEval = 0
+    bestDie:DieFace
+  # debugEcho "dieQuery = ",dieQuery
+  for die in DieFace:
+    # debugEcho diceMoves[die].bestMove
+    if diceMoves[die].bestMove.eval > bestEval:
+      bestEval = diceMoves[die].bestMove.eval
+      bestDie = die
+  # debugEcho "bestEval = ",bestEval
+  # debugEcho "bestDie = ",bestDie
+  dieQuery == bestDie
+
+# import strutils
+
+func bestMove*(hypothetical:Hypothetic,dice:Dice,diceMoves:DiceMoves):(bool,Move) =
+  if diceMoves[dice[1]].moves.len > 0:
+    let dieIndex = 
+      if dice[dice.low] == dice[dice.high] or 
+      diceMoves[dice[1]].bestMove.eval >= diceMoves[dice[2]].bestMove.eval or 
+      diceMoves[dice[1]].isWinningMove: 1 else: 2
+    # debugEcho diceMoves.mapIt($it.bestMove).join "\n"
+    # debugEcho dice
+    # debugEcho diceMoves[dice[1]].bestMove.eval
+    # debugEcho diceMoves[dice[2]].bestMove.eval
+    # debugEcho diceMoves[dice[1]].isWinningMove
+    # debugEcho diceMoves[dice[2]].isWinningMove
+    # debugEcho "idx: ",dieIndex
+    (diceMoves[dice[dieIndex]].isWinningMove,diceMoves[dice[dieIndex]].bestMove)
+  else:
+    # debugEcho "no diceRolls"
+    let
+      moves = hypothetical.moves [dice[1].ord,dice[2].ord]
+      winningMove = hypothetical.winningMoveIn moves
+    if winningMove.pieceNr > -1: (true,winningMove)
+    else:(false,hypothetical.bestMoveIn moves)
+ 
+# func bestMove(
+#   hypothetical:Hypothetic,
+#   dice:Dice,
+#   diceMoves:DiceMoves):tuple[isWinningMove:bool,move:Move] =
+#   if diceMoves[dice[0]].moves.len > 0:
+#     var dieIndex = 
+#       if dice[dice.low] == dice[dice.high] or 
+#       diceMoves[dice[0]].bestMove.eval >= diceMoves[dice[1]].bestMove.eval or 
+#       diceMoves[dice[0]].isWinningMove: 0 else: 1
+#     result.isWinningMove = diceMoves[dice[dieIndex]].isWinningMove
+#     result.move = diceMoves[dice[dieIndex]].bestMove
+#   else:
+#     let 
+#       moves = hypothetical.moves [dice[0].ord,dice[1].ord]
+#       move = hypothetical.winningMoveIn moves
+#     if move.pieceNr > -1:
+#       result.isWinningMove = true
+#       result.move = move
+#     else:
+#       result.move = hypothetical.bestMoveIn moves
 
 func barVal(hypothetical:Hypothetic):int = 
   let 

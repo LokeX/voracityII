@@ -269,21 +269,37 @@ func pieceNrsOnBars*(player:Player):seq[int] =
   for nr,square in player.pieces:
     if square.isBar: result.add nr
 
-template requiredSquaresOk(player,plan:untyped):untyped =
-  plan.squares.required.deduplicate
-    .allIt player.pieces.count(it) >= plan.squares.required.count it
+template requiredSquaresOk(pieces,card:untyped):untyped =
+  card.squares.required.deduplicate
+    .allIt pieces.count(it) >= card.squares.required.count it
 
-template oneInManySquaresOk(player,plan:untyped):untyped =
-  plan.squares.oneInmany.len == 0 or 
-  player.pieces.anyIt it in plan.squares.oneInMany
+template oneInManySquaresOk(pieces,card:untyped):untyped =
+  card.squares.oneInmany.len == 0 or 
+  pieces.anyIt it in card.squares.oneInMany
 
-func isCashable*(player:Player,plan:BlueCard):bool =
-  (player.requiredSquaresOk plan) and (player.oneInManySquaresOk plan)
+func isCashable*(pieces:openArray[int],card:BlueCard):bool =
+  (pieces.requiredSquaresOk card) and (pieces.oneInManySquaresOk card)
 
-func plans*(player:Player):tuple[cashable,notCashable:seq[BlueCard]] =
-  for plan in player.hand:
-    if player.isCashable plan: result.cashable.add plan
-    else: result.notCashable.add plan
+func plans*(pieces:openArray[int],cards:seq[BlueCard]):tuple[cashable,notCashable:seq[BlueCard]] =
+  for card in cards:
+    if pieces.isCashable card: result.cashable.add card
+    else: result.notCashable.add card
+
+# template requiredSquaresOk(player,plan:untyped):untyped =
+#   plan.squares.required.deduplicate
+#     .allIt player.pieces.count(it) >= plan.squares.required.count it
+
+# template oneInManySquaresOk(player,plan:untyped):untyped =
+#   plan.squares.oneInmany.len == 0 or 
+#   player.pieces.anyIt it in plan.squares.oneInMany
+
+# func isCashable*(player:Player,plan:BlueCard):bool =
+#   (player.requiredSquaresOk plan) and (player.oneInManySquaresOk plan)
+
+# func plans*(player:Player):tuple[cashable,notCashable:seq[BlueCard]] =
+#   for plan in player.hand:
+#     if player.isCashable plan: result.cashable.add plan
+#     else: result.notCashable.add plan
 
 proc discardCards*(player:var Player,deck:var Deck):seq[BlueCard] =
   while player.hand.len > 3:
@@ -291,7 +307,7 @@ proc discardCards*(player:var Player,deck:var Deck):seq[BlueCard] =
     player.hand.playTo deck,player.hand.high
 
 proc cashInPlansTo*(player:var Player,deck:var Deck):seq[BlueCard] =
-  let (cashable,notCashable) = player.plans
+  let (cashable,notCashable) = player.pieces.plans player.hand
   for plan in cashable.sortedByIt it.cash:
     deck.discardPile.add plan
   player.hand = notCashable
