@@ -88,11 +88,11 @@ proc leftMousePlay* =
         selectPiece mouseSquare
       elif moveSelection.fromSquare > -1:
         movePiece mouseSquare
-        turnPlayer.hand = turnPlayer.sortBlues
+        # turnPlayer.hand = turnPlayer.sortBlues
     elif turnPlayer.hand.len > 3:
       if (let slotNr = turnPlayer.mouseOnCardSlot; slotNr > -1):
         turnPlayer.hand.playTo blueDeck,slotNr
-        turnPlayer.hand = turnPlayer.sortBlues
+        # turnPlayer.hand = turnPlayer.sortBlues
 
 proc rightMousePlay =
   if moveSelection.fromSquare != -1:

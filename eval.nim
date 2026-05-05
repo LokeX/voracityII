@@ -62,8 +62,7 @@ func nrOfcovers(pieces,squares:seq[int],maxDepth,depth:int):int =
     for coverPiece in coverPieces:
       coverDepth = max(
         coverDepth,
-        pieces
-        .remove(coverPiece)
+        pieces.remove(coverPiece)
         .nrOfcovers(squares[idx..squares.high],maxDepth,depth+1)
       )
       if coverDepth == maxDepth: 
@@ -229,29 +228,19 @@ func friendlyFireAdviced*(hypothetical:Hypothetic,move:Move):bool =
   hypothetical.requiredPiecesOn(move.toSquare) < 2 and
   hypothetical.friendlyFireBest(move)
 
-func evalMove*(hypothetical:Hypothetic,pieceNr,toSquare:int):int =
+func evalMove(hypothetical:Hypothetic,pieceNr,toSquare:int):int =
   var hypo = hypothetical 
   if hypo.friendlyFireAdviced (pieceNr,0,hypo.pieces[pieceNr],toSquare,0):
     hypo.pieces[pieceNr] = 0 
   else: hypo.pieces[pieceNr] = toSquare
   hypo.evalPos
 
-# func bestMoveFrom(hypothetical:Hypothetic,generic:sink Move):Move =
-#   let squares = moveToSquares(generic.fromSquare,generic.die)
-#   if squares.len > 0:
-#     var eval = 0
-#     result = move generic
-#     for square in squares:
-#       eval = hypothetical.evalMove(result.pieceNr,square)
-#       if eval > result.eval:
-#         (result.toSquare,result.eval) = (square,eval)
-
 iterator genericMoves(hypothetical:Hypothetic,dice:openArray[int]):Move =
   for die in dice.deduplicate:
     for pieceNr,fromSquare in hypothetical.legalPieces:
       yield (pieceNr,die,fromSquare,0,0)
 
-func moves*(hypothetical:Hypothetic,dice:openArray[int]):seq[Move] =
+func moves(hypothetical:Hypothetic,dice:openArray[int]):seq[Move] =
   for genericMove in hypothetical.genericMoves dice:
     for toSquare in moveToSquares(genericMove.fromSquare,genericMove.die):
       result.add (
@@ -262,135 +251,74 @@ func moves*(hypothetical:Hypothetic,dice:openArray[int]):seq[Move] =
         genericMove.eval
       )
 
-# iterator moves*(hypothetical:Hypothetic,dice:openArray[int]):Move =
-#   for genericMove in hypothetical.genericMoves dice:
-#     for toSquare in moveToSquares(genericMove.fromSquare,genericMove.die):
-#       yield (
-#         genericMove.pieceNr,
-#         genericMove.die,
-#         genericMove.fromSquare,
-#         toSquare,
-#         genericMove.eval
-#       )
-
-func bestMoveIn*(hypothetical:Hypothetic,moves:seq[Move]):Move = 
-  var eval = 0
-  for move in moves:
-    eval = hypothetical.evalMove(move.pieceNr,move.toSquare)
-    if eval > result.eval:
-      result = move
-      result.eval = eval
-
-# func move*(hypothetical:Hypothetic,dice:openArray[int]):Move = 
-#   var move:Move
-#   for genericMove in hypothetical.genericMoves dice:
-#     move = hypothetical.bestMoveFrom genericMove
-#     if move.eval > result.eval: result = move
-
-# func bestDiceMoves*(hypothetical:Hypothetic):seq[Move] =
-#   for die in 1..6:
-#     result.add hypothetical.bestMoveIn hypothetical.moves [die,die]
-#   result.sort (a,b) => a.eval-b.eval
-
-# func winsOn*(hypothetical:Hypothetic,move:Move):bool =
-#   var hypo = hypothetical
-#   hypo.pieces[move.pieceNr] = move.toSquare
-#   let cashReward = hypo.pieces.plans(hypo.cards).cashable.mapIt(it.cash).sum
-#   cashReward+hypo.cash-(if move.fromSquare == 0: piecePrice else: 0) >= cashToWin
-
-func winningMoveIn*(hypothetical:Hypothetic,moves:seq[Move]):Move =
+func bestMoveIn(hypothetical:Hypothetic,moves:seq[Move]):Move = 
   var 
-    hypo = hypothetical
-    cashReward:int
+    bestEval = 0
+    eval = 0
+    bestIndex = 0
+  for idx,move in moves:
+    eval = hypothetical.evalMove(move.pieceNr,move.toSquare)
+    if eval > bestEval:
+      bestEval = eval
+      bestIndex = idx
+  result = moves[bestIndex]
+  result.eval = bestEval
+
+func winningMoveIn(hypothetical:Hypothetic,moves:seq[Move]):Move =
+  var 
+    pieces = hypothetical.pieces
+    cashReward = 0
   for move in moves:
-    hypo.pieces[move.pieceNr] = move.toSquare
-    cashReward = hypo.pieces.plans(hypo.cards).cashable.mapIt(it.cash).sum
-    if cashReward+hypo.cash-(if move.fromSquare == 0: piecePrice else: 0) >= cashToWin:
+    pieces[move.pieceNr] = move.toSquare
+    cashReward = pieces.plans(hypothetical.cards).cashable.mapIt(it.cash).sum
+    cashReward -= (if move.fromSquare == 0: piecePrice else: 0)
+    if cashReward+hypothetical.cash >= cashToWin: 
       return move
+    else: pieces[move.pieceNr] = move.fromSquare
   result.pieceNr = -1
 
-# func winsOn*(hypothetical:Hypothetic,move:Move):bool =
-#   var hypo = hypothetical
-#   hypo.pieces[move.pieceNr] = move.toSquare
-#   let cashReward = hypo.pieces.plans(hypo.cards).cashable.mapIt(it.cash).sum
-#   cashReward+hypo.cash-(if move.fromSquare == 0: piecePrice else: 0) >= cashToWin
-
-# func winningMoveIn*(hypothetical:Hypothetic,moves:seq[Move]):Move =
-#   for move in moves:
-#     if hypothetical.winsOn move: 
-#        return move
-#   result.pieceNr = -1
-
 func allDiceMoves*(hypothetical:Hypothetic):DiceMoves =
-  # var winningMove:Move
   for die in DieFace:
     result[die].moves = hypothetical.moves [die.ord,die.ord]
     result[die].bestMove = hypothetical.winningMoveIn result[die].moves
     if result[die].bestMove.pieceNr > -1:
-      # result[die].bestMove = winningMove
       result[die].isWinningMove = true
     else:result[die].bestMove = hypothetical.bestMoveIn result[die].moves
 
 func isBestIn*(dieQuery:DieFace,diceMoves:DiceMoves):bool =
-  if diceMoves[dieQuery].isWinningMove:
-    return true
-  var 
-    bestEval = 0
-    bestDie:DieFace
-  # debugEcho "dieQuery = ",dieQuery
-  for die in DieFace:
-    # debugEcho diceMoves[die].bestMove
-    if diceMoves[die].bestMove.eval > bestEval:
-      bestEval = diceMoves[die].bestMove.eval
-      bestDie = die
-  # debugEcho "bestEval = ",bestEval
-  # debugEcho "bestDie = ",bestDie
-  dieQuery == bestDie
+  if diceMoves[dieQuery].isWinningMove: 
+    true
+  elif diceMoves.anyIt it.isWinningMove: 
+    false
+  else:
+    var 
+      bestEval = 0
+      bestDie:DieFace
+    for die in DieFace:
+      if diceMoves[die].bestMove.eval > bestEval:
+        bestEval = diceMoves[die].bestMove.eval
+        bestDie = die
+    dieQuery == bestDie
 
-# import strutils
+template resetMoves*(diceMoves:untyped):untyped =
+  diceMoves[^1].moves.setLen 0
+
+template hasMoves*(diceMoves:untyped):untyped =
+  diceMoves[^1].moves.len > 0
 
 func bestMove*(hypothetical:Hypothetic,dice:Dice,diceMoves:DiceMoves):(bool,Move) =
-  if diceMoves[dice[1]].moves.len > 0:
+  if diceMoves.hasMoves:
     let dieIndex = 
-      if dice[dice.low] == dice[dice.high] or 
-      diceMoves[dice[1]].bestMove.eval >= diceMoves[dice[2]].bestMove.eval or 
-      diceMoves[dice[1]].isWinningMove: 1 else: 2
-    # debugEcho diceMoves.mapIt($it.bestMove).join "\n"
-    # debugEcho dice
-    # debugEcho diceMoves[dice[1]].bestMove.eval
-    # debugEcho diceMoves[dice[2]].bestMove.eval
-    # debugEcho diceMoves[dice[1]].isWinningMove
-    # debugEcho diceMoves[dice[2]].isWinningMove
-    # debugEcho "idx: ",dieIndex
+      if diceMoves[dice[1]].bestMove.eval >= diceMoves[dice[2]].bestMove.eval or 
+      diceMoves[dice[1]].isWinningMove: 
+        1 else: 2
     (diceMoves[dice[dieIndex]].isWinningMove,diceMoves[dice[dieIndex]].bestMove)
   else:
-    # debugEcho "no diceRolls"
     let
       moves = hypothetical.moves [dice[1].ord,dice[2].ord]
       winningMove = hypothetical.winningMoveIn moves
-    if winningMove.pieceNr > -1: (true,winningMove)
+    if winningMove.pieceNr > -1:(true,winningMove)
     else:(false,hypothetical.bestMoveIn moves)
- 
-# func bestMove(
-#   hypothetical:Hypothetic,
-#   dice:Dice,
-#   diceMoves:DiceMoves):tuple[isWinningMove:bool,move:Move] =
-#   if diceMoves[dice[0]].moves.len > 0:
-#     var dieIndex = 
-#       if dice[dice.low] == dice[dice.high] or 
-#       diceMoves[dice[0]].bestMove.eval >= diceMoves[dice[1]].bestMove.eval or 
-#       diceMoves[dice[0]].isWinningMove: 0 else: 1
-#     result.isWinningMove = diceMoves[dice[dieIndex]].isWinningMove
-#     result.move = diceMoves[dice[dieIndex]].bestMove
-#   else:
-#     let 
-#       moves = hypothetical.moves [dice[0].ord,dice[1].ord]
-#       move = hypothetical.winningMoveIn moves
-#     if move.pieceNr > -1:
-#       result.isWinningMove = true
-#       result.move = move
-#     else:
-#       result.move = hypothetical.bestMoveIn moves
 
 func barVal(hypothetical:Hypothetic):int = 
   let 
@@ -430,15 +358,6 @@ proc hypotheticalInit*(player:Player,hand:seq[BlueCard]):Hypothetic = (
 template hypotheticalInit*(player:untyped):untyped =
   player.hypotheticalInit player.hand
 
-# func evalBlue(hypothetical:Hypothetic,card:BlueCard):int =
-#   evalPos (
-#     hypothetical.board,
-#     hypothetical.pieces,
-#     hypothetical.allPlayersPieces,
-#     @[card],
-#     hypothetical.cash,
-#   )
-
 func evalBlues(hypothetical:Hypothetic):seq[BlueCard] =
   for card in hypothetical.cards:
     result.add card
@@ -450,13 +369,6 @@ func evalBlues(hypothetical:Hypothetic):seq[BlueCard] =
       hypothetical.cash,
     )
   result.sort (a,b) => b.eval - a.eval
-
-# func evalBlues(hypothetical:Hypothetic):seq[BlueCard] =
-#   let evals = hypothetical.cards.mapIt hypothetical.evalBlue it
-#   result = hypothetical.cards
-#   for i in 0..evals.high:
-#     result[i].eval = evals[i]
-#   result.sort (a,b) => b.eval - a.eval
 
 func coversDif(pieces:seq[int],card:BlueCard):int =
   var 
@@ -501,7 +413,6 @@ proc sortBlues*(player:Player):seq[BlueCard] =
 
 proc eventMovesEval*(player:Player,event:BlueCard):seq[Move] =
   var hypothetical = player.hypotheticalInit
-  hypothetical.cards = player.sortBlues
   for pieceNr in player.pieceNrsOnBars:
     for toSquare in event.moveSquares:
       result.add (
