@@ -197,7 +197,7 @@ proc selectPiece*(square:int) =
   if not turn.diceMoved or square == 0 or square.isHighway:
     if turnPlayer.hasPieceOn square:
       hoverSquare = -1
-      moveSelection = (square,-1,turnPlayer.movesFrom(square),false)
+      moveSelection = (square,-1,turnPlayer.movesFrom(square))
       moveToSquaresPainter.context = moveSelection.toSquares
       moveToSquaresPainter.update = true
       piecesImg.update = true
@@ -216,8 +216,9 @@ proc dialogEntries(moves:seq[Move],f:EventMoveFmt -> string):seq[string] =
 proc endBarMoveSelection(selection:string) =
   if (let toSquare = selection.splitWhitespace[^1].parseInt; toSquare != -1):
     moveSelection.toSquare = toSquare
-    moveSelection.event = true
-    movePiece moveSelection.toSquare
+    # moveSelection.event = true
+    selectedMove = makeMoveFromSelection()
+    movePiece()
 
 proc barMoveMouseMoved(entries:seq[string]):proc =
   var square = -1
@@ -245,8 +246,9 @@ proc selectBarMoveDest(selection:string) =
     startDialog(entries,0..entries.high,endBarMoveSelection)
   elif entries.len == 1:
     moveSelection.toSquare = dialogBarMoves[0].toSquare
-    moveSelection.event = true
-    movePiece moveSelection.toSquare
+    # moveSelection.event = true
+    selectedMove = makeMoveFromSelection()
+    movePiece()
 
 proc selectBar*(dialogMoves:seq[Move]) =
   dialogBarMoves = dialogMoves
@@ -282,7 +284,7 @@ func animationSquares(fromSquare,toSquare:int):seq[int] =
     inc square
     if square > 60: square = 1
 
-proc startMoveAnimation*(color:PlayerColor,fromSquare,toSquare: int) =
+proc startMoveAnimation(color:PlayerColor,fromSquare,toSquare: int) =
   moveAnimation.fromsquare = fromSquare
   moveAnimation.toSquare = toSquare
   moveAnimation.squares = animationSquares(
@@ -331,11 +333,11 @@ proc doMoveAnimation*(b:var Boxy) =
         nextMoveAnimation()
       else: moveAnimation.active = false
 
-proc animateMoveSelection* =
+proc animateMoveSelection*(move:Move) =
   startMoveAnimation(
     turnPlayer.color,
-    moveSelection.fromSquare,
-    moveSelection.toSquare
+    move.fromSquare,
+    move.toSquare
   )
 
 proc drawBoard*(b:var Boxy) =

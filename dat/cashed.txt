@@ -2,98 +2,98 @@ Redemption: 57
 Stiffs: 30
 Ludomania: 32
 Broken bones: 40
-Safe bet: 27
+Safe bet: 29
 Grapevine: 48
 Sweethearts: 20
-Polterabend: 80
+Polterabend: 81
 Faulty towers: 39
-Loads of stuff: 64
-High society: 51
-Knocked out: 47
-Chicks in cages: 59
-Drugdealer: 38
+Loads of stuff: 65
+High society: 53
+Knocked out: 48
+Chicks in cages: 60
+Drugdealer: 39
 Trans-action: 25
 Secret weapon: 36
-Moonshine: 85
+Moonshine: 86
 Outstanding: 48
-Containment: 52
+Containment: 53
 Deadweight: 28
-Hooters: 36
+Hooters: 37
 Brotherhood: 37
 Bail: 42
 Recycling: 33
 Specimens: 21
-Home invasion: 58
-Stove away: 29
+Home invasion: 60
+Stove away: 30
 Grand designs: 44
 Demolition: 38
-Human resources: 58
+Human resources: 59
 Deadly cargo: 39
 Agent: 47
 Borderless: 31
 Globalist: 37
-Bootlegging: 32
-Lawfare: 43
+Bootlegging: 33
+Lawfare: 44
 Terrorism: 25
 Lord of War: 19
 Rentseeking: 35
-Protection: 61
+Protection: 62
 Duty free: 54
-Hooked: 51
+Hooked: 52
 Open house: 32
-Rock solid claims: 55
+Rock solid claims: 56
 Pimp: 50
-Concuctions: 41
-Circle jerk: 30
-Legalese: 50
-Higher powers: 36
-Nose job: 35
+Concuctions: 42
+Circle jerk: 31
+Legalese: 51
+Higher powers: 37
+Nose job: 37
 Insurgency: 38
 Outsider: 42
-Prescriptions: 39
+Prescriptions: 40
 Bouncing: 59
 Side effects: 31
 Diamonds are...: 44
 Blood diamants: 31
 Foreign aid: 46
 Color revolution: 36
-Acquittal: 34
+Acquittal: 35
 Financier: 27
 Underhanded: 41
 Up yours: 31
 Choireboys: 36
 Knock knock: 55
-Sing a long song: 58
-White collars: 18
-Broman escorte: 18
+Sing a long song: 60
+White collars: 19
+Broman escorte: 19
 Cold meds: 52
 Et spiritus sancti: 57
-Occupational hazard: 41
+Occupational hazard: 42
 VIP Lounge: 32
 Small arms: 38
 Express demands: 37
 Ramtheft: 28
-Golden chains: 28
+Golden chains: 29
 Bodyguard: 20
-Mayor: 36
+Mayor: 37
 Homebrew: 40
 Meat grinder: 28
-Judicial murder: 22
+Judicial murder: 23
 Flay'em: 36
 Projects: 39
-Advisory board: 48
-Usery: 38
+Advisory board: 49
+Usery: 39
 Financing: 32
 Lucky bastard: 28
-Lipstick on a pig: 31
-Laundry: 30
+Lipstick on a pig: 32
+Laundry: 31
 Debt to society: 34
 Transitions: 18
 Trance: 50
-Bodycount: 22
+Bodycount: 23
 Informer: 21
-Rentals: 32
-Healthplan: 33
+Rentals: 33
+Healthplan: 34
 Slumlord: 37
 Heartless: 12
 Gangbangers: 30
@@ -103,6 +103,6 @@ Blood suckers: 24
 Infiltration: 27
 Spy: 15
 Addictions: 17
-Corruption: 13
+Corruption: 14
 Burial at sea: 32
 Razia: 22

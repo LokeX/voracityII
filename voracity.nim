@@ -87,7 +87,10 @@ proc leftMousePlay* =
       if moveSelection.fromSquare == -1 or mouseSquare notIn moveSelection.toSquares:
         selectPiece mouseSquare
       elif moveSelection.fromSquare > -1:
-        movePiece mouseSquare
+        moveSelection.toSquare = mouseSquare
+        turn.diceMoved = diceMoved(moveSelection.fromSquare,moveSelection.toSquare)
+        selectedMove = makeMoveFromSelection(dieUsed())
+        movePiece()
         # turnPlayer.hand = turnPlayer.sortBlues
     elif turnPlayer.hand.len > 3:
       if (let slotNr = turnPlayer.mouseOnCardSlot; slotNr > -1):

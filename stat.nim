@@ -1,11 +1,9 @@
 import play
 import game
-# import times
 import strutils
 import sequtils
 import misc
 import os
-# import algorithm
 import sugar
 import math
 
@@ -224,13 +222,11 @@ proc writeGamestats* =
     echo "nr of stat games: ",gameStats.len
     gameStats.add newGameStats()
     echo "nr of stat games: ",gameStats.len
-    # updateStatsBatch()
     writeGameStatsTo statsFile
 
 proc resetMatchingStats* =
   gameStats = noneMatchingStats()
   writeGameStatsTo statsFile
-  # updateStatsBatch()
 
 
 when isMainModule:
@@ -260,12 +256,6 @@ when isMainModule:
   var
     visitsCount:array[1..60,int]
     cashedCards:CashedCards
-    # agroRanches:array[20,int]
-
-  # proc addAgroRanches =
-  #   for rep in turnReports:
-  #     if rep.cash >= cashToWin:
-  #       inc agroRanches[rep.agro div 5]
 
   func indexOf(cards:CashedCards,title:string):int =
     for i,card in cards:
@@ -319,7 +309,6 @@ when isMainModule:
       gameStats.add newGameStats()
       addVisits turnReports.reportedVisitsCount 
       addCards reportedCashedCards()
-      # addAgroRanches()
 
   if recordStats:
     let
@@ -331,6 +320,3 @@ when isMainModule:
     echo visits
     echo stats
     echo "Wrote to file: "&fileName
-
-    # for i,agro in agroRanches:
-    #   echo $(i*5),"..",$(((i+1)*5)-1),": ",agro

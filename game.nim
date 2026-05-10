@@ -13,7 +13,7 @@ type
   MoveSelection* = tuple
     fromSquare,toSquare:int
     toSquares:seq[int]
-    event:bool
+    # event:bool
   SquareKind = enum GasStation,Highway,Bar,Other
   Board* = array[61,tuple[nr:int,name:string]]
   PlayerColor* = enum Red,Green,Blue,Yellow,Black,White
@@ -91,7 +91,8 @@ var
   playerKinds*:array[6,PlayerKind]
   playerHandles*:array[6,string]
   players*:seq[Player]
-  moveSelection*:MoveSelection = (-1,-1,@[],false)
+  moveSelection*:MoveSelection = (-1,-1,@[])
+  selectedMove*:Move
 
 proc newBoard*(path:string):Board =
   var count = 0
@@ -219,6 +220,13 @@ func dieUsed*(fromSquare,toSquare:int,dice:Dice):int =
     dice[2].ord
   else: -1
 
+proc dieUsed*:int =
+  if moveSelection.toSquare in moveToSquares(moveSelection.fromSquare,diceRoll[1].ord):
+    diceRoll[1].ord
+  elif moveSelection.toSquare in moveToSquares(moveSelection.fromSquare,diceRoll[2].ord):
+    diceRoll[2].ord
+  else: -1
+
 proc movesFrom*(player:Player,square:int):seq[int] =
   if turn.diceMoved: moveToSquares square
   else: moveToSquares(square,diceRoll)
@@ -236,11 +244,6 @@ func anyHandles*(handles:seq[string]):bool =
 
 func nrOfRemovedPieces*(player:Player):int =
   player.pieces.count 0
-
-# func indexFromColor*(players:seq[Player],playerColor:PlayerColor):int =
-#   for i,player in players:
-#     if player.color == playerColor: return i
-#   result = -1
 
 func piecesOn*(players:seq[Player],square:int):seq[tuple[playerNr,pieceNr:int]] =
   for playerNr,player in players:
@@ -285,21 +288,12 @@ func plans*(pieces:openArray[int],cards:seq[BlueCard]):tuple[cashable,notCashabl
     if pieces.isCashable card: result.cashable.add card
     else: result.notCashable.add card
 
-# template requiredSquaresOk(player,plan:untyped):untyped =
-#   plan.squares.required.deduplicate
-#     .allIt player.pieces.count(it) >= plan.squares.required.count it
-
-# template oneInManySquaresOk(player,plan:untyped):untyped =
-#   plan.squares.oneInmany.len == 0 or 
-#   player.pieces.anyIt it in plan.squares.oneInMany
-
-# func isCashable*(player:Player,plan:BlueCard):bool =
-#   (player.requiredSquaresOk plan) and (player.oneInManySquaresOk plan)
-
-# func plans*(player:Player):tuple[cashable,notCashable:seq[BlueCard]] =
-#   for plan in player.hand:
-#     if player.isCashable plan: result.cashable.add plan
-#     else: result.notCashable.add plan
+proc makeMoveFromSelection*(die:int = -1):Move =
+  result.die = die
+  result.eval = -1
+  result.fromSquare = moveSelection.fromSquare
+  result.toSquare = moveSelection.toSquare
+  result.pieceNr = turnPlayer.pieceOnSquare moveSelection.fromSquare
 
 proc discardCards*(player:var Player,deck:var Deck):seq[BlueCard] =
   while player.hand.len > 3:
@@ -340,7 +334,6 @@ proc newPlayers*:seq[Player] =
 
 proc nextPlayerTurn* =
   turn.diceMoved = false
-  # inc turnPlayer.turnNr
   if turn.player == players.high:
     inc turn.nr
     turn.player = players.low

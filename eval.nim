@@ -354,7 +354,7 @@ proc hypotheticalInit*(player:Player,hand:seq[BlueCard]):Hypothetic = (
   hand,
   player.cash,
 )
-
+ 
 template hypotheticalInit*(player:untyped):untyped =
   player.hypotheticalInit player.hand
 

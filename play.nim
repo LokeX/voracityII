@@ -1,5 +1,4 @@
 from math import sum
-# import misc
 import game
 import sequtils
 import eval
@@ -23,7 +22,7 @@ type
 
 var
   # Interface controls
-  runMoveAnimation*:proc()
+  runMoveAnimation*:proc(move:Move)
   resetReportsUpdate*:proc()
   updatePieces*:proc()
   menuControl*:proc(show:bool)
@@ -83,9 +82,9 @@ template updateTurnReport =
   if turnReportUpdate != nil:
     turnReportUpdate()
 
-template moveAnimation =
+template moveAnimation(move:Move) =
   if runMoveAnimation != nil:
-    runMoveAnimation()
+    move.runMoveAnimation()
 
 template playSound(s:string) =
   if not statGame:
@@ -146,16 +145,9 @@ proc playMassacre =
       maxPieces = allPlayerPiecesOnBars.max
       playerBarsAndPieces = zip(playerBars,allPlayerPiecesOnBars)
       barsWithMaxPieces = playerBarsAndPieces.filterIt(it[1] == maxPieces).mapIt(it[0])
-      # barsWithMaxPieces = allPlayerPiecesOnBars.filterIt it == maxPieces
       chosenBar = barsWithMaxPieces[rand 0..barsWithMaxPieces.high]
-    # echo "playerBars = ",playerBars
-    # echo "allPlayerPiecesOnBars = ",allPlayerPiecesOnBars
-    # echo "maxPieces = ",maxPieces
-    # echo "barsWithMaxPieces = ",barsWithMaxPieces
-    # echo "chosenBar = ",chosenBar
     for (playerNr,pieceNr) in players.piecesOn chosenBar:
       players[playerNr].pieces[pieceNr] = 0
-      # echo "eliminated: playerNr (",playerNr,") / pieceNr(",pieceNr,")"
     playSound "Deanscream-2"
     playSound "Gunshot"
     updatePiecesPainter()
@@ -177,16 +169,6 @@ proc playCashPlansTo*(deck:var Deck) =
         if it.squares.required.len == 1: 2 else: 1
       ).sum
       undrawnBluesUpdate()
-
-proc barMove(moveEvent:BlueCard):bool =
-  let dialogBarMoves = turnPlayer.eventMovesEval moveEvent
-  if dialogBarMoves.len > 0:
-    if dialogBarMoves.len == 1 or turnPlayer.kind == Computer:
-      moveSelection.event = true
-      moveSelection.fromSquare = dialogBarMoves[0].fromSquare
-      moveSelection.toSquare = dialogBarMoves[0].toSquare
-      return true
-    else: selectBar dialogBarMoves
 
 proc playNews =
   updatePiecesPainter()
@@ -210,7 +192,15 @@ proc playDejaVue =
       of News: playNews()
       else:discard
 
-proc movePiece*(square:int)
+proc movePiece*()
+proc barMove(moveEvent:BlueCard) =
+  let barMoves = turnPlayer.eventMovesEval moveEvent
+  if barMoves.len > 0:
+    if barMoves.len == 1 or turnPlayer.kind == Computer:
+      selectedMove = barMoves[0]
+      movePiece()
+    else: selectBar barMoves
+
 proc playEvent =
   let event = turnPlayer.hand[^1]
   turnPlayer.hand.playTo blueDeck,turnPlayer.hand.high
@@ -225,7 +215,7 @@ proc playEvent =
     of "Massacre": playMassacre()
     of "Deja vue": 
       if blueDeck.discardPile.len > 1: playDejaVue()
-    elif barMove event: movePiece moveSelection.toSquare
+    else: event.barMove
   playCashPlansTo blueDeck
 
 proc drawCardFrom*(deck:var Deck) =
@@ -249,26 +239,11 @@ func singlePieceOn(players:seq[Player],square:int):SinglePiece =
         if piece == square: return (playerNr,pieceNr)
   result = (-1,-1)
 
-proc getMove:Move =
-  result.die = -1
-  result.eval = -1
-  result.fromSquare = moveSelection.fromSquare
-  result.toSquare = moveSelection.toSquare
-  result.pieceNr = turnPlayer.pieceOnSquare moveSelection.fromSquare
-
-proc move* =
-  moveAnimation()
-  var move = getMove()
-  if not turn.diceMoved and not moveSelection.event:
-    turn.diceMoved = diceMoved(
-      moveSelection.fromSquare,moveSelection.toSquare
-    )
-    if turn.diceMoved:
-      move.die = dieUsed(moveSelection.fromSquare,moveSelection.toSquare,diceRoll)
-  elif moveSelection.event: moveSelection.event = false
-  updateTurnReport move
-  turnPlayer.pieces[move.pieceNr] = moveSelection.toSquare
-  if moveSelection.fromSquare == 0: 
+proc move =
+  selectedMove.moveAnimation()
+  updateTurnReport selectedMove
+  turnPlayer.pieces[selectedMove.pieceNr] = selectedMove.toSquare
+  if selectedMove.fromSquare == 0: 
     turnPlayer.cash -= piecePrice
   playCashPlansTo blueDeck
   if not statGame:
@@ -278,7 +253,7 @@ proc move* =
   updatePiecesPainter()
   updateKeybar = true
   playSound "driveBy"
-  if moveSelection.toSquare.isBar:
+  if selectedMove.toSquare.isBar:
     inc turn.undrawnBlues
     undrawnBluesUpdate()
     playSound "can-open-1"
@@ -309,21 +284,19 @@ proc shouldKillEnemyOn(player:Player,move:Move):bool =
     player.wantsNoProtectionAfter move
   )
 
-proc aiRemovesPiece(move:Move):bool =
-  turnPlayer.shouldKillEnemyOn(move) or
-  turnPlayer.hypotheticalInit.friendlyFireAdviced(move)
+proc aiShouldRemovePiece(player:Player,move:Move):bool =
+  player.shouldKillEnemyOn(move) or
+  player.hypotheticalInit.friendlyFireAdviced(move)
 
-proc movePiece(square:int) =
-  moveSelection.toSquare = square
-  killPiece = players.singlePieceOn square
-  if killPiece.playerNr != -1 and canKillPieceOn square:
+proc movePiece =
+  killPiece = players.singlePieceOn selectedMove.toSquare
+  if killPiece.playerNr != -1 and canKillPieceOn selectedMove.toSquare:
     if turnPlayer.kind == Human: 
-      startKillDialog square
-    else: decideKillAndMove(
-      if aiRemovesPiece(getMove()): 
-        "Yes" 
-      else: "No"
-    )
+      startKillDialog selectedMove.toSquare
+    else: 
+      decideKillAndMove(
+        if turnPlayer.aiShouldRemovePiece selectedMove: "Yes" else: "No"
+      )
   else: move()
 
 proc setupNewGame* =
@@ -416,8 +389,9 @@ proc moveAi =
   if hypo.legalPieces.len > 0:
     let (isWinningMove,move) = hypo.bestMove(diceRoll,diceMoves)
     if isWinningMove or move.eval > hypo.evalPos:
-      moveSelection.fromSquare = move.fromSquare
-      movePiece move.toSquare
+      # moveSelection.fromSquare = move.fromSquare
+      selectedMove = move
+      movePiece()
     phase = PostMove
   else:
     echo $turnPlayer.color&" has no pieces to move"
