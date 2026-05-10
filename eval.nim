@@ -22,18 +22,18 @@ type
 iterator legalPiecesIter*(hypothetical:Hypothetic):(int,int) =
   let nrAllowed = hypothetical.cash div game.piecePrice
   var count = 0
-  for nr,piece in hypothetical.pieces:
-    if piece == 0:
+  for pieceNr,square in hypothetical.pieces:
+    if square == 0:
       if count == nrAllowed:
-        yield (nr,-1)
+        yield (pieceNr,-1)
         continue
       inc count
-    yield (nr,piece)
+    yield (pieceNr,square)
 
 func legalPieces*(hypothetical:Hypothetic):seq[int] =
-  for _,piece in hypothetical.legalPiecesIter:
-    if piece > -1: 
-      result.add piece
+  for _,square in hypothetical.legalPiecesIter:
+    if square > -1: 
+      result.add square
 
 func covers(pieceSquare,coverSquare:int):bool =
   if pieceSquare == coverSquare:
@@ -78,15 +78,20 @@ func nrOfcovers(pieces,squares:seq[int],maxDepth,depth:int):int =
 template nrOfcovers(pieces,squares:untyped):untyped = 
   pieces.nrOfcovers(squares,squares.len,0)
 
-func cover(pieces,squares:seq[int]):bool = 
+func coversAll(pieces,squares:seq[int]):bool = 
   let coverPieces = pieces.filterIt it.covers squares[0]
   if coverPieces.len == 0: 
     false
   elif squares.len == 1: 
     true
   else: coverPieces.anyIt(
-    pieces.remove(it).cover(squares[1..squares.high])
+    pieces.remove(it).coversAll(squares[1..squares.high])
   )
+
+func cover(pieces,squares:seq[int]):bool = 
+  if pieces.len < squares.len:
+    false
+  else: pieces.coversAll squares
 
 func coverOneInMany(coverPieces,squares:seq[int],requiredSquare:int):bool = 
   var pieces = coverPieces
@@ -101,8 +106,9 @@ func coverOneInMany(coverPieces,squares:seq[int],requiredSquare:int):bool =
   pieces.any piece => squares.anyIt piece.covers it
 
 func cover(pieces:seq[int],card:BlueCard):bool =
-  (card.squares.oneInMany.len == 0 and pieces.cover(card.squares.required)) or 
-  pieces.coverOneInMany(card.squares.oneInMany,card.squares.required[0])
+  if card.squares.oneInMany.len == 0:
+    pieces.cover(card.squares.required)
+  else: pieces.coverOneInMany(card.squares.oneInMany,card.squares.required[0])
 
 func rewardValue(hypothetical:Hypothetic,card:BlueCard):int =
   let 
@@ -241,22 +247,12 @@ func evalMove(hypothetical:Hypothetic,pieceNr,toSquare:int):int =
   else: hypo.pieces[pieceNr] = toSquare
   hypo.evalPos
 
-iterator genericMoves(hypothetical:Hypothetic,dice:openArray[int]):Move =
+func moves(hypothetical:Hypothetic,dice:openArray[int]):seq[Move] =
   for die in dice.deduplicate:
     for pieceNr,fromSquare in hypothetical.legalPiecesIter:
       if fromSquare > -1:
-        yield (pieceNr,die,fromSquare,0,0)
-
-func moves(hypothetical:Hypothetic,dice:openArray[int]):seq[Move] =
-  for genericMove in hypothetical.genericMoves dice:
-    for toSquare in moveToSquares(genericMove.fromSquare,genericMove.die):
-      result.add (
-        genericMove.pieceNr,
-        genericMove.die,
-        genericMove.fromSquare,
-        toSquare,
-        genericMove.eval
-      )
+        for toSquare in moveToSquares(fromSquare,die):
+          result.add (pieceNr,die,fromSquare,toSquare,0)
 
 func bestMoveIn(hypothetical:Hypothetic,moves:seq[Move]):Move = 
   var 
@@ -324,8 +320,9 @@ func bestMove*(hypothetical:Hypothetic,dice:Dice,diceMoves:DiceMoves):(bool,Move
     let
       moves = hypothetical.moves [dice[1].ord,dice[2].ord]
       winningMove = hypothetical.winningMoveIn moves
-    if winningMove.pieceNr > -1:(true,winningMove)
-    else:(false,hypothetical.bestMoveIn moves)
+    if winningMove.pieceNr > -1: 
+      (true,winningMove)
+    else: (false,hypothetical.bestMoveIn moves)
 
 func barVal(hypothetical:Hypothetic):int = 
   let 
