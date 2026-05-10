@@ -19,15 +19,21 @@ type
     cards:seq[BlueCard]
     cash:int
 
-func legalPieces*(hypothetical:Hypothetic):seq[int] =
+iterator legalPiecesIter*(hypothetical:Hypothetic):(int,int) =
   let nrAllowed = hypothetical.cash div game.piecePrice
   var count = 0
-  for piece in hypothetical.pieces:
+  for nr,piece in hypothetical.pieces:
     if piece == 0:
       if count == nrAllowed:
+        yield (nr,-1)
         continue
       inc count
-    result.add piece
+    yield (nr,piece)
+
+func legalPieces*(hypothetical:Hypothetic):seq[int] =
+  for _,piece in hypothetical.legalPiecesIter:
+    if piece > -1: 
+      result.add piece
 
 func covers(pieceSquare,coverSquare:int):bool =
   if pieceSquare == coverSquare:
@@ -237,8 +243,9 @@ func evalMove(hypothetical:Hypothetic,pieceNr,toSquare:int):int =
 
 iterator genericMoves(hypothetical:Hypothetic,dice:openArray[int]):Move =
   for die in dice.deduplicate:
-    for pieceNr,fromSquare in hypothetical.legalPieces:
-      yield (pieceNr,die,fromSquare,0,0)
+    for pieceNr,fromSquare in hypothetical.legalPiecesIter:
+      if fromSquare > -1:
+        yield (pieceNr,die,fromSquare,0,0)
 
 func moves(hypothetical:Hypothetic,dice:openArray[int]):seq[Move] =
   for genericMove in hypothetical.genericMoves dice:

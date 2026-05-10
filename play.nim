@@ -349,6 +349,7 @@ proc aiStartTurn =
   if diceMoves.hasMoves:
     diceMoves.resetMoves
   if hypo.legalPieces.len == 0:
+  # if hypo.legalPieces.allIt it == -1:
     echo $turnPlayer.color&" has no legal pieces and has left the game in shame"
     phase = EndTurn
   else:phase = Draw
