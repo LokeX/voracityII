@@ -366,7 +366,7 @@ proc reroll(hypothetical:Hypothetic):bool =
   if isDouble():
     if diceMoves.hasMoves: 
       diceMoves = hypothetical.allDiceMoves()
-    not diceRoll[^1].isBestIn diceMoves
+    not diceRoll[^1].isBestDieIn diceMoves
   else: false
 
 proc aiRerollPhase =

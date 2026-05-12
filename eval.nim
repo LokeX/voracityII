@@ -42,14 +42,14 @@ func covers(pieceSquare,coverSquare:int):bool =
     if coverSquare in moveToSquares(pieceSquare,die):
       return true
 
-func remove(pieces:seq[int],removePiece:int):seq[int] =
+func remove(pieces:openArray[int],removePiece:int):seq[int] =
   for idx,piece in pieces:
     if piece == removePiece:
       if idx < pieces.high:
         result.add pieces[idx+1..pieces.high]
       return
     else: result.add piece
-
+ 
 func nrOfcovers(pieces,squares:seq[int],maxDepth,depth:int):int = 
   var 
     coverPieces:seq[int]
@@ -159,11 +159,19 @@ func blueVals(hypothetical:Hypothetic,squares:openArray[int]):array[12,int] =
           result[idx] += hypothetical.oneInMoreBonus(card,square,rewardValue)
 
 func requiredPiecesOn(hypothetical:Hypothetic,square:int):int =
-  if hypothetical.cards.len == 0: 0 
-  else: hypothetical.cards.mapIt(it.squares.required.count(square)).max
+  if hypothetical.cards.len > 0:
+    let required = hypothetical.cards.mapIt(it.squares.required.count(square)).max
+    if required > 0: return required
+    else:
+      for card in hypothetical.cards:
+        if card.squares.oneInMany.len > 0 and square in card.squares.oneInMany:
+          if hypothetical.pieces.remove(square).anyIt(it in card.squares.oneInMany): 
+            return 0
+          else: return 1
 
 func posPercentages(hypothetical:Hypothetic,squares:openArray[int]):array[12,float] =
-  var freePieces,freePiecesOnSquare:int
+  var 
+    freePieces,freePiecesOnSquare:int
   for i,square in squares:
     freePiecesOnSquare = hypothetical.pieces.count square
     if freePiecesOnSquare > 0:   
@@ -288,7 +296,7 @@ func allDiceMoves*(hypothetical:Hypothetic):DiceMoves =
       result[die].isWinningMove = true
     else:result[die].bestMove = hypothetical.bestMoveIn result[die].moves
 
-func isBestIn*(dieQuery:DieFace,diceMoves:DiceMoves):bool =
+func isBestDieIn*(dieQuery:DieFace,diceMoves:DiceMoves):bool =
   if diceMoves[dieQuery].isWinningMove: 
     true
   elif diceMoves.anyIt it.isWinningMove: 
