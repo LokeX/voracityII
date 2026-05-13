@@ -21,6 +21,7 @@ type
     DieFace1 = 1,DieFace2 = 2,DieFace3 = 3,
     DieFace4 = 4,DieFace5 = 5,DieFace6 = 6
   Dice* = array[1..2,DieFace]
+  SinglePiece* = tuple[playerNr,pieceNr:int]
   ProtoCard = array[4,string]
   PlanSquares = tuple[required,oneInMany:seq[int]]
   CardKind* = enum Deed,Plan,Job,Event,News,Mission
@@ -256,6 +257,13 @@ func pieceOnSquare*(player:Player,square:int):int =
 
 func nrOfPiecesOn*(players:seq[Player],square:int):int =
   players.mapIt(it.pieces.countIt it == square).sum
+
+func singlePieceOn*(players:seq[Player],square:int):SinglePiece =
+  if players.nrOfPiecesOn(square) == 1:
+    for playerNr,player in players:
+      for pieceNr,piece in player.pieces:
+        if piece == square: return (playerNr,pieceNr)
+  result = (-1,-1)
 
 func nrOfPiecesOnBars*(player:Player): int =
   player.pieces.countIt it.isBar

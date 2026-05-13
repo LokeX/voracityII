@@ -9,7 +9,6 @@ type
   Phase* = enum Await,Draw,Reroll,AiMove,PostMove,EndTurn
   DiceReroll = tuple[isPausing:bool,pauseStartTime:float]
   ConfigState* = enum StartGame,SetupGame,GameWon
-  SinglePiece = tuple[playerNr,pieceNr:int]
   TurnReport* = object
     turnNr*:int
     player*:tuple[color:PlayerColor,kind:PlayerKind]
@@ -138,20 +137,6 @@ proc recordTurnReport* =
     turnReport.agro = turnPlayer.agro
     turnReports.add turnReport
 
-proc playMassacre =
-  if (let playerBars = turnPlayer.piecesOnBars.deduplicate; playerBars.len > 0):
-    let
-      allPlayerPiecesOnBars = playerBars.mapIt players.nrOfPiecesOn it
-      maxPieces = allPlayerPiecesOnBars.max
-      playerBarsAndPieces = zip(playerBars,allPlayerPiecesOnBars)
-      barsWithMaxPieces = playerBarsAndPieces.filterIt(it[1] == maxPieces).mapIt(it[0])
-      chosenBar = barsWithMaxPieces[rand 0..barsWithMaxPieces.high]
-    for (playerNr,pieceNr) in players.piecesOn chosenBar:
-      players[playerNr].pieces[pieceNr] = 0
-    playSound "Deanscream-2"
-    playSound "Gunshot"
-    updatePiecesPainter()
-
 proc playCashPlansTo*(deck:var Deck) =
   let
     initialCash = turnPlayer.cash
@@ -173,7 +158,7 @@ proc playCashPlansTo*(deck:var Deck) =
 proc playNews =
   updatePiecesPainter()
   let news = turnPlayer.hand[^1]
-  turnPlayer.hand.playTo blueDeck,turnPlayer.hand.high
+  turnPlayer.hand.playTo(blueDeck,turnPlayer.hand.high)
   for (playerNr,pieceNr) in players.piecesOn news.moveSquares[0]:
     players[playerNr].pieces[pieceNr] = news.moveSquares[1]
   if news.moveSquares[1] == 0: playSound "electricity"
@@ -192,6 +177,20 @@ proc playDejaVue =
       of News: playNews()
       else:discard
 
+proc playMassacre =
+  if (let playerBars = turnPlayer.piecesOnBars.deduplicate; playerBars.len > 0):
+    let
+      allPlayerPiecesOnBars = playerBars.mapIt players.nrOfPiecesOn it
+      maxPieces = allPlayerPiecesOnBars.max
+      playerBarsAndPieces = zip(playerBars,allPlayerPiecesOnBars)
+      barsWithMaxPieces = playerBarsAndPieces.filterIt(it[1] == maxPieces).mapIt(it[0])
+      chosenBar = barsWithMaxPieces[rand 0..barsWithMaxPieces.high]
+    for (playerNr,pieceNr) in players.piecesOn chosenBar:
+      players[playerNr].pieces[pieceNr] = 0
+    playSound "Deanscream-2"
+    playSound "Gunshot"
+    updatePiecesPainter()
+
 proc movePiece*()
 proc barMove(moveEvent:BlueCard) =
   let barMoves = turnPlayer.eventMovesEval moveEvent
@@ -203,7 +202,7 @@ proc barMove(moveEvent:BlueCard) =
 
 proc playEvent =
   let event = turnPlayer.hand[^1]
-  turnPlayer.hand.playTo blueDeck,turnPlayer.hand.high
+  turnPlayer.hand.playTo(blueDeck,turnPlayer.hand.high)
   case event.title:
     of "Sour piss":
       playSound "can-open-1"
@@ -214,7 +213,8 @@ proc playEvent =
       turn.undrawnBlues += 3
     of "Massacre": playMassacre()
     of "Deja vue": 
-      if blueDeck.discardPile.len > 1: playDejaVue()
+      if blueDeck.discardPile.len > 1: 
+        playDejaVue()
     else: event.barMove
   playCashPlansTo blueDeck
 
@@ -231,13 +231,6 @@ proc drawCardFrom*(deck:var Deck) =
   undrawnBluesUpdate()
   turnPlayer.update = true
   playSound "page-flip-2"
-
-func singlePieceOn(players:seq[Player],square:int):SinglePiece =
-  if players.nrOfPiecesOn(square) == 1:
-    for playerNr,player in players:
-      for pieceNr,piece in player.pieces:
-        if piece == square: return (playerNr,pieceNr)
-  result = (-1,-1)
 
 proc move =
   selectedMove.moveAnimation()
@@ -265,28 +258,6 @@ proc decideKillAndMove*(confirmedKill:string) =
     playSound "Gunshot"
     playSound "Deanscream-2"
   move()
-
-proc wantsNoProtectionAfter(player:Player,move:Move):bool =
-  var hypoPlayer = player
-  hypoPlayer.pieces[move.pieceNr] = move.toSquare
-  hypoPlayer.hand = hypoPlayer.pieces.plans(hypoPlayer.hand).notCashable
-  var hypo = hypoPlayer.hypotheticalInit
-  let noKillEval = hypo.evalPos
-  hypo.pieces[move.pieceNr] = 0
-  let killEval = hypo.evalPos
-  killEval > noKillEval
-
-proc shouldKillEnemyOn(player:Player,move:Move):bool =
-  player.cash-(player.nrOfRemovedPieces*piecePrice) >= startCash div 2 and 
-  not player.hasPieceOn(move.toSquare) and (
-    (move.toSquare.isBar and (player.nrOfPiecesOnBars > 0 or players.len < 3)) or
-    rand(0..99) <= player.agro or
-    player.wantsNoProtectionAfter move
-  )
-
-proc aiShouldRemovePiece(player:Player,move:Move):bool =
-  player.shouldKillEnemyOn(move) or
-  player.hypotheticalInit.friendlyFireAdviced(move)
 
 proc movePiece =
   killPiece = players.singlePieceOn selectedMove.toSquare
@@ -349,7 +320,6 @@ proc aiStartTurn =
   if diceMoves.hasMoves:
     diceMoves.resetMoves
   if hypo.legalPieces.len == 0:
-  # if hypo.legalPieces.allIt it == -1:
     echo $turnPlayer.color&" has no legal pieces and has left the game in shame"
     phase = EndTurn
   else:phase = Draw
@@ -364,7 +334,7 @@ proc aiDrawCards =
 
 proc reroll(hypothetical:Hypothetic):bool =
   if isDouble():
-    if diceMoves.hasMoves: 
+    if not diceMoves.hasMoves: 
       diceMoves = hypothetical.allDiceMoves()
     not diceRoll[^1].isBestDieIn diceMoves
   else: false
@@ -390,7 +360,6 @@ proc moveAi =
   if hypo.legalPieces.len > 0:
     let (isWinningMove,move) = hypo.bestMove(diceRoll,diceMoves)
     if isWinningMove or move.eval > hypo.evalPos:
-      # moveSelection.fromSquare = move.fromSquare
       selectedMove = move
       movePiece()
     phase = PostMove

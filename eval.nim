@@ -1,5 +1,6 @@
 from algorithm import sort
 from math import pow,sum
+import random
 import game
 import sequtils
 import sugar
@@ -19,7 +20,7 @@ type
     cards:seq[BlueCard]
     cash:int
 
-iterator legalPiecesIter*(hypothetical:Hypothetic):(int,int) =
+iterator legalPiecesIter(hypothetical:Hypothetic):(int,int) =
   let nrAllowed = hypothetical.cash div game.piecePrice
   var count = 0
   for pieceNr,square in hypothetical.pieces:
@@ -35,13 +36,6 @@ func legalPieces*(hypothetical:Hypothetic):seq[int] =
     if square > -1: 
       result.add square
 
-func covers(pieceSquare,coverSquare:int):bool =
-  if pieceSquare == coverSquare:
-    return true
-  for die in 1..6:
-    if coverSquare in moveToSquares(pieceSquare,die):
-      return true
-
 func remove(pieces:openArray[int],removePiece:int):seq[int] =
   for idx,piece in pieces:
     if piece == removePiece:
@@ -50,6 +44,13 @@ func remove(pieces:openArray[int],removePiece:int):seq[int] =
       return
     else: result.add piece
  
+func covers(pieceSquare,coverSquare:int):bool =
+  if pieceSquare == coverSquare:
+    return true
+  for die in 1..6:
+    if coverSquare in moveToSquares(pieceSquare,die):
+      return true
+
 func nrOfcovers(pieces,squares:seq[int],maxDepth,depth:int):int = 
   var 
     coverPieces:seq[int]
@@ -110,13 +111,6 @@ func cover(pieces:seq[int],card:BlueCard):bool =
     pieces.cover(card.squares.required)
   else: pieces.coverOneInMany(card.squares.oneInMany,card.squares.required[0])
 
-func rewardValue(hypothetical:Hypothetic,card:BlueCard):int =
-  let 
-    deed = card.squares.required.len == 1
-    fd = hypothetical.cash < 10000
-    close = hypothetical.cash+card.cash > cashToWin
-  card.cash*(if (fd or close) and deed: 10 else: 1)
-
 func oneInMoreBonus(hypothetical:Hypothetic,blueCard:BlueCard,square,reward:int):int =
   let requiredSquare = blueCard.squares.required[0]
   if square == requiredSquare:
@@ -130,6 +124,13 @@ func oneInMoreBonus(hypothetical:Hypothetic,blueCard:BlueCard,square,reward:int)
   elif hypothetical.pieces.count(requiredSquare) > 0: 
     reward
   else: reward div 2
+
+func rewardValue(hypothetical:Hypothetic,card:BlueCard):int =
+  let 
+    deed = card.squares.required.len == 1
+    fd = hypothetical.cash < 10000
+    close = hypothetical.cash+card.cash > cashToWin
+  card.cash*(if (fd or close) and deed: 10 else: 1)
 
 func blueVals(hypothetical:Hypothetic,squares:openArray[int]):array[12,int] =
   for card in hypothetical.cards:
@@ -239,7 +240,7 @@ func friendlyFireBest(hypothetical:Hypothetic,move:Move):bool =
   hypoMove.pieces[move.pieceNr] = 0
   let killEval = hypoMove.evalPos
   killEval > eval
-  
+
 func friendlyFireAdviced*(hypothetical:Hypothetic,move:Move):bool =
   move.fromSquare != 0 and
   hypothetical.pieces.count(move.toSquare) == 1 and 
@@ -435,3 +436,26 @@ proc eventMovesEval*(player:Player,event:BlueCard):seq[Move] =
         hypothetical.evalMove(pieceNr,toSquare)
       )
   result.sort (a,b) => b.eval-a.eval
+
+proc wantsNoProtectionAfter(player:Player,move:Move):bool =
+  var hypoPlayer = player
+  hypoPlayer.pieces[move.pieceNr] = move.toSquare
+  hypoPlayer.hand = hypoPlayer.pieces.plans(hypoPlayer.hand).notCashable
+  var hypo = hypoPlayer.hypotheticalInit
+  let noKillEval = hypo.evalPos
+  hypo.pieces[move.pieceNr] = 0
+  let killEval = hypo.evalPos
+  killEval > noKillEval
+
+proc shouldKillEnemyOn(player:Player,move:Move):bool =
+  player.cash-(player.nrOfRemovedPieces*piecePrice) >= startCash div 2 and 
+  not player.hasPieceOn(move.toSquare) and (
+    (move.toSquare.isBar and (player.nrOfPiecesOnBars > 0 or players.len < 3)) or
+    rand(0..99) <= player.agro or
+    player.wantsNoProtectionAfter move
+  )
+
+proc aiShouldRemovePiece*(player:Player,move:Move):bool =
+  player.shouldKillEnemyOn(move) or
+  player.hypotheticalInit.friendlyFireAdviced(move)
+

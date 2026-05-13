@@ -22,7 +22,7 @@ type
     hasData*:bool
     games*:int
     turns*:int
-    avgTurns*:int
+    avgTurns*:float
     computerWins*:int
     humanWins*:int
     handle*:string
@@ -92,7 +92,7 @@ proc getMatchingStats*:MatchingStats =
       result.hasData = true
       result.games = matches.len
       result.turns = matches.mapIt(it.turnCount).sum
-      result.avgTurns = result.turns div matches.len
+      result.avgTurns = result.turns/matches.len
       result.computerWins = matches.countIt it.winner == "computer"
       result.humanWins = matches.len - result.computerWins
       result.handle = if loneAlias.len > 0: loneAlias else: $turnPlayer.kind

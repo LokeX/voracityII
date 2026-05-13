@@ -322,7 +322,7 @@ proc statsBatchSpans:seq[Span] =
         newSpan("  |  Turns: ",robotoPurple),
         newSpan($stats.turns,robotoYellow),
         newSpan("  |  Avg turns: ",robotoPurple),
-        newSpan($stats.avgTurns&"\n",robotoYellow),
+        newSpan(stats.avgTurns.formatFloat(ffDecimal,2)&"\n",robotoYellow),
         newSpan(stats.handle&" wins: ",robotoPurple),
         newSpan($stats.humanWins,robotoYellow),
         newSpan("  |  ",robotoPurple),
