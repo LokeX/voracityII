@@ -11,7 +11,7 @@ import gameplay
 
 type 
   KillMatrix = array[PlayerColor,array[PlayerColor,int]]
-  ReportBatches* = array[PlayerColor,Batch]
+  ReportBatches = array[PlayerColor,Batch]
   BatchSetup = tuple
     name:string
     bgColor:PlayerColor
@@ -47,7 +47,7 @@ let
 
 var
   statsBatch = newBatch statsBatchInit
-  reportBatches*:ReportBatches
+  reportBatches:ReportBatches
   selectedBatch*:int
   mouseOnBatchPlayerNr* = -1
   pinnedBatchNr* = -1

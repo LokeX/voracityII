@@ -91,11 +91,9 @@ proc leftMousePlay* =
         turn.diceMoved = diceMoved(moveSelection.fromSquare,moveSelection.toSquare)
         selectedMove = makeMoveFromSelection(dieUsed())
         movePiece()
-        # turnPlayer.hand = turnPlayer.sortBlues
     elif turnPlayer.hand.len > 3:
       if (let slotNr = turnPlayer.mouseOnCardSlot; slotNr > -1):
         turnPlayer.hand.playTo blueDeck,slotNr
-        # turnPlayer.hand = turnPlayer.sortBlues
 
 proc rightMousePlay =
   if moveSelection.fromSquare != -1:
@@ -295,13 +293,6 @@ initGamePlay()
 initCards()
 initReports()
 initSettings()
-# let 
-#   idx = blueDeck.drawPile.mapIt(it.title).find "Massacre"
-#   mass = blueDeck.drawPile[idx]
-# blueDeck.drawPile.del idx
-# blueDeck.drawPile.add mass
-# import strutils
-# echo blueDeck.drawPile.mapIt(it.title).join "\n"
 addCall voracityCall
 window.onCloseRequest = quitVoracity
 window.icon = readImage "pics\\BarMan.png"

@@ -51,7 +51,7 @@ var
   killPiece:SinglePiece
   hypo:Hypothetic
   diceReroll:DiceReroll
-  diceMoves:DiceMoves
+  # diceMoves:DiceMoves
 
 template setConfigStateTo(config:ConfigState) =
   if configState != nil:
@@ -317,14 +317,12 @@ template phaseIs*:untyped = phase
 
 proc aiStartTurn = 
   hypo = hypotheticalInit(turnPlayer)
-  if diceMoves.hasMoves:
-    diceMoves.resetMoves
   if hypo.legalPieces.len == 0:
     echo $turnPlayer.color&" has no legal pieces and has left the game in shame"
     phase = EndTurn
   else:phase = Draw
 
-proc aiDrawCards =
+proc aiDrawPhase =
   playCashPlansTo blueDeck
   while turn.undrawnBlues > 0:
     drawCardFrom blueDeck
@@ -332,16 +330,9 @@ proc aiDrawCards =
   hypo = turnPlayer.hypotheticalInit
   phase = Reroll
 
-proc reroll(hypothetical:Hypothetic):bool =
-  if isDouble():
-    if not diceMoves.hasMoves: 
-      diceMoves = hypothetical.allDiceMoves()
-    not diceRoll[^1].isBestDieIn diceMoves
-  else: false
-
 proc aiRerollPhase =
   if statGame:
-    if not diceReroll.isPausing or hypo.reroll:
+    if not diceReroll.isPausing or hypo.aiShouldReroll diceRoll:
       rollDice()
       diceReroll.isPausing = true # appropriating an existing flag - don't EVER do that ;-)
     else:
@@ -351,25 +342,22 @@ proc aiRerollPhase =
     diceReroll.isPausing = false
     startDiceRoll()
   elif not diceReroll.isPausing:
-    if hypo.reroll: 
+    if hypo.aiShouldReroll diceRoll: 
       diceReroll.isPausing = true
       diceReroll.pauseStartTime = cpuTime()
     else: phase = AiMove
 
-proc moveAi =
+proc aiMovePhase =
   if hypo.legalPieces.len > 0:
-    let (isWinningMove,move) = hypo.bestMove(diceRoll,diceMoves)
-    if isWinningMove or move.eval > hypo.evalPos:
-      selectedMove = move
-      movePiece()
+    selectedMove = hypo.bestMove diceRoll
+    if selectedMove.pieceNr > -1: movePiece()
     phase = PostMove
   else:
     echo $turnPlayer.color&" has no pieces to move"
     phase = EndTurn
 
 proc postMovePhase =
-  moveSelection.fromSquare = -1
-  aiDrawCards()
+  aiDrawPhase()
   turnPlayer.hand = turnPlayer.sortBlues
   phase = EndTurn
 
@@ -385,9 +373,9 @@ proc endTurnPhase =
 proc aiTakeTurn*() =
   case phase
   of Await: aiStartTurn()
-  of Draw: aiDrawCards()
+  of Draw: aiDrawPhase()
   of Reroll: aiRerollPhase()
-  of AiMove: moveAi()
+  of AiMove: aiMovePhase()
   of PostMove: postMovePhase()
   of EndTurn: endTurnPhase()
   turnPlayer.update = true

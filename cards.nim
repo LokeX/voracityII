@@ -9,7 +9,7 @@ import strutils
 import misc
 
 type
-  Reveal* = enum Front,Back
+  Reveal = enum Front,Back
   CardSlot = tuple[area:Area,rect:Rect]
   Pinned* = enum None,Discard,AllDeck
 
@@ -33,7 +33,7 @@ func buildCardSlots(initPosDim:Rect):seq[seq[CardSlot]] =
   for cardsInRow in 2..8: result.add buildCardSlots(initPosDim,cardsInRow)
 
 const
-  (cardWidth*, cardHeight*) = (255.0,410.0)
+  (cardWidth,cardHeight) = (255.0,410.0)
   popUpCardRect = Rect(x:500,y:290,w:cardWidth,h:cardHeight)
   drawPileRect = Rect(x:855,y:495,w:110,h:180)
   discardPileRect = Rect(x:1025,y:495,w:cardWidth*0.441,h:cardHeight*0.441)
@@ -83,7 +83,6 @@ let
 
   whiteAsap16 = setNewFont(asap,size = 20,color = color(1,1,0))
   blackAsap16 = setNewFont(asap,size = 20,color = color(0,0,0))
-
 
 proc paintUndrawnBlues:Image =
   var ctx = newImage(110,180).newContext
@@ -184,12 +183,12 @@ func buildInnerRect(rect:Rect,borderSize:float):Rect =
   result.w -= (borderSize*2)
   result.h -= (borderSize*2)
 
-func eventSquaresTxt(blue:BlueCard,squares:BoardSquares):seq[string] =
+proc eventSquaresTxt(blue:BlueCard):seq[string] =
   for i,square in blue.moveSquares:
     result.add "The "&squares[square].name&" Nr."&($squares[square].nr)
     if i < blue.moveSquares.high: result[^1].add " or:"
 
-func eventText(blue:BlueCard,squares:BoardSquares):seq[string] =
+proc eventText(blue:BlueCard):seq[string] =
   case blue.title
   of "Sour piss":
     result.add "Must: Shuffle piles"
@@ -207,9 +206,9 @@ func eventText(blue:BlueCard,squares:BoardSquares):seq[string] =
   else:
     result.add "A piece of yours,"
     result.add "on any random Bar, moves to:"
-    result.add blue.eventSquaresTxt squares
+    result.add blue.eventSquaresTxt
 
-func newsText(blue:BlueCard,squares:BoardSquares):seq[string] =
+proc newsText(blue:BlueCard):seq[string] =
   result.add "All pieces on: " &
     squares[blue.moveSquares[0]].name&" Nr."&($squares[blue.moveSquares[0]].nr)
   if blue.moveSquares[1] == 0:
@@ -217,24 +216,24 @@ func newsText(blue:BlueCard,squares:BoardSquares):seq[string] =
   else: result.add "Moves to: " &
     squares[blue.moveSquares[1]].name&" Nr."&($squares[blue.moveSquares[1]].nr)
 
-proc typesetBoxedText(blue:BlueCard,squares:BoardSquares):(Arrangement,float32) =
+proc typesetBoxedText(blue:BlueCard):(Arrangement,float32) =
   var txt:seq[string]
   case blue.cardKind
   of Plan,Mission,Job,Deed:
     txt = blue.required squares
     txt.insert "Requires: ", 0
     txt.add "Rewards:\n" & ($blue.cash).insertSep('.')&" in cash"
-  of Event: txt.add blue.eventText squares
-  of News: txt.add blue.newsText squares
+  of Event: txt.add blue.eventText
+  of News: txt.add blue.newsText
   let
     font = setNewFont(roboto,13.0,color(0,0,0))
     boxText = font.typeset txt.join "\n"
   (boxText, boxText.layoutBounds.y)
 
-proc paintTextBoxOn(card:BlueCard,img:var Image,squares:BoardSquares) =
+proc paintTextBoxOn(card:BlueCard,img:var Image) =
   let
     (textPadX,textPadY,borderSize,shadowSize,angle) = (15.0,15.0,0.0,3.0,0.0)
-    (boxText, textHeight) = card.typesetBoxedText squares
+    (boxText, textHeight) = card.typesetBoxedText
     boxPosX = 20.0
     boxWidth = img.width.toFloat-(boxPosX*2)-shadowSize-(borderSize*2)-3
     boxHeight = (textheight+(textPadY*2)+(borderSize*2))
@@ -273,17 +272,6 @@ proc paintTitleOn(card:BlueCard,img:var Image,borderSize:float) =
   img.fillText(title,translate vec2(titleX,titleY))
   img.strokeText(strokeTitle,translate vec2(titleX,titleY),0.75)
 
-proc paintBackgroundImage(card:BlueCard,ctx:Context,borderSize:float):Image =
-  result = ctx.image
-  var img = 
-    case card.cardKind:
-    of Deed:deedbg
-    of Plan:planbg
-    of Mission:missionbg
-    of Job:jobbg
-    of Event,News:readImage(card.bgPath)
-  result.draw(img,translate vec2(borderSize, borderSize))
-
 proc paintBackground(card:BlueCard,borderSize:float):Image =
   let
     shadowSize = 5.0
@@ -292,11 +280,18 @@ proc paintBackground(card:BlueCard,borderSize:float):Image =
     width = planbg.width.toFloat+dimAdd
     height = planbg.height.toFloat+dimAdd
     ctx = newContext((width+shadowSize).toInt,(height+shadowSize).toInt)
+    img = case card.cardKind:
+      of Deed:deedbg
+      of Plan:planbg
+      of Mission:missionbg
+      of Job:jobbg
+      of Event,News:readImage(card.bgPath)
   ctx.fillStyle = color(0,0,0,175)
   ctx.fillRect(Rect(x:offset,y:offset,w:width,h:height))
   ctx.fillStyle = color(0,0,0)
   ctx.fillRect(Rect(x:0,y:0,w:width,h:height))
-  card.paintBackgroundImage(ctx, borderSize)
+  ctx.drawImage(img,borderSize, borderSize)
+  ctx.image
 
 proc paintCardKindOn(card:BlueCard,img:var Image,borderSize:float) =
   let
@@ -304,8 +299,8 @@ proc paintCardKindOn(card:BlueCard,img:var Image,borderSize:float) =
     cardKind = kindFont.typeset $card.cardKind
   img.fillText(cardKind,translate vec2(10+borderSize,60))
 
-proc paintIconsOn(card:BlueCard,img:var Image,squares:BoardSquares) =
-  var cardSquares: seq[int]
+proc paintIconsOn(card:BlueCard,img:var Image) =
+  var cardSquares:seq[int]
   case card.cardKind
   of Mission,Plan,Job,Deed:
     cardSquares = card.squares.required
@@ -317,27 +312,26 @@ proc paintIconsOn(card:BlueCard,img:var Image,squares:BoardSquares) =
   for idx,squareNr in cardSquares:
     let icon = squares[squareNr].paintIcon
     img.draw(icon,translate vec2(x,y))
-    # x += icon.width.toFloat*1.5
     if idx == 1:
       x = x_offset+(if cardSquares.len == 3: 45 else: 0)
       y += icon.height.toFloat*1.5
     else: x += icon.width.toFloat*1.5
  
-proc paintBlue(card:BlueCard,squares:BoardSquares):Image =
+proc paintBlue(card:BlueCard):Image =
   let borderSize = 1.0
   result = card.paintBackground borderSize
   card.paintTitleOn(result,borderSize)
   card.paintCardKindOn(result,borderSize)
   if (card.cardKind notin [Event,News]) or card.moveSquares[^1] notin [0, -1]:
-    card.paintIconsOn(result,squares)
-  card.paintTextBoxOn(result,squares)
+    card.paintIconsOn(result)
+  card.paintTextBoxOn(result)
 
 func nrOfslots(nrOfCards: int):int =
   for i,capacity in slotCapacities:
     if nrOfCards <= capacity: return i
   cardSlotsX.high
 
-iterator cardSlots*(cards:seq[BlueCard]):(BlueCard,CardSlot) =
+iterator cardSlots(cards:seq[BlueCard]):(BlueCard,CardSlot) =
   if cards.len > 0:
     var i = 0
     let slots = cardSlotsX[cards.len.nrOfslots]
@@ -351,14 +345,14 @@ proc mouseOnCardSlot*(player:Player):int =
     inc result
   result = -1
 
-proc paintCardSquares*(blue:BlueCard):Image =
+proc paintCardSquares(blue:BlueCard):Image =
   result = newImage(boardImg.width,boardImg.height)
   result.paintSquares(blue.squares.required.deduplicate,color(0,0,0,100))
   if blue.squares.oneInMany.len > 0:
     result.paintSquares(blue.squares.oneInMany,color(100,0,0,100))
 
 var
-  cardSquaresPainter* = DynamicImage[BlueCard](
+  cardSquaresPainter = DynamicImage[BlueCard](
     name:"cardSquares",
     rect:Rect(x:bx,y:by),
     updateImage:paintCardSquares,
@@ -383,7 +377,7 @@ var
   popUpCardName,lastName:string
   center = popUpCardRect.rectCenter()
 
-proc paintCards*(b:var Boxy,deck:Deck,cards:seq[BlueCard],show:Reveal = Front) =
+proc paintCards(b:var Boxy,deck:Deck,cards:seq[BlueCard],show:Reveal = Front) =
   popUpCardName.setLen 0
   if show == Front and deck.lastDrawn.len > 0 and mouseOn drawPileArea:
     popUpCardName = deck.lastDrawn
@@ -487,6 +481,6 @@ proc drawCardsFooter*(b:var Boxy) =
 
 template initCards* =
   addImage("blueback",blueBack)
-  for idx,img in blueDeck.fullDeck.mapIt it.paintBlue squares:
+  for idx,img in blueDeck.fullDeck.mapIt it.paintBlue:
     addImage(blueDeck.fullDeck[idx].title,img)
 

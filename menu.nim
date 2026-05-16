@@ -289,8 +289,6 @@ template initMenu* =
   addImage(barmanImg,paintBarman())
   addImage(adviceImg,paintSubText())
   addImage(volumeImg,paintVolume())
-  # for die in DieFace:
-  #   addImage($die,("pics\\diefaces\\"&($die.ord)&".png").readImage)
   for bg in backgrounds:
     addImage(bg.name,bg.img)
 
