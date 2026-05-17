@@ -90,6 +90,7 @@ proc leftMousePlay* =
         moveSelection.toSquare = mouseSquare
         turn.diceMoved = diceMoved(moveSelection.fromSquare,moveSelection.toSquare)
         selectedMove = makeMoveFromSelection(dieUsed())
+        moveSelection.fromSquare = -1
         movePiece()
     elif turnPlayer.hand.len > 3:
       if (let slotNr = turnPlayer.mouseOnCardSlot; slotNr > -1):
@@ -108,6 +109,7 @@ proc aiRightMouse* =
   if phase == EndTurn:
     if showMenu:
       endTurn()
+  showMenu = true
 
 proc mouseClicked(m:KeyEvent) =
   if mouseOnBatchPlayerNr != -1:
@@ -189,7 +191,7 @@ proc configStartGame =
 proc configGameWon =
   writeGamestats()
   updateStatsBatch()
-  if turnPlayer.kind == Human:
+  if turnPlayer.kind == Human or not players.anyHuman:
     playSound "applause-2"
     setMenuTo WonGameMenu
   else:
@@ -217,6 +219,7 @@ proc cycle =
   if soundToPlay.len > 0:
     playSound soundToPlay[0]
     soundToPlay.delete 0
+  if gameWon: phase = EndTurn
   if isAiTurn(): aiTakeTurn()
 
 proc timer =

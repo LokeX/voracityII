@@ -10,6 +10,9 @@ import dialog
 import menu
 
 type
+  MoveSelection* = tuple
+    fromSquare,toSquare:int
+    toSquares:seq[int]
   Dims* = tuple[area:Area,rect:Rect]
   EventMoveFmt = tuple[fromSquare,toSquare:string]
   SquareTexts = array[61,tuple[text:seq[string],spans:seq[Span]]]
@@ -81,6 +84,7 @@ var
   squareTextBatch = newBatch squareTextBatchInit
   squareTexts:SquareTexts
   squares*:BoardSquares
+  moveSelection*:MoveSelection = (-1,-1,@[])
   squareTimer* = 0
   mouseSquare* = -1
   lastTextSquare = -1
@@ -192,6 +196,13 @@ var
 
 proc updatePiecesPainter* = piecesImg.update = true
 
+proc makeMoveFromSelection*(die:int = -1):Move =
+  result.die = die
+  result.eval = -1
+  result.fromSquare = moveSelection.fromSquare
+  result.toSquare = moveSelection.toSquare
+  result.pieceNr = turnPlayer.pieceOnSquare moveSelection.fromSquare
+
 proc selectPiece*(square:int) =
   if not turn.diceMoved or square == 0 or square.isHighway:
     if turnPlayer.hasPieceOn square:
@@ -217,6 +228,7 @@ proc endBarMoveSelection(selection:string) =
     moveSelection.toSquare = toSquare
     # moveSelection.event = true
     selectedMove = makeMoveFromSelection()
+    moveSelection.fromSquare = -1
     movePiece()
 
 proc barMoveMouseMoved(entries:seq[string]):proc =
@@ -245,8 +257,8 @@ proc selectBarMoveDest(selection:string) =
     startDialog(entries,0..entries.high,endBarMoveSelection)
   elif entries.len == 1:
     moveSelection.toSquare = dialogBarMoves[0].toSquare
-    # moveSelection.event = true
     selectedMove = makeMoveFromSelection()
+    moveSelection.fromSquare = -1
     movePiece()
 
 proc selectBar*(dialogMoves:seq[Move]) =
@@ -417,6 +429,13 @@ proc startDiceRoll* =
 proc endDiceRoll* = dieRollFrame = maxRollFrames
 
 proc mayReroll*:bool = isDouble() and not isRollingDice()
+
+proc dieUsed*:int =
+  if moveSelection.toSquare in moveToSquares(
+    moveSelection.fromSquare,diceRoll[1].ord): diceRoll[1].ord
+  elif moveSelection.toSquare in moveToSquares(
+    moveSelection.fromSquare,diceRoll[2].ord): diceRoll[2].ord
+  else: -1
 
 # proc createBoardTextFile* =
 #   let f = open("dat\\boardtxt.txt",fmWrite)

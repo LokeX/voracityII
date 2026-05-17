@@ -317,12 +317,6 @@ func isBestDieIn(dieQuery:DieFace,diceMoves:DiceMoves):bool =
         bestDie = die
     dieQuery == bestDie
 
-template resetMoves(diceMoves:untyped):untyped =
-  diceMoves[^1].moves.setLen 0
-
-template hasMoves(diceMoves:untyped):untyped =
-  diceMoves[^1].moves.len > 0
-
 func bestMoveWith(diceMoves:DiceMoves,dice:Dice):(bool,Move) =
   let dieIndex = 
     if diceMoves[dice[1]].bestMove.eval >= diceMoves[dice[2]].bestMove.eval or 
@@ -339,15 +333,15 @@ func bestMoveWith(hypothetical:Hypothetic,dice:Dice):(bool,Move) =
 proc bestMove*(hypothetical:Hypothetic,dice:Dice):Move =
   var isWinningMove:bool
   (isWinningMove,result) = 
-    if diceMoves.hasMoves: diceMoves.bestMoveWith dice
+    if diceMoves[^1].moves.len > 0: diceMoves.bestMoveWith dice
     else: hypothetical.bestMoveWith dice
   if not isWinningMove and hypothetical.evalPos >= result.eval:
     result.pieceNr = -1
-  diceMoves.resetMoves
+  diceMoves[^1].moves.setLen 0
 
 proc aiShouldReroll*(hypothetical:Hypothetic,dice:Dice):bool =
   if dice[1] == dice[2]:
-    if not diceMoves.hasMoves: 
+    if diceMoves[^1].moves.len == 0: 
       diceMoves = hypothetical.allDiceMoves()
     not diceRoll[^1].isBestDieIn diceMoves
   else: false

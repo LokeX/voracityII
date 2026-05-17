@@ -6,7 +6,7 @@ import random
 import times
 
 type
-  Phase* = enum Await,Draw,Reroll,AiMove,PostMove,EndTurn
+  Phase* = enum Await,Draw,Roll,AiMove,PostMove,EndTurn
   DiceReroll = tuple[isPausing:bool,pauseStartTime:float]
   ConfigState* = enum StartGame,SetupGame,GameWon
   TurnReport* = object
@@ -51,7 +51,6 @@ var
   killPiece:SinglePiece
   hypo:Hypothetic
   diceReroll:DiceReroll
-  # diceMoves:DiceMoves
 
 template setConfigStateTo(config:ConfigState) =
   if configState != nil:
@@ -242,7 +241,7 @@ proc move =
   if not statGame:
     turnPlayer.hand = turnPlayer.sortBlues
   turnPlayer.update = true
-  moveSelection.fromSquare = -1
+  # moveSelection.fromSquare = -1
   updatePiecesPainter()
   updateKeybar = true
   playSound "driveBy"
@@ -313,8 +312,6 @@ proc nextGameState* =
     else: startDiceRoll()
   playSound "carhorn-1"
 
-template phaseIs*:untyped = phase
-
 proc aiStartTurn = 
   hypo = hypotheticalInit(turnPlayer)
   if hypo.legalPieces.len == 0:
@@ -328,9 +325,9 @@ proc aiDrawPhase =
     drawCardFrom blueDeck
     playCashPlansTo blueDeck
   hypo = turnPlayer.hypotheticalInit
-  phase = Reroll
+  phase = Roll
 
-proc aiRerollPhase =
+proc aiRollPhase =
   if statGame:
     if not diceReroll.isPausing or hypo.aiShouldReroll diceRoll:
       rollDice()
@@ -374,7 +371,7 @@ proc aiTakeTurn*() =
   case phase
   of Await: aiStartTurn()
   of Draw: aiDrawPhase()
-  of Reroll: aiRerollPhase()
+  of Roll: aiRollPhase()
   of AiMove: aiMovePhase()
   of PostMove: postMovePhase()
   of EndTurn: endTurnPhase()

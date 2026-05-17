@@ -2,6 +2,7 @@ import win except strip
 import strutils
 import batch
 import game
+# import gameplay
 import megasound
 import play
 
@@ -197,8 +198,8 @@ proc paintKeybar:Image =
     newSpan((
       if turn.nr == 0: 
         "Start Game" 
-      elif moveSelection.fromSquare != -1:
-        "Deselect piece"
+      # elif moveSelection.fromSquare != -1:
+      #   "Deselect piece"
       elif not menu.showMenu:
         "Show Menu"
       elif turnPlayer.cash >= cashToWin: 

@@ -7,6 +7,7 @@ import reports
 import sequtils
 import strutils
 import misc
+# import os
 
 type
   Reveal = enum Front,Back
@@ -479,8 +480,19 @@ proc drawCardsFooter*(b:var Boxy) =
       cardsFooter.update = true
     b.drawDynamicImage cardsFooter
 
+# proc cardImages:seq[Image] =
+#   let files = toSeq walkFiles "decks\\*.png"
+#   if files.len > 0:
+#     for f in files:
+#       result.add f.readImage
+#   else: 
+#     result = blueDeck.fullDeck.mapIt it.paintBlue
+#     for idx,img in result:
+#       img.writeFile "decks\\"&($idx)&".png"  
+
 template initCards* =
   addImage("blueback",blueBack)
   for idx,img in blueDeck.fullDeck.mapIt it.paintBlue:
+  # for idx,img in cardImages():
     addImage(blueDeck.fullDeck[idx].title,img)
 

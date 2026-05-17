@@ -10,10 +10,9 @@ type
   Move* = tuple[pieceNr,die,fromSquare,toSquare,eval:int]
   CashedCards* = seq[tuple[title:string,count:int]]  
   PlayedCard* = enum Drawn,Played,Cashed,Discarded
-  MoveSelection* = tuple
-    fromSquare,toSquare:int
-    toSquares:seq[int]
-    # event:bool
+  # MoveSelection* = tuple
+  #   fromSquare,toSquare:int
+  #   toSquares:seq[int]
   SquareKind = enum GasStation,Highway,Bar,Other
   Board* = array[61,tuple[nr:int,name:string]]
   PlayerColor* = enum Red,Green,Blue,Yellow,Black,White
@@ -47,7 +46,6 @@ type
     hand*:seq[BlueCard]
     cash*:int
     agro*:int
-    # skipped*:int
     update*:bool
   Turn* = tuple
     nr:int 
@@ -92,7 +90,7 @@ var
   playerKinds*:array[6,PlayerKind]
   playerHandles*:array[6,string]
   players*:seq[Player]
-  moveSelection*:MoveSelection = (-1,-1,@[])
+  # moveSelection*:MoveSelection = (-1,-1,@[])
   selectedMove*:Move
 
 proc newBoard*(path:string):Board =
@@ -214,19 +212,12 @@ func diceMoved*(fromSquare,toSquare:int):bool =
     not toSquare.isGasStation
   else: true
 
-func dieUsed*(fromSquare,toSquare:int,dice:Dice):int =
-  if toSquare in moveToSquares(fromSquare,dice[1].ord):
-    dice[1].ord
-  elif toSquare in moveToSquares(fromSquare,dice[2].ord):
-    dice[2].ord
-  else: -1
-
-proc dieUsed*:int =
-  if moveSelection.toSquare in moveToSquares(moveSelection.fromSquare,diceRoll[1].ord):
-    diceRoll[1].ord
-  elif moveSelection.toSquare in moveToSquares(moveSelection.fromSquare,diceRoll[2].ord):
-    diceRoll[2].ord
-  else: -1
+# func dieUsed*(fromSquare,toSquare:int,dice:Dice):int =
+#   if toSquare in moveToSquares(fromSquare,dice[1].ord):
+#     dice[1].ord
+#   elif toSquare in moveToSquares(fromSquare,dice[2].ord):
+#     dice[2].ord
+#   else: -1
 
 proc movesFrom*(player:Player,square:int):seq[int] =
   if turn.diceMoved: moveToSquares square
@@ -254,6 +245,7 @@ func piecesOn*(players:seq[Player],square:int):seq[tuple[playerNr,pieceNr:int]] 
 func pieceOnSquare*(player:Player,square:int):int =
   for i,piece in player.pieces:
     if piece == square: return i
+  -1
 
 func nrOfPiecesOn*(players:seq[Player],square:int):int =
   players.mapIt(it.pieces.countIt it == square).sum
@@ -265,7 +257,7 @@ func singlePieceOn*(players:seq[Player],square:int):SinglePiece =
         if piece == square: return (playerNr,pieceNr)
   result = (-1,-1)
 
-func nrOfPiecesOnBars*(player:Player): int =
+func nrOfPiecesOnBars*(player:Player):int =
   player.pieces.countIt it.isBar
 
 func hasPieceOn*(player:Player,square:int):bool =
@@ -295,13 +287,6 @@ func plans*(pieces:openArray[int],cards:seq[BlueCard]):tuple[cashable,notCashabl
   for card in cards:
     if pieces.isCashable card: result.cashable.add card
     else: result.notCashable.add card
-
-proc makeMoveFromSelection*(die:int = -1):Move =
-  result.die = die
-  result.eval = -1
-  result.fromSquare = moveSelection.fromSquare
-  result.toSquare = moveSelection.toSquare
-  result.pieceNr = turnPlayer.pieceOnSquare moveSelection.fromSquare
 
 proc discardCards*(player:var Player,deck:var Deck):seq[BlueCard] =
   while player.hand.len > 3:
