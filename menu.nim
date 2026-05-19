@@ -2,7 +2,6 @@ import win except strip
 import strutils
 import batch
 import game
-# import gameplay
 import megasound
 import play
 
@@ -115,6 +114,7 @@ var
   vol* = 0.05
   showVolume*:float
   showPanel* = true
+  pieceSelected* = false
 
 
 proc setMenuTo*(kind:MenuKind) =
@@ -148,10 +148,6 @@ proc drawMenuBackground*(b:var Boxy) =
       oldBg = -1
   if oldBg != -1: b.drawImage(backgrounds[oldBg].name,oldBgRect)
   b.drawImage(backgrounds[bgSelected].name,bgRect)
-
-# template initMenu* = 
-#   for bg in backgrounds:
-#     addImage(bg.name,bg.img)
 
 proc handleInput*(key:KeyboardEvent) = 
   if key.button != KeyEnter: key.batchKeyb inputBatch
@@ -198,8 +194,8 @@ proc paintKeybar:Image =
     newSpan((
       if turn.nr == 0: 
         "Start Game" 
-      # elif moveSelection.fromSquare != -1:
-      #   "Deselect piece"
+      elif pieceSelected:
+        "Deselect piece"
       elif not menu.showMenu:
         "Show Menu"
       elif turnPlayer.cash >= cashToWin: 

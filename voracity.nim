@@ -60,14 +60,14 @@ proc confirmQuit = really("quit Voracity?",
 )
 
 proc confirmEndGame = really("end this game?",
-  (answer:string) => (if answer == "Yes": setupNewGame())
+  (answer:string) => (if answer == "Yes": setupGame())
 )
 
 proc menuSelection =
   case menuSelectionString():
     of "New Game":
       if turnPlayer.cash >= cashToWin: 
-        setupNewGame()
+        setupGame()
       else:
         showMenu = false
         confirmEndGame()
@@ -216,6 +216,7 @@ template isAiTurn():untyped =
   not moveAnimationActive()
 
 proc cycle =
+  pieceSelected = moveSelection.fromSquare != -1
   if soundToPlay.len > 0:
     playSound soundToPlay[0]
     soundToPlay.delete 0

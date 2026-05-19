@@ -356,9 +356,9 @@ func baseEvalBoard(hypothetical:Hypothetic):EvalBoard =
   result[0] = 24000
   for highway in highways: 
     result[highway] = highwayVal
-  var value = hypothetical.barVal
+  let barVal = hypothetical.barVal
   for bar in bars: 
-    result[bar] = value
+    result[bar] = barVal
 
 func boardInit(player:Player):EvalBoard =
   baseEvalBoard (

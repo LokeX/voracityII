@@ -6,7 +6,7 @@ import random
 import times
 
 type
-  Phase* = enum Await,Draw,Roll,AiMove,PostMove,EndTurn
+  Phase* = enum Await,Draw,Roll,AiMove,EndTurn
   DiceReroll = tuple[isPausing:bool,pauseStartTime:float]
   ConfigState* = enum StartGame,SetupGame,GameWon
   TurnReport* = object
@@ -241,7 +241,6 @@ proc move =
   if not statGame:
     turnPlayer.hand = turnPlayer.sortBlues
   turnPlayer.update = true
-  # moveSelection.fromSquare = -1
   updatePiecesPainter()
   updateKeybar = true
   playSound "driveBy"
@@ -269,7 +268,7 @@ proc movePiece =
       )
   else: move()
 
-proc setupNewGame* =
+proc setupGame* =
   turn = (0,0,false,0)
   blueDeck.resetDeck
   players = newDefaultPlayers()
@@ -277,10 +276,10 @@ proc setupNewGame* =
 
 proc endGame* =
   recordTurnReport()
-  setupNewGame()
+  setupGame()
   soundToPlay.setLen 0
 
-proc startNewGame* =
+proc startGame* =
   inc turn.nr
   players = newPlayers()
   players[0].turnNr = 1
@@ -305,7 +304,7 @@ proc nextGameState* =
     endGame()
   else:
     if turn.nr == 0: 
-      startNewGame()
+      startGame()
     else: 
       nextTurn()
     if statGame: rollDice()
@@ -314,17 +313,18 @@ proc nextGameState* =
 
 proc aiStartTurn = 
   hypo = hypotheticalInit(turnPlayer)
+  playCashPlansTo blueDeck
   if hypo.legalPieces.len == 0:
     echo $turnPlayer.color&" has no legal pieces and has left the game in shame"
     phase = EndTurn
   else:phase = Draw
 
 proc aiDrawPhase =
-  playCashPlansTo blueDeck
-  while turn.undrawnBlues > 0:
-    drawCardFrom blueDeck
-    playCashPlansTo blueDeck
-  hypo = turnPlayer.hypotheticalInit
+  if turn.undrawnBlues > 0:
+    while turn.undrawnBlues > 0:
+      drawCardFrom blueDeck
+      playCashPlansTo blueDeck
+    hypo = turnPlayer.hypotheticalInit
   phase = Roll
 
 proc aiRollPhase =
@@ -347,15 +347,11 @@ proc aiRollPhase =
 proc aiMovePhase =
   if hypo.legalPieces.len > 0:
     selectedMove = hypo.bestMove diceRoll
-    if selectedMove.pieceNr > -1: movePiece()
-    phase = PostMove
-  else:
-    echo $turnPlayer.color&" has no pieces to move"
-    phase = EndTurn
-
-proc postMovePhase =
-  aiDrawPhase()
-  turnPlayer.hand = turnPlayer.sortBlues
+    if selectedMove.pieceNr > -1: 
+      movePiece()
+      aiDrawPhase()
+      turnPlayer.hand = turnPlayer.sortBlues
+  else: echo $turnPlayer.color&" has no pieces to move"
   phase = EndTurn
 
 proc endTurn* = 
@@ -373,6 +369,5 @@ proc aiTakeTurn*() =
   of Draw: aiDrawPhase()
   of Roll: aiRollPhase()
   of AiMove: aiMovePhase()
-  of PostMove: postMovePhase()
   of EndTurn: endTurnPhase()
   turnPlayer.update = true

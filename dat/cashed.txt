@@ -1,22 +1,22 @@
 Redemption: 57
 Stiffs: 31
 Ludomania: 33
-Broken bones: 41
+Broken bones: 42
 Safe bet: 29
 Grapevine: 51
 Sweethearts: 21
 Polterabend: 82
 Faulty towers: 40
-Loads of stuff: 66
-High society: 53
+Loads of stuff: 67
+High society: 54
 Knocked out: 50
 Chicks in cages: 60
-Drugdealer: 40
+Drugdealer: 41
 Trans-action: 25
-Secret weapon: 36
+Secret weapon: 37
 Moonshine: 88
-Outstanding: 48
-Containment: 55
+Outstanding: 49
+Containment: 56
 Deadweight: 28
 Hooters: 37
 Brotherhood: 38
@@ -24,28 +24,28 @@ Bail: 42
 Recycling: 36
 Specimens: 22
 Home invasion: 62
-Stove away: 31
+Stove away: 32
 Grand designs: 45
-Demolition: 38
+Demolition: 39
 Human resources: 60
 Deadly cargo: 40
 Agent: 49
-Borderless: 32
+Borderless: 33
 Globalist: 39
-Bootlegging: 34
+Bootlegging: 35
 Lawfare: 44
-Terrorism: 25
-Lord of War: 21
+Terrorism: 26
+Lord of War: 22
 Rentseeking: 35
 Protection: 65
 Duty free: 56
 Hooked: 54
 Open house: 33
-Rock solid claims: 56
+Rock solid claims: 57
 Pimp: 50
 Concuctions: 42
 Circle jerk: 32
-Legalese: 52
+Legalese: 53
 Higher powers: 37
 Nose job: 38
 Insurgency: 38
@@ -62,12 +62,12 @@ Financier: 28
 Underhanded: 41
 Up yours: 32
 Choireboys: 37
-Knock knock: 56
+Knock knock: 57
 Sing a long song: 62
 White collars: 19
 Broman escorte: 20
 Cold meds: 54
-Et spiritus sancti: 58
+Et spiritus sancti: 59
 Occupational hazard: 44
 VIP Lounge: 33
 Small arms: 40
@@ -75,27 +75,27 @@ Express demands: 38
 Ramtheft: 28
 Golden chains: 30
 Bodyguard: 21
-Mayor: 38
+Mayor: 39
 Homebrew: 41
 Meat grinder: 28
 Judicial murder: 24
 Flay'em: 38
 Projects: 41
 Advisory board: 50
-Usery: 41
+Usery: 42
 Financing: 32
-Lucky bastard: 29
-Lipstick on a pig: 33
+Lucky bastard: 30
+Lipstick on a pig: 34
 Laundry: 31
 Debt to society: 35
 Transitions: 19
-Trance: 50
+Trance: 51
 Bodycount: 23
 Informer: 22
-Rentals: 34
+Rentals: 35
 Healthplan: 34
 Slumlord: 37
-Heartless: 13
+Heartless: 14
 Gangbangers: 30
 Aiding and abetting: 19
 Coup: 20

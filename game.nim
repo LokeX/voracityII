@@ -10,9 +10,6 @@ type
   Move* = tuple[pieceNr,die,fromSquare,toSquare,eval:int]
   CashedCards* = seq[tuple[title:string,count:int]]  
   PlayedCard* = enum Drawn,Played,Cashed,Discarded
-  # MoveSelection* = tuple
-  #   fromSquare,toSquare:int
-  #   toSquares:seq[int]
   SquareKind = enum GasStation,Highway,Bar,Other
   Board* = array[61,tuple[nr:int,name:string]]
   PlayerColor* = enum Red,Green,Blue,Yellow,Black,White
@@ -90,7 +87,6 @@ var
   playerKinds*:array[6,PlayerKind]
   playerHandles*:array[6,string]
   players*:seq[Player]
-  # moveSelection*:MoveSelection = (-1,-1,@[])
   selectedMove*:Move
 
 proc newBoard*(path:string):Board =
@@ -211,13 +207,6 @@ func diceMoved*(fromSquare,toSquare:int):bool =
   elif fromSquare.isHighway:
     not toSquare.isGasStation
   else: true
-
-# func dieUsed*(fromSquare,toSquare:int,dice:Dice):int =
-#   if toSquare in moveToSquares(fromSquare,dice[1].ord):
-#     dice[1].ord
-#   elif toSquare in moveToSquares(fromSquare,dice[2].ord):
-#     dice[2].ord
-#   else: -1
 
 proc movesFrom*(player:Player,square:int):seq[int] =
   if turn.diceMoved: moveToSquares square
