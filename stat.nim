@@ -280,8 +280,13 @@ when isMainModule:
 
   proc visitsCountStr:string =
     result.add "Square visits:\n"
-    for i in 1..60:
-      result.add board[i].name&" Nr. "&($i)&": "&($visitsCount[i])&"\n"
+    result.add(
+      toSeq(1..60)
+      .mapIt((it,board[it].name,visitsCount[it]))
+      .sortedByIt(it[2])
+      .mapIt(it[1]&" Nr. "&($it[0])&": "&($it[2]))
+      .join "\n"
+    )
 
   proc statsStr(time:float):string =
     let stats = getMatchingStats()
@@ -299,8 +304,8 @@ when isMainModule:
   statGame = true
 
   for i in 1..settings.nrOfGames:
-    setupNewGame()
-    startNewGame()
+    setupGame()
+    startGame()
     echo "game nr: ",i
     while not gameWon:
         aiTakeTurn()

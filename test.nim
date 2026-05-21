@@ -1,41 +1,32 @@
 import sequtils
+import sugar
 
 type
-  PlanSquares = tuple[required,oneInMany:seq[int]]
-  CardKind* = enum Deed,Plan,Job,Event,News,Mission
-  BlueCard* = object
-    title*:string
-    case cardKind*:CardKind
-    of Plan,Mission,Job,Deed:
-      squares*:PlanSquares
-      cash*:int
-      eval*:int
-    of Event,News:
-      moveSquares*:seq[int]
-      bgPath*:string
+  DieFace* = enum 
+    DieFace1 = 1,DieFace2 = 2,DieFace3 = 3,
+    DieFace4 = 4,DieFace5 = 5,DieFace6 = 6
+  DiceMoves* = array[DieFace,tuple[moves:seq[Move],bestMove:Move,isWinningMove:bool]]
+  Move* = tuple[pieceNr,die,fromSquare,toSquare,eval:int]
 
+func isBestDieIn(dieQuery:DieFace,diceMoves:DiceMoves):bool =
+  if diceMoves[dieQuery].isWinningMove: 
+    true
+  elif diceMoves.anyIt it.isWinningMove: 
+    false
+  else:
+    let t = diceMoves.maxIndex (a,b) => a.bestMove.eval - b.bestMove.eval
+    var bestDie = DieFace1
+    for die in DieFace2..DieFace6:
+      if diceMoves[die].bestMove.eval > diceMoves[bestDie].bestMove.eval:
+        bestDie = die
+    dieQuery == bestDie
 
-let 
-  pieces = [1,1,1,33,36]
-  plan = BlueCard(
-    cardKind:Plan,
-    squares:(@[33,36],@[])
-  )
+var
+  moves:array[DieFace,Move]
 
-template requiredSquaresOk(pieces,card:untyped):untyped =
-  card.squares.required.deduplicate
-    .allIt pieces.count(it) >= card.squares.required.count it
+for i in DieFace:
+  moves[i].eval = i.ord
+  echo moves[i]
 
-template oneInManySquaresOk(pieces,card:untyped):untyped =
-  card.squares.oneInmany.len == 0 or 
-  pieces.anyIt it in card.squares.oneInMany
+echo DieFace(moves.maxIndex (a,b) => a.eval-b.eval)
 
-func isCashable*(pieces:openArray[int],card:BlueCard):bool =
-  (pieces.requiredSquaresOk card) and (pieces.oneInManySquaresOk card)
-
-func plans*(pieces:openArray[int],cards:seq[BlueCard]):tuple[cashable,notCashable:seq[BlueCard]] =
-  for card in cards:
-    if pieces.isCashable card: result.cashable.add card
-    else: result.notCashable.add card
-
-echo pieces.plans(@[plan])

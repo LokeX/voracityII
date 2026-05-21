@@ -12,10 +12,10 @@ const
 
 type
   DiceMoves* = array[DieFace,tuple[moves:seq[Move],bestMove:Move,isWinningMove:bool]]
-  EvalBoard* = array[61,int]
+  EvalBoard = array[61,int]
   Hypothetic* = tuple
-    board:array[61,int]
-    pieces:array[5,int]
+    board:EvalBoard
+    pieces:Pieces
     allPlayersPieces:seq[int]
     cards:seq[BlueCard]
     cash:int
@@ -92,7 +92,7 @@ func coversAll(pieces,squares:seq[int]):bool =
     pieces.remove(it).coversAll(squares[1..squares.high])
   )
 
-func cover(pieces,squares:seq[int]):bool = 
+template cover(pieces,squares:untyped):untyped = 
   if pieces.len < squares.len:
     false
   else: pieces.coversAll squares
@@ -146,12 +146,11 @@ func blueVals(hypothetical:Hypothetic,squares:openArray[int]):array[12,int] =
           piecesOn = requiredSquares.mapIt hypothetical.pieces.count it
           requiredPiecesOn = requiredSquares.mapIt card.squares.required.count it
           requiredIndexes = toSeq 0..requiredSquares.high
-          piecesVsRequired = requiredIndexes.mapIt piecesOn[it] - requiredPiecesOn[it]
           bonus = 
             (hypothetical.rewardValue(card) div card.squares.required.len)*
             (requiredIndexes.mapIt(min(piecesOn[it],requiredPiecesOn[it])).sum+1)
         for idx in requiredIndexes:
-          if squareIndexes[idx] != -1 and piecesVsRequired[idx] < 1:
+          if squareIndexes[idx] != -1 and piecesOn[idx]-requiredPiecesOn[idx] < 1:
             result[squareIndexes[idx]] += bonus
     elif card.squares.oneInMany.len == 0:
       if (let idx = squares.find(card.squares.required[0]); idx > -1):
@@ -269,10 +268,7 @@ func moves(hypothetical:Hypothetic,dice:openArray[int]):seq[Move] =
           result.add (pieceNr,die,fromSquare,toSquare,0)
 
 func bestMoveIn(hypothetical:Hypothetic,moves:seq[Move]):Move = 
-  var 
-    bestEval = 0
-    eval = 0
-    bestIndex = 0
+  var bestEval,eval,bestIndex:int
   for idx,move in moves:
     eval = hypothetical.evalMove(move.pieceNr,move.toSquare)
     if eval > bestEval:
@@ -307,21 +303,18 @@ func isBestDieIn(dieQuery:DieFace,diceMoves:DiceMoves):bool =
     true
   elif diceMoves.anyIt it.isWinningMove: 
     false
-  else:
-    var 
-      bestEval = 0
-      bestDie:DieFace
-    for die in DieFace:
-      if diceMoves[die].bestMove.eval > bestEval:
-        bestEval = diceMoves[die].bestMove.eval
+  else: 
+    var bestDie = DieFace1
+    for die in DieFace2..DieFace6:
+      if diceMoves[die].bestMove.eval > diceMoves[bestDie].bestMove.eval:
         bestDie = die
     dieQuery == bestDie
 
 func bestMoveWith(diceMoves:DiceMoves,dice:Dice):(bool,Move) =
-  let dieIndex = 
+  let bestDie = 
     if diceMoves[dice[1]].bestMove.eval >= diceMoves[dice[2]].bestMove.eval or 
     diceMoves[dice[1]].isWinningMove: 1 else: 2
-  (diceMoves[dice[dieIndex]].isWinningMove,diceMoves[dice[dieIndex]].bestMove)
+  (diceMoves[dice[bestDie]].isWinningMove,diceMoves[dice[bestDie]].bestMove)
 
 func bestMoveWith(hypothetical:Hypothetic,dice:Dice):(bool,Move) =
   let
@@ -349,7 +342,7 @@ proc aiShouldReroll*(hypothetical:Hypothetic,dice:Dice):bool =
 func barVal(hypothetical:Hypothetic):int = 
   let 
     legalPieces = hypothetical.legalPieces
-    cardVal = (3-hypothetical.cards.countIt(legalPieces.cover it))*30000
+    cardVal = (4-hypothetical.cards.countIt(legalPieces.cover it))*15000
   valBar-(3000*hypothetical.pieces.countIt(it.isBar))+cardVal
 
 func baseEvalBoard(hypothetical:Hypothetic):EvalBoard =

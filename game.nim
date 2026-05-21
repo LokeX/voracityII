@@ -312,7 +312,7 @@ proc newPlayers*:seq[Player] =
       cash:startCash,
       agro:rand 0..9
     )
-  result = playerSlots.filterIt it.kind != None
+  playerSlots.filterIt it.kind != None
 
 proc nextPlayerTurn* =
   turn.diceMoved = false
