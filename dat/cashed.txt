@@ -3,31 +3,31 @@ Stiffs: 31
 Ludomania: 33
 Broken bones: 42
 Safe bet: 29
-Grapevine: 51
+Grapevine: 52
 Sweethearts: 21
-Polterabend: 82
+Polterabend: 83
 Faulty towers: 40
-Loads of stuff: 67
+Loads of stuff: 68
 High society: 54
-Knocked out: 50
-Chicks in cages: 60
+Knocked out: 51
+Chicks in cages: 61
 Drugdealer: 41
-Trans-action: 25
-Secret weapon: 37
+Trans-action: 26
+Secret weapon: 38
 Moonshine: 88
 Outstanding: 49
 Containment: 56
 Deadweight: 28
-Hooters: 37
+Hooters: 38
 Brotherhood: 38
 Bail: 42
 Recycling: 36
 Specimens: 22
 Home invasion: 62
-Stove away: 32
-Grand designs: 45
-Demolition: 39
-Human resources: 60
+Stove away: 33
+Grand designs: 46
+Demolition: 40
+Human resources: 61
 Deadly cargo: 40
 Agent: 49
 Borderless: 33
@@ -51,43 +51,43 @@ Nose job: 38
 Insurgency: 38
 Outsider: 42
 Prescriptions: 42
-Bouncing: 61
+Bouncing: 62
 Side effects: 31
 Diamonds are...: 44
-Blood diamants: 31
+Blood diamants: 32
 Foreign aid: 48
-Color revolution: 36
+Color revolution: 37
 Acquittal: 37
-Financier: 28
+Financier: 29
 Underhanded: 41
 Up yours: 32
 Choireboys: 37
 Knock knock: 57
 Sing a long song: 62
 White collars: 19
-Broman escorte: 20
+Broman escorte: 21
 Cold meds: 54
 Et spiritus sancti: 59
-Occupational hazard: 44
+Occupational hazard: 45
 VIP Lounge: 33
 Small arms: 40
 Express demands: 38
 Ramtheft: 28
 Golden chains: 30
-Bodyguard: 21
+Bodyguard: 22
 Mayor: 39
 Homebrew: 41
 Meat grinder: 28
-Judicial murder: 24
+Judicial murder: 25
 Flay'em: 38
 Projects: 41
 Advisory board: 50
 Usery: 42
 Financing: 32
 Lucky bastard: 30
-Lipstick on a pig: 34
+Lipstick on a pig: 35
 Laundry: 31
-Debt to society: 35
+Debt to society: 36
 Transitions: 19
 Trance: 51
 Bodycount: 23
@@ -99,10 +99,10 @@ Heartless: 14
 Gangbangers: 30
 Aiding and abetting: 19
 Coup: 20
-Blood suckers: 24
+Blood suckers: 25
 Infiltration: 29
 Spy: 17
 Addictions: 17
 Corruption: 14
-Burial at sea: 32
+Burial at sea: 33
 Razia: 23

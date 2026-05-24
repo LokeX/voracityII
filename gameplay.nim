@@ -8,6 +8,7 @@ import sequtils
 import megasound
 import dialog
 import menu
+import eval
 
 type
   MoveSelection* = tuple
@@ -15,7 +16,6 @@ type
     toSquares:seq[int]
   Dims* = tuple[area:Area,rect:Rect]
   EventMoveFmt = tuple[fromSquare,toSquare:string]
-  SquareTexts = array[61,tuple[text:seq[string],spans:seq[Span]]]
   BoardSquares* = array[61,Square]
   Square* = tuple[nr:int,name:string,dims:Dims]
   AnimationMove* = tuple[fromSquare,toSquare:int]
@@ -59,35 +59,15 @@ const
   (tyo,byo) = (70.0,690.0)
   (lxo,rxo) = (70.0,1030.0)
 
-  asapCondensedItalic = "fonts\\AsapCondensed-Italic.ttf"
-
-  squareTextBatchInit = BatchInit(
-    kind:TextBatch,
-    name:"squaretext",
-    pos:(460,280),
-    padding:(15,75,8,15),
-    border:(2,0,color(1,1,1)),
-    font:(asapCondensedItalic,20.0,color(1,1,1)),
-    bgColor:color(0,0,0),
-    opacity:25,
-    shadow:(10,1.5,color(255,255,255,150))
-  )
-
 let
-  squareHeaderFont = setNewFont(ibmSemiBold,size = 16.0,color(50,50,0))
-  flavourFont = setNewFont("fonts\\AsapCondensed-Italic.ttf",size = 16.0,color(1,1,1))
   boardImg* = readImage "pics\\engboard.jpg"
 
 var 
   dialogBarMoves:seq[Move]
   moveAnimation*: MoveAnimations
-  squareTextBatch = newBatch squareTextBatchInit
-  squareTexts:SquareTexts
   squares*:BoardSquares
   moveSelection*:MoveSelection = (-1,-1,@[])
-  squareTimer* = 0
   mouseSquare* = -1
-  lastTextSquare = -1
   hoverSquare = -1
   dieRollFrame = maxRollFrames
   dieEdit:int
@@ -106,7 +86,7 @@ func squareDims:array[61,Dims] =
   for dim in result.mitems:
     dim.area = toArea(dim.rect.x+bx,dim.rect.y+by,dim.rect.w,dim.rect.h)
 
-proc buildBoardSquares*(board:Board):BoardSquares =
+proc buildBoardSquares(board:Board):BoardSquares =
   const squareDims = squareDims()
   for (nr,name) in board:
     if nr > 0:
@@ -159,7 +139,7 @@ proc drawSquares*(b:var Boxy) =
     b.drawMoveToSquares
   else: hoverSquare = -1
 
-proc pieceOn*(color:PlayerColor,squareNr:int):Rect =
+proc pieceOn(color:PlayerColor,squareNr:int):Rect =
   let
     r = squares[squareNr].dims.rect
     colorOffset = (color.ord*15).toFloat
@@ -167,7 +147,7 @@ proc pieceOn*(color:PlayerColor,squareNr:int):Rect =
   elif r.w == 35: Rect(x:r.x+5,y:r.y+6+colorOffset,w:r.w-10,h:12)
   else: Rect(x:r.x+6+colorOffset,y:r.y+5,w: 12,h:r.h-10)
 
-proc paintPieces*:Image =
+proc paintPieces:Image =
   var ctx = newImage(boardImg.width+50,boardImg.height).newContext
   ctx.font = ibmBold
   ctx.fontSize = 10
@@ -203,17 +183,6 @@ proc makeMoveFromSelection*(die:int = -1):Move =
   result.toSquare = moveSelection.toSquare
   result.pieceNr = turnPlayer.pieceOnSquare moveSelection.fromSquare
 
-proc selectPiece*(square:int) =
-  if not turn.diceMoved or square == 0 or square.isHighway:
-    if turnPlayer.hasPieceOn square:
-      hoverSquare = -1
-      moveSelection = (square,-1,turnPlayer.movesFrom(square))
-      moveToSquaresPainter.context = moveSelection.toSquares
-      moveToSquaresPainter.update = true
-      piecesImg.update = true
-      updateKeybar = true
-      playSound "carstart-1"
-
 proc eventMoveFmt(move:Move):EventMoveFmt =
   ("from:"&board[move.fromSquare].name&" Nr. "&($board[move.fromSquare].nr)&"\n",
    "to:"&board[move.toSquare].name&" Nr. "&($board[move.toSquare].nr)&"\n")
@@ -226,7 +195,6 @@ proc dialogEntries(moves:seq[Move],f:EventMoveFmt -> string):seq[string] =
 proc endBarMoveSelection(selection:string) =
   if (let toSquare = selection.splitWhitespace[^1].parseInt; toSquare != -1):
     moveSelection.toSquare = toSquare
-    # moveSelection.event = true
     selectedMove = makeMoveFromSelection()
     moveSelection.fromSquare = -1
     movePiece()
@@ -276,7 +244,6 @@ proc startKillDialog*(square:int) =
   let entries:seq[string] = @[
     "Remove piece on:\n",
     board[square].name&" Nr."&($board[square].nr)&"?\n",
-    # "Cash chance: "&cashChance.formatFloat(ffDecimal,2)&"%\n",
     "\n",
     "Yes\n",
     "No",
@@ -354,36 +321,6 @@ proc animateMoveSelection*(move:Move) =
 proc drawBoard*(b:var Boxy) =
   b.drawImage("board", boardPos)
 
-proc buildSquareTexts(path:string):SquareTexts =
-  var square = 0
-  for line in path.lines:
-    if line.startsWith("square:"):
-      square = line[7..line.high].splitWhitespace[^1].parseInt
-      result[square].text.add squares[square].name&" Nr. "&($squares[square].nr)
-    else: result[square].text.add line
-
-proc buildSquareTextSpans(square:int):seq[Span] =
-  for idx,text in squareTexts[square].text:
-    if idx == 0: 
-      result.add newSpan(text&"\n",squareHeaderFont)
-    elif idx == 1: 
-      result.add newSpan(text,flavourFont)
-    else: result[^1].text.add text
-    if idx < squareTexts[square].text.high:
-      result[^1].text.add "\n"
-
-proc drawSquareText*(b:var Boxy) =
-  if (mouseSquare > -1):
-    if mouseSquare != lastTextSquare:
-      squareTimer = 1 # times the timer tick of 0.4 secs
-      lastTextSquare = mouseSquare
-      squareTextBatch.setSpans squareTexts[mouseSquare].spans
-      squareTextBatch.update = true
-    b.drawBatch squareTextBatch
-  elif squareTimer > 0:
-    lastTextSquare = -1
-    b.drawBatch squareTextBatch
-
 proc editDiceRoll*(input:string) =
   if input.toUpper == "D": dieEdit = 1
   elif dieEdit > 0 and (let dieFace = try: input.parseInt except: 0; dieFace in 1..6):
@@ -424,8 +361,6 @@ proc startDiceRoll* =
       else: computerRoll
     playSound("wuerfelbecher")
 
-proc endDiceRoll* = dieRollFrame = maxRollFrames
-
 proc mayReroll*:bool = isDouble() and not isRollingDice()
 
 proc dieUsed*:int =
@@ -435,16 +370,40 @@ proc dieUsed*:int =
     moveSelection.fromSquare,diceRoll[2].ord): diceRoll[2].ord
   else: -1
 
-# proc createBoardTextFile* =
-#   let f = open("dat\\boardtxt.txt",fmWrite)
-#   for idx in 0..60:
-#     f.write("square:"&($idx)&"\nThis is a test text for square: "&($idx)&"\n")
+proc drawCard* =
+  drawCardFrom blueDeck
+  playCashPlansTo blueDeck
+  turnPlayer.hand = turnPlayer.sortBlues
+
+proc selectPiece*(square:int) =
+  if not turn.diceMoved or square == 0 or square.isHighway:
+    if turnPlayer.hasPieceOn square:
+      hoverSquare = -1
+      moveSelection = (square,-1,turnPlayer.movesFrom(square))
+      moveToSquaresPainter.context = moveSelection.toSquares
+      moveToSquaresPainter.update = true
+      piecesImg.update = true
+      updateKeybar = true
+      playSound "carstart-1"
+
+proc handleMoveSelection* =
+  if moveSelection.fromSquare == -1 or mouseSquare notIn moveSelection.toSquares:
+    selectPiece mouseSquare
+  elif moveSelection.fromSquare > -1:
+    moveSelection.toSquare = mouseSquare
+    turn.diceMoved = diceMoved(moveSelection.fromSquare,moveSelection.toSquare)
+    selectedMove = makeMoveFromSelection(dieUsed())
+    moveSelection.fromSquare = -1
+    movePiece()
+
+template isAiTurn*:untyped =
+  turn.nr != 0 and
+  turnPlayer.kind == Computer and
+  not isRollingDice() and
+  not moveAnimationActive()
 
 template initGamePlay* =
   addImage("board",boardImg)
   squares = buildBoardSquares board
-  squareTexts = buildSquareTexts "dat\\boardtxt.txt"
-  for square in 0..squareTexts.high:
-    squareTexts[square].spans = buildSquareTextSpans square
   for die in DieFace:
     addImage($die,("pics\\diefaces\\"&($die.ord)&".png").readImage)

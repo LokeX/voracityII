@@ -12,6 +12,8 @@ type
 const
   ibmBold* = "fonts\\IBMPlexMono-Bold.ttf"
   ibmSemiBold* = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
+  condensedRegular = "fonts\\AsapCondensed-Regular.ttf"
+  ibmPlexSansCondensedSemiBold = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
   showVolTime* = 2.4
   settingsFile* = "dat\\settings.cfg"
 
@@ -40,7 +42,12 @@ const
     "\n",
   ]
 
-  condensedRegular = "fonts\\AsapCondensed-Regular.ttf"
+  menuEntries = [
+    SetupMenu: @["Start Game\n","Quit Voracity"],
+    GameMenu: @["End Turn\n","New Game\n","Quit Voracity"],
+    LostGameMenu: @["New Game\n","Quit Voracity"],
+    WonGameMenu: @["New Game\n","Quit Voracity"],
+  ]
 
   titleBorder:Border = (size:0,angle:0,color:color(0,0,100))
   inputBorder:Border = (size:0,angle:0,color:color(0,0,100))
@@ -61,14 +68,6 @@ const
     border: (15,25,color(0,0,100)),
     shadow: (15,1.5,color(255,255,255,200))
   )
-
-  ibmPlexSansCondensedSemiBold = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
-  menuEntries = [
-    SetupMenu: @["Start Game\n","Quit Voracity"],
-    GameMenu: @["End Turn\n","New Game\n","Quit Voracity"],
-    LostGameMenu: @["New Game\n","Quit Voracity"],
-    WonGameMenu: @["New Game\n","Quit Voracity"],
-  ]
 
   selectorBorder:Border = (0,10,color(1,0,0))
   menuBatchInit = BatchInit(
@@ -115,7 +114,6 @@ var
   showVolume*:float
   showPanel* = true
   pieceSelected* = false
-
 
 proc setMenuTo*(kind:MenuKind) =
   oldBg = bgSelected
@@ -280,6 +278,9 @@ proc setVolume*(key:KeyboardEvent) =
   removeImg("volume")
   addImage("volume",paintVolume())
   showVolume = showVolTime
+
+proc menuShow*(show:bool) =
+  showMenu = show
 
 template initMenu* =
   addImage(logoImg,paintLogo())

@@ -156,7 +156,7 @@ proc paintIcon(square:Square):Image =
     )
   )
   ctx.drawImage(icon,0,0)
-  result = ctx.image
+  ctx.image
 
 func required(plan:BlueCard,squares:BoardSquares):seq[string] =
   let
@@ -480,19 +480,20 @@ proc drawCardsFooter*(b:var Boxy) =
       cardsFooter.update = true
     b.drawDynamicImage cardsFooter
 
-# proc cardImages:seq[Image] =
-#   let files = toSeq walkFiles "decks\\*.png"
-#   if files.len > 0:
-#     for f in files:
-#       result.add f.readImage
-#   else: 
-#     result = blueDeck.fullDeck.mapIt it.paintBlue
-#     for idx,img in result:
-#       img.writeFile "decks\\"&($idx)&".png"  
+proc handlePinnedCards*(m:KeyEvent) =
+  if m.leftMousePressed or m.rightMousePressed:
+    if mouseOn discardPileArea:
+      pinnedCards = Discard
+    elif turn.nr == 0 and mouseOn drawPileArea:
+      pinnedCards = AllDeck
+    else: pinnedCards = None
+
+proc discardCard* =
+  if (let slotNr = turnPlayer.mouseOnCardSlot; slotNr > -1):
+    turnPlayer.hand.playTo(blueDeck,slotNr)
 
 template initCards* =
   addImage("blueback",blueBack)
   for idx,img in blueDeck.fullDeck.mapIt it.paintBlue:
-  # for idx,img in cardImages():
     addImage(blueDeck.fullDeck[idx].title,img)
 

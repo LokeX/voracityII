@@ -350,9 +350,13 @@ template statsBatchVisible*:untyped =
   
 proc drawStats*(b:var Boxy) =
   if statsBatch.spansLength > 0:
-    let (mouseOver,spanEmpty) = (mouseOn(statsBatch),statsBatch.getSpanText(1).len == 1)
+    let 
+      mouseOver = mouseOn(statsBatch)
+      spanEmpty = statsBatch.getSpanText(1).len == 1
     if (mouseOver and spanEmpty) or (not mouseOver and not spanEmpty):
-      statsBatch.setSpanText(if mouseOn statsBatch: "  -   click to reset\n" else: "\n",1)
+      statsBatch.setSpanText(
+        if mouseOn statsBatch: "  -   click to reset\n" else: "\n",1
+      )
       statsBatch.update = true
     b.drawDynamicImage statsBatch
 
@@ -376,6 +380,19 @@ proc togglePlayerKind* =
     players[batchNr].update = true
     piecesImg.update = true
     updateStatsBatch()
+
+proc handlePlayerBatch*(m:KeyEvent) =
+  if mouseOnBatchPlayerNr != -1:
+    if turn.nr > 0: 
+      pinnedBatchNr = mouseOnBatchPlayerNr
+    elif m.rightMousePressed:
+      batchInputNr = mouseOnBatchPlayerNr
+    elif m.leftMousePressed: 
+      togglePlayerKind()
+  else:
+    pinnedBatchNr = -1
+    batchInputNr = -1
+    inputBatch.deleteInput
 
 template initReports* =
   playerBatches = newPlayerBatches()

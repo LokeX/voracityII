@@ -133,7 +133,7 @@ func newBlueCards(protoCards:seq[ProtoCard]):seq[BlueCard] =
       )
       card.cash = protoCard[3].parseInt
     result.add card
- 
+
 proc newDeck*(path:string):Deck =
   result = Deck(fullDeck:path.lines.toSeq.parseProtoCards.newBlueCards)
   result.drawPile = result.fullDeck

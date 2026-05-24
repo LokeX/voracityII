@@ -11,6 +11,7 @@ const
   posPercent = [1.0,0.3,0.3,0.3,0.3,0.3,0.3,0.15,0.14,0.12,0.10,0.08,0.05]
 
 type
+  # Required = tuple[required,oneInMany:array[12,int]]
   DiceMoves* = array[DieFace,tuple[moves:seq[Move],bestMove:Move,isWinningMove:bool]]
   EvalBoard = array[61,int]
   Hypothetic* = tuple
@@ -161,22 +162,20 @@ func blueVals(hypothetical:Hypothetic,squares:openArray[int]):array[12,int] =
         if square == card.squares.required[0] or square in card.squares.oneInMany:
           result[idx] += hypothetical.oneInMoreBonus(card,square,rewardValue)
 
+template requiredPiecesOn(cards,square:untyped):untyped =
+  if cards.len > 0: cards.mapIt(it.squares.required.count square).max else: 0
+
 func requiredPiecesOn(hypothetical:Hypothetic,square:int):int =
-  if hypothetical.cards.len > 0:
-    let required = hypothetical.cards.mapIt(it.squares.required.count square).max
-    if required > 0: 
-      return required
-    else:
-      let pieces = hypothetical.pieces.remove square
-      for card in hypothetical.cards:
-        if card.squares.oneInMany.len > 0 and square in card.squares.oneInMany:
-          if pieces.anyIt it in card.squares.oneInMany: 
-            return 0
-          else: return 1
+  if (result = hypothetical.cards.requiredPiecesOn(square); result == 0):
+    for card in hypothetical.cards:
+      if card.squares.oneInMany.len > 0:
+        if (let idx = card.squares.oneInMany.find(square); idx > -1):
+          var squares = card.squares.oneInMany
+          squares.del idx
+          return if hypothetical.pieces.anyIt it in squares: 0 else: 1
 
 func posPercentages(hypothetical:Hypothetic,squares:openArray[int]):array[12,float] =
-  var 
-    freePieces,freePiecesOnSquare:int
+  var freePieces,freePiecesOnSquare:int
   for i,square in squares:
     freePiecesOnSquare = hypothetical.pieces.count square
     if freePiecesOnSquare > 0:   
@@ -250,7 +249,7 @@ func friendlyFireAdviced(hypothetical:Hypothetic,move:Move):bool =
   hypothetical.pieces.count(move.toSquare) == 1 and 
   canKillPieceOn(move.toSquare) and
   hypothetical.allPlayersPieces.countIt(it == move.toSquare) == 1 and
-  hypothetical.requiredPiecesOn(move.toSquare) < 2 and
+  hypothetical.cards.requiredPiecesOn(move.toSquare) < 2 and
   hypothetical.friendlyFireBest(move)
 
 func evalMove(hypothetical:Hypothetic,pieceNr,toSquare:int):int =
@@ -431,7 +430,7 @@ proc sortBlues*(player:Player):seq[BlueCard] =
     result.add uncovered.mapIt it.card
 
 proc eventMovesEval*(player:Player,event:BlueCard):seq[Move] =
-  var hypothetical = player.hypotheticalInit
+  let hypothetical = player.hypotheticalInit
   for pieceNr in player.pieceNrsOnBars:
     for toSquare in event.moveSquares:
       result.add (
