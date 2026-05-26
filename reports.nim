@@ -11,7 +11,6 @@ import gameplay
 
 type 
   KillMatrix = array[PlayerColor,array[PlayerColor,int]]
-  ReportBatches = array[PlayerColor,Batch]
   BatchSetup = tuple
     name:string
     bgColor:PlayerColor
@@ -47,7 +46,7 @@ let
 
 var
   statsBatch = newBatch statsBatchInit
-  reportBatches:ReportBatches
+  reportBatches:array[PlayerColor,Batch]
   selectedBatch*:int
   mouseOnBatchPlayerNr* = -1
   pinnedBatchNr* = -1
@@ -168,7 +167,7 @@ template typeSetText(txt:untyped):untyped = typeset(
 template paintText(txt:untyped):untyped =
   img.fillText(typeSetText(txt),translate vec2(xPos.toFloat,yPos))
 
-proc paintKillText(img:Image,x,y,xo:int) =
+proc paintKillText(img:var Image,x,y,xo:int) =
   var 
     font = matrixFont
     playersKills:array[PlayerColor,tuple[font:Font,kills:int]]
@@ -232,56 +231,69 @@ proc initReportBatch:Batch =
     shadow:(10,1.75,color(255,255,255,100))
   )
 
-proc initReportBatches*:ReportBatches =
+proc initReportBatches:array[PlayerColor,Batch] =
   for i,batch in reportBatches.enum_mitems:
     batch = initReportBatch()
     batch.commands: batch.border.color = playerColors[PlayerColor(i)]
     result[PlayerColor(i)] = batch
 
-proc reports*(playerColor:PlayerColor):seq[TurnReport] =
-  turnReports.filterIt(it.player.color == playerColor)
-
-func reportLines(report:TurnReport):seq[string] = @[
+proc reportText(report:TurnReport):seq[string] = @[
   "Turn nr: "&($report.turnNr),
   "Player: "&($report.player),
   "Dice Rolls:\n"&report.diceRolls.mapIt($it).join("\n"),
   "Moves:\n"&report.moves.mapIt($it).join("\n"),
   "Kills: "&($report.kills),
-  "Cards:\n",
+  "Cards",
   "Played: "&report.cards.played.mapIt(it.title).join(","),
   "Cashed: "&report.cards.cashed.mapIt(it.title).join(","),
   "Discarded: "&report.cards.discarded.mapIt(it.title).join(","),
 ]
 
-proc reportSpansFrom(turnReport:TurnReport):seq[Span] =
-  for line in reportLines turnReport:
-    result.add newSpan(line&"\n",plainFont)
+proc finalReportText(hand,drawn:seq[BlueCard]):seq[string] = @[
+  "Drawn: "&drawn.mapIt(it.title).join(","),
+  "Hand: "&hand.mapIt(it.title).join(","),
+  "Press and hold alt-key to view players hand"
+]
 
-proc writeEndOfGameReports =
+proc latestTurnReport(player:Player):TurnReport =
+  if player.color == turnPlayer.color: 
+    return turnReport 
+  else:
+    for report in turnReports.reversed:
+      if player.color == report.player.color:
+        return report
+
+iterator finalReports:(PlayerColor,seq[string]) =
+  var turnReport:TurnReport
   for player in players:
-    let report = 
-      if player.color == turnPlayer.color: turnReport 
-      else: turnReports.filterIt(it.player.color == player.color)[^1]
-    var reportLines = report.reportLines
-    reportLines.add @[
-      "Drawn: "&report.cards.drawn.mapIt(it.title).join(","),
-      "Hand: "&player.hand.mapIt(it.title).join(","),
-      "Press and hold alt-key to view players hand"
-    ]
-    reportBatches[player.color].setSpans reportLines.mapIt newSpan(it&"\n",plainFont)
+    turnReport = player.latestTurnReport
+    yield (
+      player.color,
+      turnReport.reportText & 
+      finalReportText(player.hand,turnReport.cards.drawn)
+    )
 
-proc initReportBatchesTurn* =
-  reportBatches[turnPlayer.color].setSpans reportSpansFrom turnReport
-  reportBatches[turnPlayer.color].update = true
+template writeReportBatch(playerColor,reportText:untyped):untyped =
+  reportBatches[playerColor].setSpans reportText.mapIt newSpan(it&"\n",plainFont)
+  reportBatches[playerColor].update = true
 
-proc writeTurnReportUpdate* =
-  reportBatches[turnPlayer.color].setSpans reportSpansFrom turnReport
+proc updateReportBatches* =
   if turnPlayer.cash >= cashToWin:
-    writeEndOfGameReports()
-  reportBatches[turnPlayer.color].update = true
+    for playerColor,turnReportText in finalReports():
+      writeReportBatch playerColor,turnReportText
+  else: writeReportBatch turnPlayer.color,turnReport.reportText
 
-template gotReport*(player:PlayerColor):bool =
+proc resetReports* =
+  for batch in reportBatches.mitems:
+    batch.setSpans @[]
+  selectedBatch = -1
+  killMatrixPainter.update = true
+
+template gotReport*(player:PlayerColor):untyped =
   reportBatches[player].spansLength > 0
+
+proc reports*(playerColor:PlayerColor):seq[TurnReport] =
+  turnReports.filterIt(it.player.color == playerColor)
 
 proc drawReport*(b:var Boxy,playerColor:PlayerColor) =
   if selectedBatch == -1 or playerColor != PlayerColor(selectedBatch):
@@ -333,14 +345,6 @@ proc statsBatchSpans:seq[Span] =
         newSpan(stats.computerPercent&"%",robotoYellow),
       ]
 
-proc reportAnimationMoves*:seq[AnimationMove] =
-  if selectedBatchColor == turnPlayer.color:
-    result.add turnReport.moves.mapIt (it.fromSquare,it.toSquare)
-  elif selectedBatchColor.reports.len > 0: 
-    result.add selectedBatchColor
-    .reports[^1].moves
-    .mapIt (it.fromSquare,it.toSquare)
-
 proc updateStatsBatch* =
   statsBatch.setSpans statsBatchSpans()
   statsBatch.update = true
@@ -363,13 +367,7 @@ proc drawStats*(b:var Boxy) =
 template mouseOnStatsBatch*:bool =
   mouseOn statsBatch
 
-proc resetReports* =
-  for batch in reportBatches.mitems:
-    batch.setSpans @[]
-  selectedBatch = -1
-  killMatrixPainter.update = true
-
-proc togglePlayerKind* =
+proc togglePlayerKind =
   if (let batchNr = mouseOnPlayerBatchNr(); batchNr != -1) and turn.nr == 0:
     playerKinds[batchNr] = 
       case playerKinds[batchNr]:
@@ -393,6 +391,19 @@ proc handlePlayerBatch*(m:KeyEvent) =
     pinnedBatchNr = -1
     batchInputNr = -1
     inputBatch.deleteInput
+
+proc reportAnimationMoves*:seq[AnimationMove] =
+  if selectedBatchColor == turnPlayer.color:
+    result.add turnReport.moves.mapIt (it.fromSquare,it.toSquare)
+  elif selectedBatchColor.reports.len > 0: 
+    result.add selectedBatchColor
+    .reports[^1].moves
+    .mapIt (it.fromSquare,it.toSquare)
+
+proc handleReportMovesAnimations* =
+  if mouseOnBatchPlayerNr != -1 and mouseOnBatchColor.gotReport:
+    if (let moves = reportAnimationMoves(); moves.len > 0):
+        startMovesAnimations(mouseOnBatchColor,moves)
 
 template initReports* =
   playerBatches = newPlayerBatches()

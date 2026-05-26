@@ -11,7 +11,6 @@ const
   posPercent = [1.0,0.3,0.3,0.3,0.3,0.3,0.3,0.15,0.14,0.12,0.10,0.08,0.05]
 
 type
-  # Required = tuple[required,oneInMany:array[12,int]]
   DiceMoves* = array[DieFace,tuple[moves:seq[Move],bestMove:Move,isWinningMove:bool]]
   EvalBoard = array[61,int]
   Hypothetic* = tuple

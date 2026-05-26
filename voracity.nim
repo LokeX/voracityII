@@ -17,6 +17,7 @@ import gameplay
 
 proc configSetupGame =
   playerBatches = newPlayerBatches()
+  resetReports()
   piecesImg.update = true
   setMenuTo SetupMenu
   playSound "carhorn-1"
@@ -37,7 +38,7 @@ proc configGameWon =
     setMenuTo LostGameMenu
   updateKeybar = true
   turn.undrawnBlues = 0
-
+ 
 proc setConfigState(config:ConfigState) =
   case config:
   of StartGame: configStartGame()
@@ -74,7 +75,7 @@ proc menuSelection =
     of "Start Game","End Turn":
       nextGameState()
 
-proc humanLeftClick =
+proc humanPlayLeftClick =
   if turn.nr > 0 and mouseOnDice() and mayReroll():
     startDiceRoll()
   elif turn.undrawnBlues > 0 and mouseOn drawPileArea:
@@ -85,7 +86,7 @@ proc humanLeftClick =
     elif turnPlayer.hand.len > 3:
       discardCard()
 
-proc humanRightClick =
+proc humanPlayRightClick =
   if moveSelection.fromSquare != -1:
     moveSelection.fromSquare = -1
     piecesImg.update = true
@@ -94,7 +95,7 @@ proc humanRightClick =
     mainMenu.zoom = zoomImage 15
   else: nextGameState()
 
-proc aiRightClick =
+proc aiPlayRightClick =
   if phase == EndTurn:
     if showMenu:
       endTurn()
@@ -140,12 +141,12 @@ proc mouseClicked(m:KeyEvent) =
     if showMenu and mouseOnMenuSelection():
       menuSelection()
     elif turnPlayer.kind == Human:
-      humanLeftClick()
+      humanPlayLeftClick()
   elif m.rightMousePressed and batchInputNr == -1:
     if turn.nr > 0 and turnPlayer.kind == Computer:
-      aiRightClick()
+      aiPlayRightClick()
     else:
-      humanRightClick()
+      humanPlayRightClick()
     keybarPainter.update = true
 
 proc mouseMoved =
@@ -192,10 +193,8 @@ proc cycle =
 proc timer =
   if showVolume > 0: showVolume -= 0.4
   showCursor = not showCursor
-  if turn.nr > 0 and not moveAnimation.active and mouseOnBatchPlayerNr != -1:
-    if mouseOnBatchColor.gotReport:
-      if (let moves = reportAnimationMoves(); moves.len > 0):
-          startMovesAnimations(mouseOnBatchColor,moves)
+  if turn.nr > 0 and not moveAnimation.active:
+    handleReportMovesAnimations()
   # echo frames*2.5
   frames = 0
 
@@ -244,9 +243,9 @@ template initPlay =
   updatePieces = updatePiecesPainter
   updateUndrawnBlues = undrawnPainterUpdate
   updateKillMatrix = killMatrixUpdate
-  turnReportUpdate = writeTurnReportUpdate
-  turnReportBatchesInit = initReportBatchesTurn
-  resetReportsUpdate = resetReports
+  reportBatchesUpdate = updateReportBatches
+  # turnReportBatchesInit = initReportBatchesTurn
+  # resetReportsUpdate = resetReports
   runMoveAnimation = animateMoveSelection
 
 template initSettings =

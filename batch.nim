@@ -204,6 +204,7 @@ proc setDimensions*(batch:Batch) =
   batch.area = batch.batchArea
   batch.rect = batch.area.toRect
   batch.background = batch.paintBackground
+  # batch.update = true
 
 proc cursorRect(batch:Batch):Rect =
   let 
@@ -439,6 +440,10 @@ proc setSpans*(batch:Batch,spans:seq[Span]) =
   batch.text.spans = spans
   batch.setDimensions
 
+proc addSpans*(batch:Batch,spans:seq[Span]) =
+  batch.text.spans.add spans
+  batch.setDimensions
+
 proc setSpanText*(batch:Batch,text:string,idx:int) =
   if idx < batch.text.spans.len and idx >= 0:
     batch.text.spans[idx].text = text
@@ -447,6 +452,9 @@ proc setSpanText*(batch:Batch,text:string,idx:int) =
 proc getSpanText*(batch:Batch,idx:int):string =
   if idx < batch.text.spans.len and idx >= 0:
     result = batch.text.spans[idx].text
+
+proc getSpanTexts*(batch:Batch):seq[string] =
+  batch.text.spans.mapIt it.text
 
 proc setShallowPos*(batch:Batch,x,y:float32) =
   batch.rect.x = x

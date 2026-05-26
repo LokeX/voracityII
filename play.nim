@@ -22,13 +22,12 @@ type
 var
   # Interface controls
   runMoveAnimation*:proc(move:Move)
-  resetReportsUpdate*:proc()
   updatePieces*:proc()
   menuControl*:proc(show:bool)
   updateKillMatrix*:proc()
-  turnReportUpdate*:proc()
+  reportBatchesUpdate*:proc()
   updateUndrawnBlues*:proc()
-  turnReportBatchesInit*:proc()
+  # turnReportBatchesInit*:proc()
   rollTheDice*:proc()
   runSelectBar*:proc(dialogMoves:seq[Move])
   killDialog*:proc(square:int)
@@ -72,13 +71,9 @@ template showMenu(show:bool) =
   if menuControl != nil:
     menuControl show
 
-template reportUpdateReset =
-  if resetReportsUpdate != nil:
-    resetReportsUpdate()
-
-template updateTurnReport =
-  if turnReportUpdate != nil:
-    turnReportUpdate()
+template updateTurnReportBatches =
+  if reportBatchesUpdate != nil:
+    reportBatchesUpdate()
 
 template moveAnimation(move:Move) =
   if runMoveAnimation != nil:
@@ -88,9 +83,9 @@ template playSound(s:string) =
   if not statGame:
     soundToPlay.add s
 
-template initTurnReportBatches =
-  if turnReportBatchesInit != nil:
-    turnReportBatchesInit()
+# template initTurnReportBatches =
+#   if turnReportBatchesInit != nil:
+#     turnReportBatchesInit()
 
 template killMatrixUpdate =
   if updateKillMatrix != nil:
@@ -104,32 +99,33 @@ template updatePiecesPainter =
   if updatePieces != nil:
     updatePieces()
 
-proc initTurnReport* =
+proc initTurnReport =
   turnReport = TurnReport()
   turnReport.turnNr = turnPlayer.turnNr
   turnReport.player.color = turnPlayer.color
   turnReport.player.kind = turnPlayer.kind
-  initTurnReportBatches()
+  # initTurnReportBatches()
+  updateTurnReportBatches()
 
-proc updateTurnReport*[T](item:T) =
+proc updateTurnReport[T](item:T) =
   if recordStats:
     when typeOf(T) is Move: 
       turnReport.moves.add item
     when typeof(T) is PlayerColor: 
       turnReport.kills.add item
       killMatrixUpdate()
-    updateTurnReport()
+    updateTurnReportBatches()
 
-proc updateTurnReportCards*(blues:seq[BlueCard],playedCard:PlayedCard) =
+proc updateTurnReportCards(blues:seq[BlueCard],playedCard:PlayedCard) =
   if recordStats:
     case playedCard:
       of Drawn: turnReport.cards.drawn.add blues
       of Played: turnReport.cards.played.add blues
       of Cashed: turnReport.cards.cashed.add blues
       of Discarded: turnReport.cards.discarded.add blues
-    updateTurnReport()
+    updateTurnReportBatches()
 
-proc recordTurnReport* =
+proc recordTurnReport =
   if recordStats:
     turnReport.cards.hand = turnPlayer.hand
     turnReport.cash = turnPlayer.cash
@@ -286,12 +282,12 @@ proc startGame* =
   turnReports.setLen 0
   initTurnReport()
   setConfigStateTo StartGame
-  reportUpdateReset()
   gameWon = false
 
 proc nextTurn =
   playSound "page-flip-2"
   updateTurnReportCards(turnPlayer.discardCards blueDeck, Discarded)
+  turnPlayer.update = true
   recordTurnReport()
   nextPlayerTurn()
   initTurnReport()
