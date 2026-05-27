@@ -7,7 +7,6 @@ import reports
 import sequtils
 import strutils
 import misc
-# import os
 
 type
   Reveal = enum Front,Back
@@ -44,7 +43,6 @@ const
   initPosDim = Rect(x:1580.0,y:50.0,w:cardWidth,h:cardHeight)
   cardSlotsX = initPosDim.buildCardSlots
 
-# let
   headerInit = BatchInit(
     kind:TextBatch,
     name:"header",
@@ -100,6 +98,7 @@ var
   altPressed*:bool
   pinnedCards*:Pinned
   reveal*:bool
+
   nrOfUndrawnBluesPainter* = DynamicImage[void](
     name: "undrawBlues",
     rect: Rect(x:855,y:495),
@@ -341,7 +340,7 @@ iterator cardSlots(cards:seq[BlueCard]):(BlueCard,CardSlot) =
       inc i
 
 proc mouseOnCardSlot*(player:Player):int =
-  for (_,slot) in player.hand.cardSlots:
+  for _,slot in player.hand.cardSlots:
     if mouseOn slot.area: return
     inc result
   result = -1
@@ -373,41 +372,43 @@ func lastDrawnCardNr(deck:Deck):int =
       return i
   -1
 
-var
-  zoomImg,rotateImg:proc:float32
-  popUpCardName,lastName:string
-  center = popUpCardRect.rectCenter()
+proc animateCards:auto =
+  var
+    zoomImg,rotateImg:proc:float32
+    popUpCardName,lastName:string
+    center = popUpCardRect.rectCenter()
 
-proc paintCards(b:var Boxy,deck:Deck,cards:seq[BlueCard],show:Reveal = Front) =
-  popUpCardName.setLen 0
-  if show == Front and deck.lastDrawn.len > 0 and mouseOn drawPileArea:
-    popUpCardName = deck.lastDrawn
-    if (let cardNr = deck.lastDrawnCardNr; cardNr != -1):
-      b.drawCardSquares deck.fullDeck[cardNr]
-  if deck.discardPile.len > 0:
-    b.drawImage(deck.discardPile[^1].title, discardPileRect)
-    if mouseOn discardPileArea:
-      popUpCardName = deck.discardPile[^1].title
-      b.drawCardSquares deck.discardPile[^1]
-  for (card,slot) in cards.cardSlots:
-    if show == Back:
-      b.drawImage("blueback",slot.rect)
-    else:
-      b.drawImage(card.title,slot.rect)
-    if show == Front and mouseOn slot.area:
-      popUpCardName = card.title
-      b.drawCardSquares card
-  if popUpCardName.len > 0:
-    if lastName != popUpCardName:
-      zoomImg = zoomImage(frames = 20)
-      rotateImg = rotateImage(frames = 20)
-    b.drawImage(popUpCardName,center,rotateImg(),scale = zoomImg())
-  lastName = popUpCardName
+  return proc(b:var Boxy,deck:Deck,cards:seq[BlueCard],show:Reveal = Front) =
+    popUpCardName.setLen 0
+    if show == Front and deck.lastDrawn.len > 0 and mouseOn drawPileArea:
+      popUpCardName = deck.lastDrawn
+      if (let cardNr = deck.lastDrawnCardNr; cardNr != -1):
+        b.drawCardSquares deck.fullDeck[cardNr]
+    if deck.discardPile.len > 0:
+      b.drawImage(deck.discardPile[^1].title, discardPileRect)
+      if mouseOn discardPileArea:
+        popUpCardName = deck.discardPile[^1].title
+        b.drawCardSquares deck.discardPile[^1]
+    for (card,slot) in cards.cardSlots:
+      if show == Back:
+        b.drawImage("blueback",slot.rect)
+      else:
+        b.drawImage(card.title,slot.rect)
+      if show == Front and mouseOn slot.area:
+        popUpCardName = card.title
+        b.drawCardSquares card
+    if popUpCardName.len > 0:
+      if lastName != popUpCardName:
+        zoomImg = zoomImage(frames = 20)
+        rotateImg = rotateImage(frames = 20)
+      b.drawImage(popUpCardName,center,rotateImg(),scale = zoomImg())
+    lastName = popUpCardName
+let paintCards = animateCards()
 
 proc cashedCards:seq[BlueCard] =
-  result.add selectedBatchColor.reports.mapIt(it.cards.cashed).flatMap
+  result.add selectedBatchColor.reports.mapIt(it.cards.played[Cashed]).flatMap
   if selectedBatchColor == turnPlayer.color:
-    result.add turnReport.cards.cashed
+    result.add turnReport.cards.played[Cashed]
 
 template drawSelectedPlayersHand:untyped =
   altPressed and pinnedBatchNr == -1 and turnPlayer.cash >= cashToWin

@@ -9,7 +9,7 @@ type
   PlayerKind* = enum Human,Computer,None
   Move* = tuple[pieceNr,die,fromSquare,toSquare,eval:int]
   CashedCards* = seq[tuple[title:string,count:int]]  
-  PlayedCard* = enum Drawn,Played,Cashed,Discarded
+  PlayedKind* = enum Drawn,Played,Cashed,Discarded
   SquareKind = enum GasStation,Highway,Bar,Other
   Board* = array[61,tuple[nr:int,name:string]]
   PlayerColor* = enum Red,Green,Blue,Yellow,Black,White

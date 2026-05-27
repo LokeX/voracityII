@@ -28,6 +28,8 @@ type
     squares:seq[int]
 
 const
+  ibmBold = "fonts\\IBMPlexMono-Bold.ttf"
+
   playerColors*:array[PlayerColor,Color] = [
     color(50,0,0),color(0,50,0),
     color(0,0,50),color(50,50,0),
@@ -164,7 +166,7 @@ proc paintPieces:Image =
       if nrOfPiecesOnSquare > 1:
         ctx.fillStyle = contrastColors[player.color]
         ctx.fillText($nrOfPiecesOnSquare,piece.x+2,piece.y+10)
-  result = ctx.image
+  ctx.image
 
 var
   piecesImg* = DynamicImage[void](
@@ -349,8 +351,8 @@ proc drawDice*(b:var Boxy) =
     b.rotateDie(1)
     b.rotateDie(2)
     inc dieRollFrame
-    if dieRollFrame == maxRollFrames:
-      turnReport.diceRolls.add diceRoll #please: don't do as I do
+    # if dieRollFrame == maxRollFrames:
+    #   turnReport.diceRolls.add diceRoll #please: don't do as I do
 
 proc isRollingDice*:bool = dieRollFrame < maxRollFrames
 

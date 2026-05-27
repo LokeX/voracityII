@@ -40,8 +40,8 @@ var
 proc getLoneAlias:string =
   for i in 0..playerHandles.high:
     if playerKinds[i] == Human and playerHandles[i].len > 0:
-      if result.len > 0: 
-        if result != playerHandles[i]: 
+      if result.len > 0:
+        if result != playerHandles[i]:
           return ""
       else: result = playerHandles[i]
 
@@ -56,7 +56,7 @@ proc kindCounts(kinds:openArray[PlayerKind]):KindCounts =
 
 proc match(stats:Stats,aliasCounts:AliasCounts):bool =
   for (alias,count) in aliasCounts:
-    if stats.aliases.count(alias) != count: 
+    if stats.aliases.count(alias) != count:
       return
   true
 
@@ -67,7 +67,7 @@ proc match(stats:Stats,kindCounts:KindCounts):bool =
   true
 
 template selectWith(selector,selectionCode:untyped) =
-  let 
+  let
     kindCounts {.inject.} = playerKinds.kindCounts
     aliasCounts {.inject.} = playerHandles.aliasCounts
   for selector in gameStats:
@@ -84,8 +84,8 @@ proc noneMatchingStats*:seq[Stats] =
       result.add stats
 
 proc getMatchingStats*:MatchingStats =
-  if gameStats.len > 0: 
-    let 
+  if gameStats.len > 0:
+    let
       loneAlias = getLoneAlias()
       matches = statsMatches()
     if matches.len > 0:
@@ -101,7 +101,7 @@ proc getMatchingStats*:MatchingStats =
       result.humanPercent = ((result.humanWins.toFloat/matches.len.toFloat)*100)
         .formatFloat(ffDecimal,2)
 
-proc newGameStats*:GameStats[string,PlayerKind] = 
+proc newGameStats*:GameStats[string,PlayerKind] =
   GameStats[string,PlayerKind](
     turnCount:turnReport.turnNr,
     playerKinds:playerKinds,
@@ -113,7 +113,7 @@ proc newGameStats*:GameStats[string,PlayerKind] =
 proc reportedCashedCards*:CashedCards =
   let titles = collect:
     for report in turnReports:
-      for card in report.cards.cashed: card.title
+      for card in report.cards.played[Cashed]: card.title
   for title in titles.deduplicate:
     result.add (title,titles.count title)
 
@@ -133,7 +133,7 @@ proc readVisitsFile(path:string):array[1..60,int] =
 func allSquareVisits(reportVisits,fileVisits:array[1..60,int]):array[1..60,int] =
   for idx in 1..60:
     result[idx] = reportVisits[idx] + fileVisits[idx]
-    
+
 proc writeSquareVisitsTo*(path:string) =
   var squareVisits:seq[string]
   for i,visits in allSquareVisits(turnReports.reportedVisitsCount,readVisitsFile path):
@@ -153,7 +153,7 @@ proc allCashedCards(path:string):CashedCards =
     if (let idx = result.mapIt(it.title).find card.title; idx != -1):
       result[idx].count = card.count+result[idx].count
     else: result.add card
-  
+
 proc writeCashedCardsTo*(path:string) =
   writeFile(
     path,allCashedCards(path)
@@ -163,7 +163,7 @@ proc writeCashedCardsTo*(path:string) =
 
 func aliasToChars(alias:string):Alias =
   for i,ch in alias:
-    if i < result.len: 
+    if i < result.len:
       result[i] = ch
       if i == alias.high and i < result.high:
         result[i+1] = '\n'
@@ -187,12 +187,12 @@ proc toFileStats*(stats:GameStats[string,PlayerKind]):GameStats[Alias,int] =
   )
 
 func aliasToString(alias:Alias):string =
-  for ch in alias: 
+  for ch in alias:
     if ch != '\n': result.add ch
     else: return
 
 func ordToKind(ks:array[6,int]):array[6,PlayerKind] =
-  for i,kind in ks: 
+  for i,kind in ks:
     result[i] = PlayerKind(kind)
 
 func toStrings(aliases:array[6,Alias]):array[6,string] =
@@ -246,20 +246,20 @@ when isMainModule:
       result.nrOfGames = prms[0]
     elif prms.len > 1: (result.nrOfGames,result.nrOfPlayers) = (prms[0],prms[1])
 
-  const 
+  const
     fileName = "dat\\statlog.txt"
 
-  let 
+  let
     time = cpuTime()
     settings = setSettings getParams()
-  
+
   var
     visitsCount:array[1..60,int]
     cashedCards:CashedCards
 
   func indexOf(cards:CashedCards,title:string):int =
     for i,card in cards:
-      if card.title == title: 
+      if card.title == title:
         return i
     -1
 
@@ -302,6 +302,7 @@ when isMainModule:
       playerKinds[i] = Computer
     else: playerKinds[i] = None
   statGame = true
+  verbose = true
 
   for i in 1..settings.nrOfGames:
     setupGame()
@@ -312,8 +313,12 @@ when isMainModule:
     endGame()
     if recordStats:
       gameStats.add newGameStats()
-      addVisits turnReports.reportedVisitsCount 
+      addVisits turnReports.reportedVisitsCount
       addCards reportedCashedCards()
+      # echo "played cards test"
+      # echo "drawn cards:"
+      # # echo turnReport.cardsPlayed.played[Drawn].mapIt(it.title).join "\n"
+      # echo turnReport.cards.drawn.mapIt(it.title).join "\n"
 
   if recordStats:
     let
@@ -321,7 +326,7 @@ when isMainModule:
       visits = visitsCountStr()
       stats = statsStr time
     writeFile(fileName,cards&visits&stats)
-    echo cards
-    echo visits
+    # echo cards
+    # echo visits
     echo stats
     echo "Wrote to file: "&fileName

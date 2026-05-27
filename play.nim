@@ -4,6 +4,7 @@ import sequtils
 import eval
 import random
 import times
+import strutils
 
 type
   Phase* = enum Await,Draw,Roll,AiMove,EndTurn
@@ -14,10 +15,9 @@ type
     player*:tuple[color:PlayerColor,kind:PlayerKind]
     diceRolls*:seq[Dice]
     moves*:seq[Move]
-    cards*:tuple[drawn,played,cashed,discarded,hand:seq[BlueCard]]
+    cards*:tuple[played:array[PlayedKind,seq[BlueCard]],hand:seq[BlueCard]]
     kills*:seq[PlayerColor]
     cash*:int
-    agro*:int
 
 var
   # Interface controls
@@ -27,12 +27,12 @@ var
   updateKillMatrix*:proc()
   reportBatchesUpdate*:proc()
   updateUndrawnBlues*:proc()
-  # turnReportBatchesInit*:proc()
   rollTheDice*:proc()
   runSelectBar*:proc(dialogMoves:seq[Move])
   killDialog*:proc(square:int)
 
   # Interface flags
+  verbose* = false
   recordStats* = true
   updateKeybar*:bool
   gameWon*:bool
@@ -83,10 +83,6 @@ template playSound(s:string) =
   if not statGame:
     soundToPlay.add s
 
-# template initTurnReportBatches =
-#   if turnReportBatchesInit != nil:
-#     turnReportBatchesInit()
-
 template killMatrixUpdate =
   if updateKillMatrix != nil:
     updateKillMatrix()
@@ -100,53 +96,75 @@ template updatePiecesPainter =
     updatePieces()
 
 proc initTurnReport =
-  turnReport = TurnReport()
-  turnReport.turnNr = turnPlayer.turnNr
-  turnReport.player.color = turnPlayer.color
-  turnReport.player.kind = turnPlayer.kind
-  # initTurnReportBatches()
-  updateTurnReportBatches()
+  if recordStats or not statGame:
+    turnReport = TurnReport()
+    turnReport.turnNr = turnPlayer.turnNr
+    turnReport.player.color = turnPlayer.color
+    turnReport.player.kind = turnPlayer.kind
+    updateTurnReportBatches()
 
-proc updateTurnReport[T](item:T) =
-  if recordStats:
-    when typeOf(T) is Move: 
+proc updateTurnReport[T](item:T,play:PlayedKind = Drawn) =
+  if recordStats or not statGame:
+    when typeOf(T) is Move:
       turnReport.moves.add item
-    when typeof(T) is PlayerColor: 
+    when typeOf(T) is Dice:
+      turnReport.diceRolls.add item
+    when typeof(T) is PlayerColor:
       turnReport.kills.add item
       killMatrixUpdate()
+    when typeof(T) is BlueCard | seq[BlueCard]:
+      turnReport.cards.played[play].add item
     updateTurnReportBatches()
 
-proc updateTurnReportCards(blues:seq[BlueCard],playedCard:PlayedCard) =
-  if recordStats:
-    case playedCard:
-      of Drawn: turnReport.cards.drawn.add blues
-      of Played: turnReport.cards.played.add blues
-      of Cashed: turnReport.cards.cashed.add blues
-      of Discarded: turnReport.cards.discarded.add blues
-    updateTurnReportBatches()
+proc moveStr(fromSquare,toSquare,die:int):string =
+  "    Die: " & $die &
+  ", from: "&board[fromSquare].name&" Nr. " & $board[fromSquare].nr &
+  ", to: "&board[toSquare].name&" Nr. " & $board[toSquare].nr
+
+proc dumpTurnReport =
+  if verbose:
+    echo ""
+    echo $turnReport.player.color
+    echo "Turn: ",turnReport.turnNr
+    echo "  diceRolls:"
+    echo turnReport.diceRolls.mapIt("    " & $it).join "\n"
+    echo "  Moves:"
+    echo turnReport.moves.mapIt(moveStr(it.fromSquare,it.toSquare,it.die)).join "\n"
+    echo "  Cards:"
+    let playedCards = turnReport.cards.played
+    for playKind in PlayedKind:
+      echo "    " & $playKind,": ",playedCards[playKind].mapIt(it.title).join ","
+    echo "  Cash: ",turnReport.cash
+    if turnReport.cash >= cashToWin:
+      echo ""
+      echo "Gameover"
+      echo ""
 
 proc recordTurnReport =
-  if recordStats:
+  if recordStats or not statGame:
     turnReport.cards.hand = turnPlayer.hand
     turnReport.cash = turnPlayer.cash
-    turnReport.agro = turnPlayer.agro
     turnReports.add turnReport
+    dumpTurnReport()
 
 proc playCashPlansTo*(deck:var Deck) =
   let
     initialCash = turnPlayer.cash
     cashedPlans = turnPlayer.cashInPlansTo deck
   if cashedPlans.len > 0:
-    updateTurnReportCards(cashedPlans,Cashed)
+    updateTurnReport(cashedPlans,Cashed)
     turnPlayer.update = true
     playSound "coins-to-table-2"
     if initialCash < cashToWin and turnPlayer.cash >= cashToWin:
       setConfigStateTo GameWon
-      echo "game won : ",turnPlayer.cash
+      if not verbose:
+        echo "game won : ",turnPlayer.cash," cash, in ",turnPlayer.turnNr," turns"
       gameWon = true
     else:
       turn.undrawnBlues += cashedPlans.mapIt(
-        if it.squares.required.len == 1: 2 else: 1
+        if it.squares.required.len == 1: 2
+        elif it.squares.required.len < 4: 1
+        else: 0
       ).sum
       undrawnBluesUpdate()
 
@@ -165,13 +183,18 @@ proc playDejaVue =
   playSound "SCARYBEL-1"
   turnPlayer.hand.add blueDeck.discardPile[^2]
   delete(blueDeck.discardPile,blueDeck.discardPile.high - 1)
-  blueDeck.lastDrawn = turnPlayer.hand[^1].title
-  if turnPlayer.hand.len > 0: 
-    case turnPlayer.hand[^1].cardKind:
+  let blue = turnPlayer.hand[^1]
+  var action = Played
+  blueDeck.lastDrawn = blue.title
+  updateTurnReport(blue,Drawn)
+  if turnPlayer.hand.len > 0:
+    case blue.cardKind:
       of Event: playEvent()
       of News: playNews()
-      else:discard
-
+      else: action = Drawn
+    if action == Played:
+      updateTurnReport(blue,Played)
+    
 proc playMassacre =
   if (let playerBars = turnPlayer.piecesOnBars.deduplicate; playerBars.len > 0):
     let
@@ -203,25 +226,27 @@ proc playEvent =
       playSound "can-open-1"
       blueDeck.shufflePiles
       turn.undrawnBlues += 1
-    of "Happy hour": 
+    of "Happy hour":
       playSound "aplauze-1"
       turn.undrawnBlues += 3
     of "Massacre": playMassacre()
-    of "Deja vue": 
-      if blueDeck.discardPile.len > 1: 
+    of "Deja vue":
+      if blueDeck.discardPile.len > 1:
         playDejaVue()
     else: event.barMove
   playCashPlansTo blueDeck
 
 proc drawCardFrom*(deck:var Deck) =
   turnPlayer.hand.drawFrom deck
-  var action:PlayedCard = Played
+  var action = Played
   let blue = turnPlayer.hand[^1]
+  updateTurnReport(blue,Drawn)
   case blue.cardKind:
     of Event: playEvent()
     of News: playNews()
     else: action = Drawn
-  updateTurnReportCards(@[blue],action)
+  if action == Played:
+    updateTurnReport(blue,Played)
   dec turn.undrawnBlues
   undrawnBluesUpdate()
   turnPlayer.update = true
@@ -231,7 +256,7 @@ proc move =
   selectedMove.moveAnimation()
   updateTurnReport selectedMove
   turnPlayer.pieces[selectedMove.pieceNr] = selectedMove.toSquare
-  if selectedMove.fromSquare == 0: 
+  if selectedMove.fromSquare == 0:
     turnPlayer.cash -= piecePrice
   playCashPlansTo blueDeck
   if not statGame:
@@ -256,9 +281,9 @@ proc decideKillAndMove*(confirmedKill:string) =
 proc movePiece =
   killPiece = players.singlePieceOn selectedMove.toSquare
   if killPiece.playerNr != -1 and canKillPieceOn selectedMove.toSquare:
-    if turnPlayer.kind == Human: 
+    if turnPlayer.kind == Human:
       startKillDialog selectedMove.toSquare
-    else: 
+    else:
       decideKillAndMove(
         if turnPlayer.aiShouldRemovePiece selectedMove: "Yes" else: "No"
       )
@@ -286,28 +311,28 @@ proc startGame* =
 
 proc nextTurn =
   playSound "page-flip-2"
-  updateTurnReportCards(turnPlayer.discardCards blueDeck, Discarded)
+  updateTurnReport(turnPlayer.discardCards blueDeck, Discarded)
   turnPlayer.update = true
   recordTurnReport()
   nextPlayerTurn()
   initTurnReport()
-  if anyHuman players: 
+  if anyHuman players:
     showMenu false
   playCashPlansTo blueDeck
 
 proc nextGameState* =
-  if turnPlayer.cash >= cashToWin: 
+  if turnPlayer.cash >= cashToWin:
     endGame()
   else:
-    if turn.nr == 0: 
+    if turn.nr == 0:
       startGame()
-    else: 
+    else:
       nextTurn()
     if statGame: rollDice()
     else: startDiceRoll()
   playSound "carhorn-1"
 
-proc aiStartTurn = 
+proc aiStartTurn =
   hypo = hypotheticalInit(turnPlayer)
   playCashPlansTo blueDeck
   if hypo.legalPieces.len == 0:
@@ -327,6 +352,7 @@ proc aiRollPhase =
   if statGame:
     if not diceReroll.isPausing or hypo.aiShouldReroll diceRoll:
       rollDice()
+      updateTurnReport diceRoll
       diceReroll.isPausing = true # appropriating an existing flag - don't EVER do that ;-)
     else:
       diceReroll.isPausing = false
@@ -335,7 +361,8 @@ proc aiRollPhase =
     diceReroll.isPausing = false
     startDiceRoll()
   elif not diceReroll.isPausing:
-    if hypo.aiShouldReroll diceRoll: 
+    updateTurnReport diceRoll
+    if hypo.aiShouldReroll diceRoll:
       diceReroll.isPausing = true
       diceReroll.pauseStartTime = cpuTime()
     else: phase = AiMove
@@ -343,14 +370,14 @@ proc aiRollPhase =
 proc aiMovePhase =
   if hypo.legalPieces.len > 0:
     selectedMove = hypo.bestMove diceRoll
-    if selectedMove.pieceNr > -1: 
+    if selectedMove.pieceNr > -1:
       movePiece()
       aiDrawPhase()
       turnPlayer.hand = turnPlayer.sortBlues
   else: echo $turnPlayer.color&" has no pieces to move"
   phase = EndTurn
 
-proc endTurn* = 
+proc endTurn* =
   phase = Await
   nextGameState()
 

@@ -244,9 +244,9 @@ proc reportText(report:TurnReport):seq[string] = @[
   "Moves:\n"&report.moves.mapIt($it).join("\n"),
   "Kills: "&($report.kills),
   "Cards",
-  "Played: "&report.cards.played.mapIt(it.title).join(","),
-  "Cashed: "&report.cards.cashed.mapIt(it.title).join(","),
-  "Discarded: "&report.cards.discarded.mapIt(it.title).join(","),
+  "Played: "&report.cards.played[Played].mapIt(it.title).join(","),
+  "Cashed: "&report.cards.played[Cashed].mapIt(it.title).join(","),
+  "Discarded: "&report.cards.played[Discarded].mapIt(it.title).join(","),
 ]
 
 proc finalReportText(hand,drawn:seq[BlueCard]):seq[string] = @[
@@ -270,7 +270,7 @@ iterator finalReports:(PlayerColor,seq[string]) =
     yield (
       player.color,
       turnReport.reportText & 
-      finalReportText(player.hand,turnReport.cards.drawn)
+      finalReportText(player.hand,turnReport.cards.played[Drawn])
     )
 
 template writeReportBatch(playerColor,reportText:untyped):untyped =

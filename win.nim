@@ -318,7 +318,6 @@ window.onFrame = proc() =
       call.draw(bxy)
     bxy.endFrame()
     window.swapBuffers()
-    # bxy.addImage
 
 window.onRune = proc(rune:Rune) =
   var button:Button

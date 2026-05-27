@@ -1,0 +1,16 @@
+// Folder-specific settings
+//
+// For a full list of overridable settings, and general information on folder-specific settings,
+// see the documentation: https://zed.dev/docs/configuring-zed#settings-files
+{
+  "lsp": {
+    "nim": {
+      "binary": {
+        "path": "C:/Users/perni/.nimble/bin./nimlangserver.cmd"
+        // "path": "C:/Users/perni/.nimble/pkgcache/githubcom_nimlanglangserver/./nimlangserver.exe"
+        // "path": "C:/Users/perni/.nimble/bin/./nimlangserver"
+        // "path": "C:/Users/perni/.nimble/bin/nimlsp"
+      }
+    }
+  }
+}

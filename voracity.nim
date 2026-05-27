@@ -38,7 +38,7 @@ proc configGameWon =
     setMenuTo LostGameMenu
   updateKeybar = true
   turn.undrawnBlues = 0
- 
+
 proc setConfigState(config:ConfigState) =
   case config:
   of StartGame: configStartGame()
@@ -220,9 +220,6 @@ proc quitVoracity =
   settingsToFile()
   closeSound()
 
-proc timerCall:TimerCall =
-  TimerCall(call:timer,lastTime:cpuTime(),secs:0.4)
-
 var
   voracityCall = Call(
     reciever:"voracity",
@@ -231,7 +228,11 @@ var
     mouseMoved:mouseMoved,
     keyboard:keyboard,
     cycle:cycle,
-    timer:timerCall()
+    timer:TimerCall(
+      call:timer,
+      lastTime:cpuTime(),
+      secs:0.4
+    )
   )
 
 template initPlay =

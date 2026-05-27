@@ -10,7 +10,6 @@ type
   MenuKind* = enum SetupMenu,GameMenu,LostGameMenu,WonGameMenu
 
 const
-  ibmBold* = "fonts\\IBMPlexMono-Bold.ttf"
   ibmSemiBold* = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
   condensedRegular = "fonts\\AsapCondensed-Regular.ttf"
   ibmPlexSansCondensedSemiBold = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
@@ -91,6 +90,9 @@ let
   lets_rockLogo = readImage "pics\\lets_rock.png"
   barMan = readImage "pics\\barman.jpg"
   logoFont = setNewFont(ibmSemiBold,size = 16.0,color(1,1,1))
+  white = setNewFont(ibmSemiBold,18,color(1,1,1))
+  yellow = setNewFont(ibmSemiBold,18,color(1,1,0))
+  green = setNewFont(ibmSemiBold,18,color(0,1,0))
 
   backgrounds*:array[4,Background] = [
     ("skylines",readImage "pics\\2015-02-24-BestSkylines_11.jpg"),
@@ -159,11 +161,7 @@ proc handleInput*(key:KeyboardEvent) =
     inputBatch.deleteInput
 
 proc paintKeybar:Image =
-  let 
-    ctx = newImage(1200,30).newContext
-    white = setNewFont(ibmSemiBold,18,color(1,1,1))
-    yellow = setNewFont(ibmSemiBold,18,color(1,1,0))
-    green = setNewFont(ibmSemiBold,18,color(0,1,0))
+  let ctx = newImage(1200,30).newContext
   ctx.image.fill color(0,0,0,75)
   let spans = [
     newSpan("Keys:  ",green),
