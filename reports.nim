@@ -21,6 +21,7 @@ type
     padding:(int,int,int,int)
 
 const
+  condensedRegular = "fonts\\AsapCondensed-Regular.ttf"
   fjallaOneRegular* = "fonts\\FjallaOne-Regular.ttf"
   kalam = "fonts\\Kalam-Bold.ttf"
   robotoRegular = "fonts\\Roboto-Regular_1.ttf"
@@ -38,6 +39,29 @@ const
     opacity:25,
     shadow:(10,1.5,color(255,255,255,150))
   )
+  inputEntries: seq[string] = @[
+    "Write player handle:\n",
+    "\n",
+  ]
+  titleBorder:Border = (size:0,angle:0,color:color(0,0,100))
+  inputBorder:Border = (size:0,angle:0,color:color(0,0,100))
+  inputBatchInit = BatchInit(
+    kind: InputBatch,
+    name: "inputBatch",
+    titleOn: true,
+    titleLine: (color:color(1,1,0),bgColor:color(0,0,0),border:titleBorder),
+    pos: (400,200),
+    inputCursor: (0.5,color(0,1,0)),
+    inputLine: (color(0,1,0),color(0,0,0),inputBorder),
+    padding: (40,40,20,20),
+    entries: inputEntries,
+    inputMaxChars: 8,
+    alphaOnly: true,
+    font: (condensedRegular,30.0,color(1,1,1)),
+    bgColor: color(0,0,0),
+    border: (15,25,color(0,0,100)),
+    shadow: (15,1.5,color(255,255,255,200))
+  )
 
 let
   plainFont = setNewFont(ibmSemiBold,18,color(1,1,1,1))
@@ -52,6 +76,8 @@ var
   pinnedBatchNr* = -1
   playerBatches*: array[6,Batch]
   showCursor*: bool
+  inputBatch* = newBatch inputBatchInit
+  batchInputNr* = -1
 
 template mouseOnBatchColor*:untyped = players[mouseOnBatchPlayerNr].color
 
@@ -74,6 +100,17 @@ proc mouseOnPlayerBatchNr*: int =
   result = -1
   for i, _ in players:
     if mouseOn playerBatches[i]: return i
+
+proc handleInput*(key:KeyboardEvent) = 
+  if key.button != KeyEnter: key.batchKeyb inputBatch
+  else:
+    if inputBatch.input.len > 0:
+      playerKinds[batchInputNr] = Human
+      players[batchInputNr].kind = Human
+    playerHandles[batchInputNr] = inputBatch.input
+    players[batchInputNr].update = true
+    batchInputNr = -1
+    inputBatch.deleteInput
 
 proc playerBatch(setup:BatchSetup,yPos:int):Batch =
   newBatch BatchInit(
@@ -368,18 +405,14 @@ template mouseOnStatsBatch*:bool =
   mouseOn statsBatch
 
 proc togglePlayerKind =
-  if (let batchNr = mouseOnPlayerBatchNr(); batchNr != -1) and turn.nr == 0:
+  if mouseOnBatchPlayerNr > -1 and turn.nr == 0:
+    let batchNr = mouseOnBatchPlayerNr
     playerKinds[batchNr] = 
       case playerKinds[batchNr]:
         of Human:Computer
         of Computer:None
         of None:Human
     players[batchNr].kind = playerKinds[batchNr]
-    # if players.countIt(it.kind == None) == 6:
-    #   echo "illegal"
-    #   playerKinds[0] = Computer
-    #   players[0].kind = Computer
-    #   players[0].update = true
     players[batchNr].update = true
     piecesImg.update = true
     updateStatsBatch()

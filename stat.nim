@@ -8,6 +8,7 @@ import sugar
 import math
 
 type
+  CashedCards* = seq[tuple[title:string,count:int]]  
   Alias* = array[8,char]
   GameStats*[T,U] = object
     turnCount*:int
@@ -30,12 +31,14 @@ type
     humanPercent*:string
 
 const
+  handlesFile = "dat\\handles.txt"
   visitsFile* = "dat\\visits.txt"
   cashedFile* = "dat\\cashed.txt"
   statsFile* = "dat\\stats.dat"
 
 var
   gameStats*:seq[GameStats[string,PlayerKind]]
+  playerHandles*:array[6,string]
 
 proc getLoneAlias:string =
   for i in 0..playerHandles.high:
@@ -228,6 +231,20 @@ proc resetMatchingStats* =
   gameStats = noneMatchingStats()
   writeGameStatsTo statsFile
 
+proc playerHandlesToFile*(playerHandles:openArray[string]) =
+  writeFile(handlesFile,playerHandles.mapIt(if it.len > 0: it else: "n/a").join "\n")
+
+proc playerHandlesFromFile:array[6,string] =
+  if fileExists handlesFile:
+    var count = 0
+    for line in lines handlesFile:
+      let lineStrip = line.strip
+      if lineStrip != "n/a":
+        result[count] = lineStrip
+      inc count
+
+template initStats* =
+  playerHandles = playerHandlesFromFile()
 
 when isMainModule:
   import times

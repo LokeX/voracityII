@@ -7,7 +7,7 @@ import times
 import strutils
 
 type
-  Phase* = enum Await,Draw,Reroll,AiMove,EndTurn
+  Phase* = enum Await,Draw,Reroll,AiMove,PostMove,EndTurn
   DiceReroll = tuple[isPausing:bool,pauseStartTime:float]
   ConfigState* = enum StartGame,SetupGame,GameWon
   TurnReport* = object
@@ -277,9 +277,9 @@ proc decideKillAndMove*(confirmedKill:string) =
     playSound "Deanscream-2"
   move()
 
-template aiShouldKillPiece:untyped =
+proc aiShouldKillPiece:bool =
   if turn.playerNr == killPiece.playerNr:
-    turnPlayer.friendlyFireBest selectedMove
+    hypo.friendlyFireBest selectedMove
   else: turnPlayer.shouldKillEnemyOn selectedMove
 
 proc movePiece =
@@ -289,7 +289,7 @@ proc movePiece =
   elif turnPlayer.kind == Human:
     startKillDialog selectedMove.toSquare
   else: decideKillAndMove(
-    if aiShouldKillPiece: "Yes" else: "No"
+    if aiShouldKillPiece(): "Yes" else: "No"
   )
 
 proc setupGame* =
@@ -304,14 +304,13 @@ proc endGame* =
   soundToPlay.setLen 0
 
 proc startGame* =
-  if players.anyIt it.kind != None:
-    inc turn.nr
-    players = newPlayers()
-    players[0].turnNr = 1
-    turnReports.setLen 0
-    initTurnReport()
-    setConfigStateTo StartGame
-    gameWon = false
+  inc turn.nr
+  players = newPlayers()
+  players[0].turnNr = 1
+  turnReports.setLen 0
+  initTurnReport()
+  setConfigStateTo StartGame
+  gameWon = false
 
 proc nextTurn =
   playSound "page-flip-2"
@@ -329,6 +328,7 @@ proc nextGameState* =
     endGame()
   else:
     if turn.nr == 0:
+      echo "start game"
       startGame()
     else:
       nextTurn()
@@ -349,8 +349,9 @@ proc aiDrawPhase =
     while turn.undrawnBlues > 0:
       drawCardFrom blueDeck
       playCashPlansTo blueDeck
-    hypo = turnPlayer.hypotheticalInit
-  if phase == Draw: phase = Reroll
+    if phase != PostMove:
+      hypo = turnPlayer.hypotheticalInit
+  phase = Reroll
 
 proc aiRerollPhase =
   if statGame:
@@ -376,16 +377,19 @@ proc aiMovePhase =
     selectedMove = hypo.bestMove diceRoll
     if selectedMove.pieceNr > -1: movePiece()
   else: echo $turnPlayer.color&" has no pieces to move"
+  phase = PostMove
+
+proc aiPostMovePhase =
+  aiDrawPhase()
+  if turnPlayer.hand.len > 3:
+    turnPlayer.hand = turnPlayer.sortBlues
   phase = EndTurn
 
 proc endTurn* =
   phase = Await
   nextGameState()
 
-proc endTurnPhase =
-  aiDrawPhase()
-  if turnPlayer.hand.len > 3:
-    turnPlayer.hand = turnPlayer.sortBlues
+proc aiEndTurnPhase =
   if autoEndTurn and turnPlayer.cash < cashToWin:
     endTurn()
   else: showMenu true
@@ -396,5 +400,6 @@ proc aiTakeTurn*() =
   of Draw: aiDrawPhase()
   of Reroll: aiRerollPhase()
   of AiMove: aiMovePhase()
-  of EndTurn: endTurnPhase()
+  of PostMove:aiPostMovePhase()
+  of EndTurn: aiEndTurnPhase()
   turnPlayer.update = true

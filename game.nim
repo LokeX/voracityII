@@ -6,26 +6,22 @@ import random
 import os
 
 type
-  PlayerKind* = enum Human,Computer,None
   Move* = tuple[pieceNr,die,fromSquare,toSquare,eval:int]
-  CashedCards* = seq[tuple[title:string,count:int]]  
-  PlayedKind* = enum Drawn,Played,Cashed,Discarded
   SquareKind = enum GasStation,Highway,Bar,Other
   Board* = array[61,tuple[nr:int,name:string]]
-  PlayerColor* = enum Red,Green,Blue,Yellow,Black,White
   DieFace* = enum 
     DieFace1 = 1,DieFace2 = 2,DieFace3 = 3,
     DieFace4 = 4,DieFace5 = 5,DieFace6 = 6
   Dice* = array[1..2,DieFace]
   KillablePiece* = tuple[playerNr,pieceNr:int]
-  ProtoCard = array[4,string]
-  PlanSquares = tuple[required,oneInMany:seq[int]]
+  PlayedKind* = enum Drawn,Played,Cashed,Discarded
+  Cashable = tuple[cashable,notCashable:seq[BlueCard]]
   CardKind* = enum Deed,Plan,Job,Event,News,Mission
   BlueCard* = object
     title*:string
     case cardKind*:CardKind
     of Plan,Mission,Job,Deed:
-      squares*:PlanSquares
+      squares*:tuple[required,oneInMany:seq[int]]
       cash*:int
       eval*:int
     of Event,News:
@@ -35,6 +31,8 @@ type
     fullDeck*,drawPile*,discardPile*:seq[BlueCard]
     lastDrawn*:string
   Pieces* = array[5,int]
+  PlayerKind* = enum Human,Computer,None
+  PlayerColor* = enum Red,Green,Blue,Yellow,Black,White
   Player* = object
     color*:PlayerColor
     kind*:PlayerKind
@@ -54,7 +52,6 @@ const
   playerKindStrs = PlayerKind.mapIt $it
   cardKindStr = CardKind.mapIt ($it).toLower
   playerKindFile* = "dat\\playerkinds.cfg"
-  handlesFile = "dat\\handles.txt"
   
   defaultPlayerKinds* = @[Human,Computer,None,None,None,None]
   cashToWin* = 1_000_000
@@ -85,7 +82,6 @@ var
   diceRoll*:Dice = [DieFace3,DieFace4]
   turn*:Turn
   playerKinds*:array[6,PlayerKind]
-  playerHandles*:array[6,string]
   players*:seq[Player]
   selectedMove*:Move
 
@@ -100,10 +96,10 @@ func isBar*(square:int):bool = squareKind[square] == Bar
 func isGasStation*(square:int):bool = squareKind[square] == GasStation
 func isHighway*(square:int):bool = squareKind[square] == Highway
 
-func parseProtoCards(lines:seq[string]):seq[ProtoCard] =
+func parseProtoCards(lines:seq[string]):seq[array[4,string]] =
   var 
     cardLine:int
-    protoCard:ProtoCard 
+    protoCard:array[4,string] 
   for line in lines:
     protocard[cardLine] = line
     if cardLine == 3:
@@ -119,7 +115,7 @@ func parseCardKindFrom(kind:string):CardKind =
   try: CardKind(cardKindStr.find kind[0..kind.high-1].toLower) 
   except: raise newException(CatchableError,"Error, parsing CardKind: "&kind)
 
-func newBlueCards(protoCards:seq[ProtoCard]):seq[BlueCard] =
+func newBlueCards(protoCards:seq[array[4,string]]):seq[BlueCard] =
   var card:BlueCard
   for protoCard in protoCards:
     card = BlueCard(title:protoCard[1],cardKind:parseCardKindFrom protoCard[0])
@@ -168,8 +164,8 @@ proc playTo*(hand:var seq[BlueCard],deck:var Deck,card:int) =
 func adjustToSquareNr*(adjustSquare:int):int =
   if adjustSquare > 60: adjustSquare - 60 else: adjustSquare
 
-func canKillPieceOn*(square:int):bool =
-  not square.isHighway and not square.isGasStation
+template canKillPieceOn*(square:int):untyped =
+  square != 0 and not square.isHighway and not square.isGasStation
 
 func moveToSquare(fromSquare:int,die:int):int = 
   adjustToSquareNr fromSquare+die
@@ -226,12 +222,32 @@ func anyHandles*(handles:seq[string]):bool =
 func nrOfRemovedPieces*(player:Player):int =
   player.pieces.count 0
 
-func piecesOn*(players:seq[Player],square:int):seq[tuple[playerNr,pieceNr:int]] =
+iterator legalPiecesIter*(pieces:openArray[int],cash:int):(int,int) =
+  let nrAllowed = cash div game.piecePrice
+  var count = 0
+  for pieceNr,square in pieces:
+    if square == 0:
+      if count == nrAllowed:
+        yield (pieceNr,-1)
+        continue
+      inc count
+    yield (pieceNr,square)
+
+iterator playersInColorsOtherThan*(players:seq[Player],color:PlayerColor):Player =
+  for player in players:
+    if player.color != color: yield player
+
+iterator piecesInColorsOtherThan*(players:seq[Player],color:PlayerColor):int =
+  for player in players.playersInColorsOtherThan color:
+    for piece in player.pieces: yield piece
+
+iterator piecesOn*(players:seq[Player],square:int):(int,int) =
   for playerNr,player in players:
     for pieceNr,piece in player.pieces:
-      if piece == square: result.add (playerNr,pieceNr)
+      if piece == square: 
+        yield (playerNr,pieceNr)
 
-func pieceOnSquare*(player:Player,square:int):int =
+func pieceNrOnSquare*(player:Player,square:int):int =
   for i,piece in player.pieces:
     if piece == square: return i
   -1
@@ -240,11 +256,16 @@ func nrOfPiecesOn*(players:seq[Player],square:int):int =
   players.mapIt(it.pieces.countIt it == square).sum
 
 func killablePieceOn*(players:seq[Player],square:int):KillablePiece =
-  if canKillPieceOn(square) and players.nrOfPiecesOn(square) == 1:
+  result = (-1,-1)
+  if canKillPieceOn(square):
+    var count = 0
     for playerNr,player in players:
       for pieceNr,piece in player.pieces:
-        if piece == square: return (playerNr,pieceNr)
-  (-1,-1)
+        if piece == square: 
+          inc count
+          if count > 1: 
+            return (-1,-1)
+          else: result = (playerNr,pieceNr)
 
 func nrOfPiecesOnBars*(player:Player):int =
   player.pieces.countIt it.isBar
@@ -253,13 +274,17 @@ func hasPieceOn*(player:Player,square:int):bool =
   for pieceSquare in player.pieces:
     if pieceSquare == square: return true
 
+func hasLegalPieceOn*(player:Player,square:int):bool =
+  for _,pieceSquare in player.pieces.legalPiecesIter player.cash:
+    if pieceSquare == square: return true
+
 func piecesOnBars*(player:Player):seq[int] = 
   for square in player.pieces:
     if square.isBar: result.add square
 
-func pieceNrsOnBars*(player:Player):seq[int] =
-  for nr,square in player.pieces:
-    if square.isBar: result.add nr
+iterator pieceNrsOnBars*(player:Player):int =
+  for pieceNr,square in player.pieces:
+    if square.isBar: yield pieceNr
 
 template requiredSquaresOk(pieces,card:untyped):untyped =
   card.squares.required.deduplicate
@@ -272,7 +297,7 @@ template oneInManySquaresOk(pieces,card:untyped):untyped =
 func isCashable*(pieces:openArray[int],card:BlueCard):bool =
   (pieces.requiredSquaresOk card) and (pieces.oneInManySquaresOk card)
 
-func plans*(pieces:openArray[int],cards:seq[BlueCard]):tuple[cashable,notCashable:seq[BlueCard]] =
+func cashesIn*(pieces:openArray[int],cards:seq[BlueCard]):Cashable =
   for card in cards:
     if pieces.isCashable card: result.cashable.add card
     else: result.notCashable.add card
@@ -283,7 +308,7 @@ proc discardCards*(player:var Player,deck:var Deck):seq[BlueCard] =
     player.hand.playTo deck,player.hand.high
 
 proc cashInPlansTo*(player:var Player,deck:var Deck):seq[BlueCard] =
-  let (cashable,notCashable) = player.pieces.plans player.hand
+  let (cashable,notCashable) = player.pieces.cashesIn player.hand
   for plan in cashable.sortedByIt it.cash:
     deck.discardPile.add plan
   player.hand = notCashable
@@ -325,18 +350,6 @@ proc nextPlayerTurn* =
   turn.undrawnBlues = turnPlayer.nrOfPiecesOnBars
   blueDeck.lastDrawn = ""
  
-proc playerHandlesToFile*(playerHandles:openArray[string]) =
-  writeFile(handlesFile,playerHandles.mapIt(if it.len > 0: it else: "n/a").join "\n")
-
-proc playerHandlesFromFile:array[6,string] =
-  if fileExists handlesFile:
-    var count = 0
-    for line in lines handlesFile:
-      let lineStrip = line.strip
-      if lineStrip != "n/a":
-        result[count] = lineStrip
-      inc count
-
 proc playerKindsFromFile:seq[PlayerKind] =
   try:
     playerKindFile.readFile.splitLines
@@ -351,5 +364,4 @@ template initGame* =
   board = newBoard "dat\\board.txt"
   blueDeck = newDeck "decks\\blues.txt"
   for i,kind in playerKindsFromFile(): playerKinds[i] = kind
-  playerHandles = playerHandlesFromFile()
   players = newDefaultPlayers()

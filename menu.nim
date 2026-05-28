@@ -11,7 +11,6 @@ type
 
 const
   ibmSemiBold* = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
-  condensedRegular = "fonts\\AsapCondensed-Regular.ttf"
   ibmPlexSansCondensedSemiBold = "fonts\\IBMPlexSansCondensed-SemiBold.ttf"
   showVolTime* = 2.4
   settingsFile* = "dat\\settings.cfg"
@@ -36,37 +35,12 @@ const
   adviceImg* = "advicetext"
   volumeImg* = "volume"
 
-  inputEntries: seq[string] = @[
-    "Write player handle:\n",
-    "\n",
-  ]
-
   menuEntries = [
     SetupMenu: @["Start Game\n","Quit Voracity"],
     GameMenu: @["End Turn\n","New Game\n","Quit Voracity"],
     LostGameMenu: @["New Game\n","Quit Voracity"],
     WonGameMenu: @["New Game\n","Quit Voracity"],
   ]
-
-  titleBorder:Border = (size:0,angle:0,color:color(0,0,100))
-  inputBorder:Border = (size:0,angle:0,color:color(0,0,100))
-  inputBatchInit = BatchInit(
-    kind: InputBatch,
-    name: "inputBatch",
-    titleOn: true,
-    titleLine: (color:color(1,1,0),bgColor:color(0,0,0),border:titleBorder),
-    pos: (400,200),
-    inputCursor: (0.5,color(0,1,0)),
-    inputLine: (color(0,1,0),color(0,0,0),inputBorder),
-    padding: (40,40,20,20),
-    entries: inputEntries,
-    inputMaxChars: 8,
-    alphaOnly: true,
-    font: (condensedRegular,30.0,color(1,1,1)),
-    bgColor: color(0,0,0),
-    border: (15,25,color(0,0,100)),
-    shadow: (15,1.5,color(255,255,255,200))
-  )
 
   selectorBorder:Border = (0,10,color(1,0,0))
   menuBatchInit = BatchInit(
@@ -109,8 +83,6 @@ var
   menuKind = SetupMenu
   mainMenu* = newBatch menuBatchInit
   showMenu* = true
-  inputBatch* = newBatch inputBatchInit
-  batchInputNr* = -1
   frames*:float
   vol* = 0.05
   showVolume*:float
@@ -148,17 +120,6 @@ proc drawMenuBackground*(b:var Boxy) =
       oldBg = -1
   if oldBg != -1: b.drawImage(backgrounds[oldBg].name,oldBgRect)
   b.drawImage(backgrounds[bgSelected].name,bgRect)
-
-proc handleInput*(key:KeyboardEvent) = 
-  if key.button != KeyEnter: key.batchKeyb inputBatch
-  else:
-    if inputBatch.input.len > 0:
-      playerKinds[batchInputNr] = Human
-      players[batchInputNr].kind = Human
-    playerHandles[batchInputNr] = inputBatch.input
-    players[batchInputNr].update = true
-    batchInputNr = -1
-    inputBatch.deleteInput
 
 proc paintKeybar:Image =
   let ctx = newImage(1200,30).newContext

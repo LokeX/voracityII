@@ -16,30 +16,20 @@ type
   Hypothetic* = tuple
     board:EvalBoard
     pieces:Pieces
-    allPlayersPieces:seq[int]
+    # allPlayersPieces:seq[int]
+    killSquares:seq[int]
     cards:seq[BlueCard]
     cash:int
 
 var
   diceMoves:DiceMoves
 
-iterator legalPiecesIter(hypothetical:Hypothetic):(int,int) =
-  let nrAllowed = hypothetical.cash div game.piecePrice
-  var count = 0
-  for pieceNr,square in hypothetical.pieces:
-    if square == 0:
-      if count == nrAllowed:
-        yield (pieceNr,-1)
-        continue
-      inc count
-    yield (pieceNr,square)
-
 func legalPieces*(hypothetical:Hypothetic):seq[int] =
-  for _,square in hypothetical.legalPiecesIter:
+  for _,square in hypothetical.pieces.legalPiecesIter hypothetical.cash:
     if square > -1: 
       result.add square
 
-func remove(pieces:openArray[int],removePiece:int):seq[int] =
+func without(pieces:openArray[int],removePiece:int):seq[int] =
   for idx,piece in pieces:
     if piece == removePiece:
       if idx < pieces.high:
@@ -72,7 +62,7 @@ func nrOfcovers(pieces,squares:seq[int],maxDepth,depth:int):int =
     for coverPiece in coverPieces:
       coverDepth = max(
         coverDepth,
-        pieces.remove(coverPiece)
+        pieces.without(coverPiece)
         .nrOfcovers(squares[idx..squares.high],maxDepth,depth+1)
       )
       if coverDepth == maxDepth: 
@@ -89,7 +79,7 @@ func coversAll(pieces,squares:seq[int]):bool =
   elif squares.len == 1: 
     true
   else: coverPieces.anyIt(
-    pieces.remove(it).coversAll(squares[1..squares.high])
+    pieces.without(it).coversAll(squares[1..squares.high])
   )
 
 template cover(pieces,squares:untyped):untyped = 
@@ -161,17 +151,20 @@ func blueVals(hypothetical:Hypothetic,squares:openArray[int]):array[12,int] =
         if square == card.squares.required[0] or square in card.squares.oneInMany:
           result[idx] += hypothetical.oneInMoreBonus(card,square,rewardValue)
 
-template requiredPiecesOn(cards,square:untyped):untyped =
-  if cards.len > 0: cards.mapIt(it.squares.required.count square).max else: 0
+func requiredWith(pieces:openArray[int],cards:seq[BlueCard],square:int):int =
+  if cards.len == 0: 
+    return
+  elif (result = cards.mapIt(it.squares.required.count square).max; result > 0):
+    return
+  for card in cards:
+    if card.squares.oneInMany.len > 0:
+      if (let idx = card.squares.oneInMany.find(square); idx > -1):
+        var squares = card.squares.oneInMany
+        squares.del idx
+        return if pieces.anyIt it in squares: 0 else: 1
 
-func requiredPiecesOn(hypothetical:Hypothetic,square:int):int =
-  if (result = hypothetical.cards.requiredPiecesOn(square); result == 0):
-    for card in hypothetical.cards:
-      if card.squares.oneInMany.len > 0:
-        if (let idx = card.squares.oneInMany.find(square); idx > -1):
-          var squares = card.squares.oneInMany
-          squares.del idx
-          return if hypothetical.pieces.anyIt it in squares: 0 else: 1
+template requiredPiecesOn(it,square:untyped):int =
+  it.pieces.requiredWith(when typeof(it) is Hypothetic:it.cards else:it.hand,square)
 
 func posPercentages(hypothetical:Hypothetic,squares:openArray[int]):array[12,float] =
   var freePieces,freePiecesOnSquare:int
@@ -235,7 +228,7 @@ func evalPos(hypothetical:Hypothetic):int =
       highwayEvals[maxIdx] = -1
   evals.sum
 
-func friendlyFireBest(hypothetical:Hypothetic,move:Move):bool =
+func friendlyFireBest*(hypothetical:Hypothetic,move:Move):bool =
   var hypoMove = hypothetical
   hypoMove.pieces[move.pieceNr] = move.toSquare
   let eval = hypoMove.evalPos
@@ -243,24 +236,17 @@ func friendlyFireBest(hypothetical:Hypothetic,move:Move):bool =
   let killEval = hypoMove.evalPos
   killEval > eval
 
-func friendlyFireAdviced(hypothetical:Hypothetic,move:Move):bool =
-  move.fromSquare != 0 and
-  canKillPieceOn(move.toSquare) and
-  hypothetical.pieces.count(move.toSquare) == 1 and 
-  hypothetical.allPlayersPieces.countIt(it == move.toSquare) == 1 and
-  hypothetical.cards.requiredPiecesOn(move.toSquare) < 2 and
-  hypothetical.friendlyFireBest(move)
-
 func evalMove(hypothetical:Hypothetic,pieceNr,toSquare:int):int =
   var hypo = hypothetical 
-  if hypo.friendlyFireAdviced (pieceNr,0,hypo.pieces[pieceNr],toSquare,0):
+  let move:Move = (pieceNr,0,hypo.pieces[pieceNr],toSquare,0)
+  if move.toSquare in hypothetical.killSquares and hypo.friendlyFireBest move:
     hypo.pieces[pieceNr] = 0 
   else: hypo.pieces[pieceNr] = toSquare
   hypo.evalPos
 
 func moves(hypothetical:Hypothetic,dice:openArray[int]):seq[Move] =
   for die in dice.deduplicate:
-    for pieceNr,fromSquare in hypothetical.legalPiecesIter:
+    for pieceNr,fromSquare in hypothetical.pieces.legalPiecesIter hypothetical.cash:
       if fromSquare > -1:
         for toSquare in moveToSquares(fromSquare,die):
           result.add (pieceNr,die,fromSquare,toSquare,0)
@@ -281,7 +267,7 @@ func winningMoveIn(hypothetical:Hypothetic,moves:seq[Move]):Move =
     cashReward = 0
   for move in moves:
     pieces[move.pieceNr] = move.toSquare
-    cashReward = pieces.plans(hypothetical.cards).cashable.mapIt(it.cash).sum
+    cashReward = pieces.cashesIn(hypothetical.cards).cashable.mapIt(it.cash).sum
     cashReward -= (if move.fromSquare == 0: piecePrice else: 0)
     if cashReward+hypothetical.cash >= cashToWin: 
       return move
@@ -359,15 +345,21 @@ func boardInit(player:Player):EvalBoard =
     player.hand,
     player.cash,
   )
- 
-func allPlayersPieces(players:seq[Player]):seq[int] =
-  for player in players:
-    result.add player.pieces
+
+proc killSquares(player:Player):seq[int] =
+  result = player.pieces.filterIt(
+    canKillPieceOn(it) and
+    player.pieces.count(it) == 1 and
+    not player.requiredPiecesOn(it) > 1
+  )
+  if result.len > 0:
+    let otherPieces = toSeq(players.piecesInColorsOtherThan player.color)
+    result.keepItIf it notin otherPieces
 
 proc hypotheticalInit*(player:Player):Hypothetic = (
   player.boardInit,
   player.pieces,
-  players.allPlayersPieces,
+  player.killSquares,
   player.hand,
   player.cash,
 )
@@ -378,7 +370,7 @@ func evalBlues(hypothetical:Hypothetic):seq[BlueCard] =
     result[^1].eval = evalPos (
       hypothetical.board,
       hypothetical.pieces,
-      hypothetical.allPlayersPieces,
+      hypothetical.killSquares,
       @[card],
       hypothetical.cash,
     )
@@ -445,17 +437,14 @@ proc eventMovesEval*(player:Player,event:BlueCard):seq[Move] =
 proc wantsNoProtectionAfter(player:Player,move:Move):bool =
   var hypo = player.hypotheticalInit
   hypo.pieces[move.pieceNr] = move.toSquare
-  hypo.cards = hypo.pieces.plans(hypo.cards).notCashable
+  hypo.cards = hypo.pieces.cashesIn(hypo.cards).notCashable
   let noKillEval = hypo.evalPos
   hypo.pieces[move.pieceNr] = 0
   let killEval = hypo.evalPos
   killEval > noKillEval
 
 proc shouldKillEnemyOn*(player:Player,move:Move):bool =
-  if player.cash-(player.nrOfRemovedPieces*piecePrice) >= startCash div 2:
+  if player.cash-(player.nrOfRemovedPieces*piecePrice) <= startCash div 2:
     return
   (move.toSquare.isBar and (players.len < 3 or player.nrOfPiecesOnBars > 0)) or 
   rand(0..99) <= player.agro or player.wantsNoProtectionAfter move
-
-template friendlyFireBest*(player,move:untyped):untyped =
-  player.hypotheticalInit.friendlyFireBest move

@@ -183,7 +183,7 @@ proc makeMoveFromSelection*(die:int = -1):Move =
   result.eval = -1
   result.fromSquare = moveSelection.fromSquare
   result.toSquare = moveSelection.toSquare
-  result.pieceNr = turnPlayer.pieceOnSquare moveSelection.fromSquare
+  result.pieceNr = turnPlayer.pieceNrOnSquare moveSelection.fromSquare
 
 proc eventMoveFmt(move:Move):EventMoveFmt =
   ("from:"&board[move.fromSquare].name&" Nr. "&($board[move.fromSquare].nr)&"\n",
@@ -364,7 +364,7 @@ proc startDiceRoll* =
       else: computerRoll
     playSound("wuerfelbecher")
 
-proc mayReroll*:bool = isDouble() and not isRollingDice()
+# proc mayReroll*:bool = isDouble() and not isRollingDice()
 
 proc dieUsed*:int =
   if moveSelection.toSquare in moveToSquares(
@@ -380,7 +380,7 @@ proc drawCard* =
 
 proc selectPiece*(square:int) =
   if not turn.diceMoved or square == 0 or square.isHighway:
-    if turnPlayer.hasPieceOn square:
+    if turnPlayer.hasLegalPieceOn square:
       hoverSquare = -1
       moveSelection = (square,-1,turnPlayer.movesFrom(square))
       moveToSquaresPainter.context = moveSelection.toSquares

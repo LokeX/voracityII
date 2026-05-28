@@ -76,12 +76,14 @@ proc menuSelection =
       nextGameState()
 
 proc humanPlayLeftClick =
-  if turn.nr > 0 and mouseOnDice() and mayReroll():
-    startDiceRoll()
-  elif turn.undrawnBlues > 0 and mouseOn drawPileArea:
+  # if turn.nr > 0 and mouseOnDice() and mayReroll():
+  #   startDiceRoll()
+  if turn.undrawnBlues > 0 and mouseOn drawPileArea:
     drawCard()
   elif not isRollingDice():
-    if mouseSquare > -1:
+    if turn.nr > 0 and mouseOnDice() and isDouble():
+      startDiceRoll()  
+    elif mouseSquare > -1:
       handleMoveSelection()
     elif turnPlayer.hand.len > 3:
       discardCard()
@@ -93,7 +95,8 @@ proc humanPlayRightClick =
   elif not showMenu:
     showMenu = true
     mainMenu.zoom = zoomImage 15
-  else: nextGameState()
+  elif players.anyIt it.kind != None: 
+    nextGameState()
 
 proc aiPlayRightClick =
   if phase == EndTurn:
@@ -258,6 +261,7 @@ initPlay()
 initMenu()
 initGamePlay()
 initCards()
+initStats()
 initReports()
 initSettings()
 addCall voracityCall
