@@ -17,7 +17,7 @@ type
     DieFace1 = 1,DieFace2 = 2,DieFace3 = 3,
     DieFace4 = 4,DieFace5 = 5,DieFace6 = 6
   Dice* = array[1..2,DieFace]
-  SinglePiece* = tuple[playerNr,pieceNr:int]
+  KillablePiece* = tuple[playerNr,pieceNr:int]
   ProtoCard = array[4,string]
   PlanSquares = tuple[required,oneInMany:seq[int]]
   CardKind* = enum Deed,Plan,Job,Event,News,Mission
@@ -46,7 +46,7 @@ type
     update*:bool
   Turn* = tuple
     nr:int 
-    player:int
+    playerNr:int
     diceMoved:bool
     undrawnBlues:int
 
@@ -212,7 +212,7 @@ proc movesFrom*(player:Player,square:int):seq[int] =
   if turn.diceMoved: moveToSquares square
   else: moveToSquares(square,diceRoll)
 
-template turnPlayer*:untyped = players[turn.player]
+template turnPlayer*:untyped = players[turn.playerNr]
 
 func anyHuman*(players:seq[Player]):bool =
   players.anyIt it.kind == Human
@@ -239,12 +239,12 @@ func pieceOnSquare*(player:Player,square:int):int =
 func nrOfPiecesOn*(players:seq[Player],square:int):int =
   players.mapIt(it.pieces.countIt it == square).sum
 
-func singlePieceOn*(players:seq[Player],square:int):SinglePiece =
-  if players.nrOfPiecesOn(square) == 1:
+func killablePieceOn*(players:seq[Player],square:int):KillablePiece =
+  if canKillPieceOn(square) and players.nrOfPiecesOn(square) == 1:
     for playerNr,player in players:
       for pieceNr,piece in player.pieces:
         if piece == square: return (playerNr,pieceNr)
-  result = (-1,-1)
+  (-1,-1)
 
 func nrOfPiecesOnBars*(player:Player):int =
   player.pieces.countIt it.isBar
@@ -316,10 +316,10 @@ proc newPlayers*:seq[Player] =
 
 proc nextPlayerTurn* =
   turn.diceMoved = false
-  if turn.player == players.high:
+  if turn.playerNr == players.high:
     inc turn.nr
-    turn.player = players.low
-  else: inc turn.player
+    turn.playerNr = players.low
+  else: inc turn.playerNr
   turnPlayer.turnNr = turn.nr
   turnPlayer.update = true
   turn.undrawnBlues = turnPlayer.nrOfPiecesOnBars

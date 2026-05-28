@@ -297,12 +297,12 @@ when isMainModule:
     result.add formatFloat(float(stats.turns)/float(stats.games),ffDecimal,2)&"\n"
 
   initGame()
+  statGame = true
+  verbose = commandLineParams().anyIt it.toLower == "-v"
   for i in 0..playerKinds.high:
     if i < settings.nrOfPlayers:
       playerKinds[i] = Computer
     else: playerKinds[i] = None
-  statGame = true
-  verbose = true
 
   for i in 1..settings.nrOfGames:
     setupGame()
@@ -315,10 +315,6 @@ when isMainModule:
       gameStats.add newGameStats()
       addVisits turnReports.reportedVisitsCount
       addCards reportedCashedCards()
-      # echo "played cards test"
-      # echo "drawn cards:"
-      # # echo turnReport.cardsPlayed.played[Drawn].mapIt(it.title).join "\n"
-      # echo turnReport.cards.drawn.mapIt(it.title).join "\n"
 
   if recordStats:
     let
@@ -326,7 +322,7 @@ when isMainModule:
       visits = visitsCountStr()
       stats = statsStr time
     writeFile(fileName,cards&visits&stats)
-    # echo cards
-    # echo visits
+    echo cards
+    echo visits
     echo stats
     echo "Wrote to file: "&fileName

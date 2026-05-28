@@ -160,7 +160,7 @@ proc paintPieces:Image =
         piece = player.color.pieceOn square
       ctx.fillStyle = playerColors[player.color]
       ctx.fillRect piece
-      if turn.nr > 0 and i == turn.player and square == moveSelection.fromSquare:
+      if turn.nr > 0 and i == turn.playerNr and square == moveSelection.fromSquare:
         ctx.fillStyle = contrastColors[player.color]
         ctx.fillRect Rect(x:piece.x+4,y:piece.y+4,w:piece.w-8,h:piece.h-8)
       if nrOfPiecesOnSquare > 1:
@@ -351,8 +351,9 @@ proc drawDice*(b:var Boxy) =
     b.rotateDie(1)
     b.rotateDie(2)
     inc dieRollFrame
-    # if dieRollFrame == maxRollFrames:
-    #   turnReport.diceRolls.add diceRoll #please: don't do as I do
+    if turnPlayer.kind == Human and dieRollFrame == maxRollFrames:
+      updateTurnReport diceRoll
+      # turnReport.diceRolls.add diceRoll #please: don't do as I do
 
 proc isRollingDice*:bool = dieRollFrame < maxRollFrames
 

@@ -245,8 +245,8 @@ func friendlyFireBest(hypothetical:Hypothetic,move:Move):bool =
 
 func friendlyFireAdviced(hypothetical:Hypothetic,move:Move):bool =
   move.fromSquare != 0 and
-  hypothetical.pieces.count(move.toSquare) == 1 and 
   canKillPieceOn(move.toSquare) and
+  hypothetical.pieces.count(move.toSquare) == 1 and 
   hypothetical.allPlayersPieces.countIt(it == move.toSquare) == 1 and
   hypothetical.cards.requiredPiecesOn(move.toSquare) < 2 and
   hypothetical.friendlyFireBest(move)
@@ -364,16 +364,13 @@ func allPlayersPieces(players:seq[Player]):seq[int] =
   for player in players:
     result.add player.pieces
 
-proc hypotheticalInit*(player:Player,hand:seq[BlueCard]):Hypothetic = (
+proc hypotheticalInit*(player:Player):Hypothetic = (
   player.boardInit,
   player.pieces,
   players.allPlayersPieces,
-  hand,
+  player.hand,
   player.cash,
 )
- 
-template hypotheticalInit*(player:untyped):untyped =
-  player.hypotheticalInit player.hand
 
 func evalBlues(hypothetical:Hypothetic):seq[BlueCard] =
   for card in hypothetical.cards:
@@ -404,29 +401,33 @@ func squareBase(cards:seq[BlueCard]):seq[int] =
       result.add card.squares.oneInMany[0]
 
 proc sortBlues*(player:Player):seq[BlueCard] =
-  if player.hand.len <= 3: result = player.hand
-  else:
-    var 
-      uncovered:seq[tuple[card:BlueCard,value:int]]
-      hypo = player.hypotheticalInit @[]
-      coversDif:int
-    let legalPieces = hypo.legalPieces
-    for card in player.hand:
-      coversDif = legalPieces.coversDif card
-      if coversDif > -1: hypo.cards.add card
-      else: uncovered.add (card,coversDif)
-    if hypo.cards.len > 3: result.add hypo.evalBlues
-    else: result.add hypo.cards
-    if hypo.cards.len < 3 and uncovered.len > 1:
-      let squareBase = 
-        if hypo.cards.len == 0: uncovered.mapIt(it.card).squareBase
-        else: hypo.cards.squareBase
-      for (card,value) in uncovered.mItems:
-        value += card.squares.required.deduplicate.mapIt(squareBase.count it).sum
-        if card.squares.oneInMany.len > 0:
-          value += squareBase.count card.squares.oneInMany[0]
-      uncovered.sort (a,b) => b.value-a.value
-    result.add uncovered.mapIt it.card
+  if player.hand.len <= 3: return player.hand
+  var 
+    uncovered:seq[tuple[card:BlueCard,value:int]]
+    hypo:Hypothetic
+    coversDif:int
+  hypo.pieces = player.pieces
+  hypo.cash = player.cash
+  let legalPieces = hypo.legalPieces
+  for card in player.hand:
+    coversDif = legalPieces.coversDif card
+    if coversDif > -1: 
+      hypo.cards.add card
+    else: uncovered.add (card,coversDif)
+  if hypo.cards.len > 3: 
+    hypo.board = hypo.baseEvalBoard
+    result.add hypo.evalBlues
+  elif hypo.cards.len > 0: result.add hypo.cards
+  if hypo.cards.len < 3 and uncovered.len > 1:
+    let squareBase = 
+      if hypo.cards.len == 0: uncovered.mapIt(it.card).squareBase
+      else: hypo.cards.squareBase
+    for (card,value) in uncovered.mItems:
+      value += card.squares.required.deduplicate.mapIt(squareBase.count it).sum
+      if card.squares.oneInMany.len > 0:
+        value += squareBase.count card.squares.oneInMany[0]
+    uncovered.sort (a,b) => b.value-a.value
+  result.add uncovered.mapIt it.card
 
 proc eventMovesEval*(player:Player,event:BlueCard):seq[Move] =
   let hypothetical = player.hypotheticalInit
@@ -450,15 +451,11 @@ proc wantsNoProtectionAfter(player:Player,move:Move):bool =
   let killEval = hypo.evalPos
   killEval > noKillEval
 
-proc shouldKillEnemyOn(player:Player,move:Move):bool =
-  player.cash-(player.nrOfRemovedPieces*piecePrice) >= startCash div 2 and 
-  not player.hasPieceOn(move.toSquare) and (
-    (move.toSquare.isBar and (player.nrOfPiecesOnBars > 0 or players.len < 3)) or
-    rand(0..99) <= player.agro or
-    player.wantsNoProtectionAfter move
-  )
+proc shouldKillEnemyOn*(player:Player,move:Move):bool =
+  if player.cash-(player.nrOfRemovedPieces*piecePrice) >= startCash div 2:
+    return
+  (move.toSquare.isBar and (players.len < 3 or player.nrOfPiecesOnBars > 0)) or 
+  rand(0..99) <= player.agro or player.wantsNoProtectionAfter move
 
-proc aiShouldRemovePiece*(player:Player,move:Move):bool =
-  player.shouldKillEnemyOn(move) or
-  player.hypotheticalInit.friendlyFireAdviced(move)
-
+template friendlyFireBest*(player,move:untyped):untyped =
+  player.hypotheticalInit.friendlyFireBest move

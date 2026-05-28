@@ -65,8 +65,8 @@ template batchSelected*:untyped =
 proc drawCursor*(b:var Boxy) =
   if turn.nr > 0 and showCursor:
     let
-      x = playerBatches[turn.player].center.x+50
-      y = playerBatches[turn.player].center.y-50
+      x = playerBatches[turn.playerNr].center.x+50
+      y = playerBatches[turn.playerNr].center.y-50
       cursor = Rect(x:x,y:y,w:20,h:20)
     b.drawRect(cursor,contrastColors[turnPlayer.color])
 
@@ -375,6 +375,11 @@ proc togglePlayerKind =
         of Computer:None
         of None:Human
     players[batchNr].kind = playerKinds[batchNr]
+    # if players.countIt(it.kind == None) == 6:
+    #   echo "illegal"
+    #   playerKinds[0] = Computer
+    #   players[0].kind = Computer
+    #   players[0].update = true
     players[batchNr].update = true
     piecesImg.update = true
     updateStatsBatch()

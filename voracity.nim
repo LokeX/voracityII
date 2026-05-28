@@ -245,8 +245,6 @@ template initPlay =
   updateUndrawnBlues = undrawnPainterUpdate
   updateKillMatrix = killMatrixUpdate
   reportBatchesUpdate = updateReportBatches
-  # turnReportBatchesInit = initReportBatchesTurn
-  # resetReportsUpdate = resetReports
   runMoveAnimation = animateMoveSelection
 
 template initSettings =
