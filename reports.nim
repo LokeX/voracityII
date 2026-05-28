@@ -375,11 +375,6 @@ proc togglePlayerKind =
         of Computer:None
         of None:Human
     players[batchNr].kind = playerKinds[batchNr]
-    # if players.countIt(it.kind == None) == 6:
-    #   echo "illegal"
-    #   playerKinds[0] = Computer
-    #   players[0].kind = Computer
-    #   players[0].update = true
     players[batchNr].update = true
     piecesImg.update = true
     updateStatsBatch()
