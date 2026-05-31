@@ -332,6 +332,10 @@ when isMainModule:
       gameStats.add newGameStats()
       addVisits turnReports.reportedVisitsCount
       addCards reportedCashedCards()
+    # if turnReports[^1].turnNr < 10:
+    #   for turnReport in turnReports:
+    #     dumpTurnReport(turnReport)
+
 
   if recordStats:
     let

@@ -233,6 +233,10 @@ iterator legalPiecesIter*(pieces:openArray[int],cash:int):(int,int) =
       inc count
     yield (pieceNr,square)
 
+func legalPiecesCount*(player:Player):int =
+  for _,square in player.pieces.legalPiecesIter player.cash:
+    if square > -1: inc result
+
 iterator playersInColorsOtherThan*(players:seq[Player],color:PlayerColor):Player =
   for player in players:
     if player.color != color: yield player

@@ -17,6 +17,7 @@ type
     moves*:seq[Move]
     cards*:tuple[played:array[PlayedKind,seq[BlueCard]],hand:seq[BlueCard]]
     kills*:seq[PlayerColor]
+    pieces:array[5,int]
     cash*:int
 
 var
@@ -117,7 +118,7 @@ proc updateTurnReport*[T](item:T,playKind:PlayedKind = Drawn) =
       turnReport.cards.played[playKind].add item
     updateTurnReportBatches()
 
-proc dumpTurnReport =
+proc dumpTurnReport*(turnReport:TurnReport) =
   proc moveStr(fromSquare,toSquare,die:int):string =
     "    Die: " & $die &
     ", from: "&board[fromSquare].name&" Nr. " & $board[fromSquare].nr &
@@ -125,7 +126,7 @@ proc dumpTurnReport =
   echo ""
   echo $turnReport.player.color
   echo "Turn: ",turnReport.turnNr
-  echo "  diceRolls:"
+  echo "  DiceRolls:"
   echo turnReport.diceRolls.mapIt("    " & $it).join "\n"
   echo "  Moves:"
   echo turnReport.moves.mapIt(moveStr(it.fromSquare,it.toSquare,it.die)).join "\n"
@@ -133,6 +134,10 @@ proc dumpTurnReport =
   let playedCards = turnReport.cards.played
   for playKind in PlayedKind:
     echo "    " & $playKind,": ",playedCards[playKind].mapIt(it.title).join ","
+  echo "    Hand: ",turnReport.cards.hand.mapIt(it.title).join ","
+  echo "  Pieces:"
+  for square in turnReport.pieces:
+    echo "    "&board[square].name&" Nr. " & $board[square].nr
   echo "  Cash: ",turnReport.cash
   if turnReport.cash >= cashToWin:
     echo ""
@@ -143,8 +148,9 @@ proc recordTurnReport =
   if recordStats or not statGame:
     turnReport.cards.hand = turnPlayer.hand
     turnReport.cash = turnPlayer.cash
+    turnReport.pieces = turnPlayer.pieces
     turnReports.add turnReport
-    if verbose: dumpTurnReport()
+    if verbose: dumpTurnReport(turnReport)
 
 proc playCashPlansTo*(deck:var Deck) =
   let
@@ -337,33 +343,28 @@ proc nextGameState* =
   playSound "carhorn-1"
 
 proc aiStartTurn =
-  diceMoves[^1].moves.setLen 0
-  playCashPlansTo blueDeck
-  hypo = hypotheticalInit(turnPlayer)
-  if hypo.legalPieces.len == 0:
+  if turnPlayer.legalPiecesCount == 0:
     echo $turnPlayer.color&" has no legal pieces and has left the game in shame"
     phase = EndTurn
-  else:phase = Draw
+  else:
+    diceMoves[^1].moves.setLen 0
+    playCashPlansTo blueDeck
+    if turn.undrawnBlues == 0: 
+      hypo = hypotheticalInit(turnPlayer)
+      phase = Reroll
+    else: phase = Draw
 
-proc aiDrawPhase =
-  if turn.undrawnBlues > 0:
-    while turn.undrawnBlues > 0:
-      drawCardFrom blueDeck
-      playCashPlansTo blueDeck
-    if phase != PostMove:
-      hypo = turnPlayer.hypotheticalInit
+proc aiDraw =
+  while turn.undrawnBlues > 0:
+    drawCardFrom blueDeck
+    playCashPlansTo blueDeck
+  if phase != PostMove:
+    hypo = turnPlayer.hypotheticalInit
   phase = Reroll
 
-proc aiShouldReroll*(hypothetical:Hypothetic,dice:Dice):bool =
-  if dice[1] == dice[2]:
-    if diceMoves[^1].moves.len == 0: 
-      diceMoves = hypothetical.allDiceMoves()
-    not dice[^1].isBestDieIn diceMoves
-  else: false
-
-proc aiRerollPhase =
+proc aiReroll =
   if statGame:
-    if not diceReroll.isPausing or hypo.aiShouldReroll diceRoll:
+    if not diceReroll.isPausing or hypo.aiShouldReroll(diceMoves,diceRoll):
       rollDice()
       updateTurnReport diceRoll
       diceReroll.isPausing = true # appropriating an existing flag - don't EVER do that ;-)
@@ -375,20 +376,22 @@ proc aiRerollPhase =
     startDiceRoll()
   elif not diceReroll.isPausing:
     updateTurnReport diceRoll
-    if hypo.aiShouldReroll diceRoll:
+    if hypo.aiShouldReroll(diceMoves,diceRoll):
       diceReroll.isPausing = true
       diceReroll.pauseStartTime = cpuTime()
     else: phase = AiMove
 
-proc aiMovePhase =
+proc aiMove =
   if hypo.legalPieces.len > 0:
     selectedMove = hypo.bestMove(diceMoves,diceRoll)
-    if selectedMove.pieceNr > -1: movePiece()
+    if selectedMove.pieceNr > -1: 
+      movePiece()
   else: echo $turnPlayer.color&" has no pieces to move"
   phase = PostMove
 
-proc aiPostMovePhase =
-  aiDrawPhase()
+proc aiPostMove =
+  if turn.undrawnBlues > 0:
+    aiDraw()
   if turnPlayer.hand.len > 3:
     turnPlayer.hand = turnPlayer.sortBlues
   phase = EndTurn
@@ -397,7 +400,7 @@ proc endTurn* =
   phase = Await
   nextGameState()
 
-proc aiEndTurnPhase =
+proc aiEndTurn =
   if autoEndTurn and turnPlayer.cash < cashToWin:
     endTurn()
   else: showMenu true
@@ -405,9 +408,9 @@ proc aiEndTurnPhase =
 proc aiTakeTurn*() =
   case phase
   of Await: aiStartTurn()
-  of Draw: aiDrawPhase()
-  of Reroll: aiRerollPhase()
-  of AiMove: aiMovePhase()
-  of PostMove:aiPostMovePhase()
-  of EndTurn: aiEndTurnPhase()
+  of Draw: aiDraw()
+  of Reroll: aiReroll()
+  of AiMove: aiMove()
+  of PostMove:aiPostMove()
+  of EndTurn: aiEndTurn()
   turnPlayer.update = true

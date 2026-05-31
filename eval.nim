@@ -297,26 +297,29 @@ func isBestDieIn*(dieQuery:DieFace,diceMoves:DiceMoves):bool =
         bestDie = die
     dieQuery == bestDie
 
-func bestMoveWith(diceMoves:DiceMoves,dice:Dice):(bool,Move) =
-  let bestDie = 
-    if diceMoves[dice[1]].bestMove.eval >= diceMoves[dice[2]].bestMove.eval or 
-    diceMoves[dice[1]].isWinningMove: 1 else: 2
-  (diceMoves[dice[bestDie]].isWinningMove,diceMoves[dice[bestDie]].bestMove)
-
-func bestMoveWith(hypothetical:Hypothetic,dice:Dice):(bool,Move) =
-  let
-    moves = hypothetical.moves [dice[1].ord,dice[2].ord]
-    winningMove = hypothetical.winningMoveIn moves
-  if winningMove.pieceNr > -1: (true,winningMove)
-  else: (false,hypothetical.bestMoveIn moves)
-
-proc bestMove*(hypothetical:Hypothetic,diceMoves:DiceMoves,dice:Dice):Move =
+func bestMove*(hypothetical:Hypothetic,diceMoves:DiceMoves,dice:Dice):Move =
   var isWinningMove:bool
   (isWinningMove,result) = 
-    if diceMoves[^1].moves.len > 0: diceMoves.bestMoveWith dice
-    else: hypothetical.bestMoveWith dice
+    if diceMoves[^1].moves.len > 0: 
+      let bestDie = 
+        if diceMoves[dice[1]].bestMove.eval >= diceMoves[dice[2]].bestMove.eval or 
+        diceMoves[dice[1]].isWinningMove: 1 else: 2
+      (diceMoves[dice[bestDie]].isWinningMove,diceMoves[dice[bestDie]].bestMove)
+    else: 
+      let
+        moves = hypothetical.moves [dice[1].ord,dice[2].ord]
+        winningMove = hypothetical.winningMoveIn moves
+      if winningMove.pieceNr > -1: (true,winningMove)
+      else: (false,hypothetical.bestMoveIn moves)
   if not isWinningMove and hypothetical.evalPos >= result.eval:
     result.pieceNr = -1
+
+proc aiShouldReroll*(hypothetical:Hypothetic,diceMoves:var DiceMoves,dice:Dice):bool =
+  if dice[1] == dice[2]:
+    if diceMoves[^1].moves.len == 0: 
+      diceMoves = hypothetical.allDiceMoves()
+    not dice[^1].isBestDieIn diceMoves
+  else: false
 
 func barVal(hypothetical:Hypothetic):int = 
   let 
