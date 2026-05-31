@@ -161,13 +161,13 @@ proc playTo*(hand:var seq[BlueCard],deck:var Deck,card:int) =
   deck.discardPile.add hand[card]
   hand.del card
 
-func adjustToSquareNr*(adjustSquare:int):int =
+template adjustToSquareNr*(adjustSquare:untyped):untyped =
   if adjustSquare > 60: adjustSquare - 60 else: adjustSquare
 
 template canKillPieceOn*(square:int):untyped =
   square != 0 and not square.isHighway and not square.isGasStation
 
-func moveToSquare(fromSquare:int,die:int):int = 
+template moveToSquare(fromSquare,die:untyped):untyped = 
   adjustToSquareNr fromSquare+die
 
 func moveToSquares*(fromSquare,die:int):seq[int] =
@@ -175,7 +175,7 @@ func moveToSquares*(fromSquare,die:int):seq[int] =
   else: result.add highways.mapIt moveToSquare(it,die)
   if fromSquare.isHighway or fromsquare == 0:      
     result.add gasStations.mapIt moveToSquare(it,die)
-  result = result.filterIt(it != fromSquare).deduplicate
+  result.filterIt(it != fromSquare).deduplicate
 
 func moveToSquares*(fromSquare:int):seq[int] =
   if fromSquare == 0: 

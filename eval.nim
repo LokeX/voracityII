@@ -16,13 +16,12 @@ type
   Hypothetic* = tuple
     board:EvalBoard
     pieces:Pieces
-    # allPlayersPieces:seq[int]
-    killSquares:seq[int]
+    ownKillSquares:seq[int]
     cards:seq[BlueCard]
     cash:int
 
-var
-  diceMoves:DiceMoves
+# var
+#   diceMoves:DiceMoves
 
 func legalPieces*(hypothetical:Hypothetic):seq[int] =
   for _,square in hypothetical.pieces.legalPiecesIter hypothetical.cash:
@@ -228,21 +227,25 @@ func evalPos(hypothetical:Hypothetic):int =
       highwayEvals[maxIdx] = -1
   evals.sum
 
-func friendlyFireBest*(hypothetical:Hypothetic,move:Move):bool =
+func ownKill(hypothetical:Hypothetic,pieceNr,toSquare:int):tuple[eval,killEval:int] =
   var hypoMove = hypothetical
-  hypoMove.pieces[move.pieceNr] = move.toSquare
-  let eval = hypoMove.evalPos
-  hypoMove.pieces[move.pieceNr] = 0
-  let killEval = hypoMove.evalPos
-  killEval > eval
+  hypoMove.pieces[pieceNr] = toSquare
+  result.eval = hypoMove.evalPos
+  hypoMove.pieces[pieceNr] = 0
+  result.killEval = hypoMove.evalPos
+
+template ownkillBest*(hypothetical,move:untyped):untyped =
+  let ownKill = hypothetical.ownKill(move.pieceNr,move.toSquare)
+  ownKill.killEval > ownKill.eval
 
 func evalMove(hypothetical:Hypothetic,pieceNr,toSquare:int):int =
   var hypo = hypothetical 
-  let move:Move = (pieceNr,0,hypo.pieces[pieceNr],toSquare,0)
-  if move.toSquare in hypothetical.killSquares and hypo.friendlyFireBest move:
-    hypo.pieces[pieceNr] = 0 
-  else: hypo.pieces[pieceNr] = toSquare
-  hypo.evalPos
+  if toSquare in hypothetical.ownKillSquares:
+    let (eval,killEval) = hypothetical.ownkill(pieceNr,toSquare)
+    if eval >= killEval: eval else: killEval
+  else: 
+    hypo.pieces[pieceNr] = toSquare
+    hypo.evalPos
 
 func moves(hypothetical:Hypothetic,dice:openArray[int]):seq[Move] =
   for die in dice.deduplicate:
@@ -274,7 +277,7 @@ func winningMoveIn(hypothetical:Hypothetic,moves:seq[Move]):Move =
     else: pieces[move.pieceNr] = move.fromSquare
   result.pieceNr = -1
 
-func allDiceMoves(hypothetical:Hypothetic):DiceMoves =
+func allDiceMoves*(hypothetical:Hypothetic):DiceMoves =
   for die in DieFace:
     result[die].moves = hypothetical.moves [die.ord,die.ord]
     result[die].bestMove = hypothetical.winningMoveIn result[die].moves
@@ -282,7 +285,7 @@ func allDiceMoves(hypothetical:Hypothetic):DiceMoves =
       result[die].isWinningMove = true
     else:result[die].bestMove = hypothetical.bestMoveIn result[die].moves
 
-func isBestDieIn(dieQuery:DieFace,diceMoves:DiceMoves):bool =
+func isBestDieIn*(dieQuery:DieFace,diceMoves:DiceMoves):bool =
   if diceMoves[dieQuery].isWinningMove: 
     true
   elif diceMoves.anyIt it.isWinningMove: 
@@ -307,21 +310,13 @@ func bestMoveWith(hypothetical:Hypothetic,dice:Dice):(bool,Move) =
   if winningMove.pieceNr > -1: (true,winningMove)
   else: (false,hypothetical.bestMoveIn moves)
 
-proc bestMove*(hypothetical:Hypothetic,dice:Dice):Move =
+proc bestMove*(hypothetical:Hypothetic,diceMoves:DiceMoves,dice:Dice):Move =
   var isWinningMove:bool
   (isWinningMove,result) = 
     if diceMoves[^1].moves.len > 0: diceMoves.bestMoveWith dice
     else: hypothetical.bestMoveWith dice
   if not isWinningMove and hypothetical.evalPos >= result.eval:
     result.pieceNr = -1
-  diceMoves[^1].moves.setLen 0
-
-proc aiShouldReroll*(hypothetical:Hypothetic,dice:Dice):bool =
-  if dice[1] == dice[2]:
-    if diceMoves[^1].moves.len == 0: 
-      diceMoves = hypothetical.allDiceMoves()
-    not diceRoll[^1].isBestDieIn diceMoves
-  else: false
 
 func barVal(hypothetical:Hypothetic):int = 
   let 
@@ -346,7 +341,7 @@ func boardInit(player:Player):EvalBoard =
     player.cash,
   )
 
-proc killSquares(player:Player):seq[int] =
+proc ownKillSquares(player:Player):seq[int] =
   result = player.pieces.filterIt(
     canKillPieceOn(it) and
     player.pieces.count(it) == 1 and
@@ -359,7 +354,7 @@ proc killSquares(player:Player):seq[int] =
 proc hypotheticalInit*(player:Player):Hypothetic = (
   player.boardInit,
   player.pieces,
-  player.killSquares,
+  player.ownKillSquares,
   player.hand,
   player.cash,
 )
@@ -370,7 +365,7 @@ func evalBlues(hypothetical:Hypothetic):seq[BlueCard] =
     result[^1].eval = evalPos (
       hypothetical.board,
       hypothetical.pieces,
-      hypothetical.killSquares,
+      hypothetical.ownKillSquares,
       @[card],
       hypothetical.cash,
     )

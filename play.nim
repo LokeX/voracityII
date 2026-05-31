@@ -50,6 +50,7 @@ var
   killPiece:KillablePiece
   hypo:Hypothetic
   diceReroll:DiceReroll
+  diceMoves:DiceMoves
 
 template setConfigStateTo(config:ConfigState) =
   if configState != nil:
@@ -116,12 +117,11 @@ proc updateTurnReport*[T](item:T,playKind:PlayedKind = Drawn) =
       turnReport.cards.played[playKind].add item
     updateTurnReportBatches()
 
-proc moveStr(fromSquare,toSquare,die:int):string =
-  "    Die: " & $die &
-  ", from: "&board[fromSquare].name&" Nr. " & $board[fromSquare].nr &
-  ", to: "&board[toSquare].name&" Nr. " & $board[toSquare].nr
-
 proc dumpTurnReport =
+  proc moveStr(fromSquare,toSquare,die:int):string =
+    "    Die: " & $die &
+    ", from: "&board[fromSquare].name&" Nr. " & $board[fromSquare].nr &
+    ", to: "&board[toSquare].name&" Nr. " & $board[toSquare].nr
   echo ""
   echo $turnReport.player.color
   echo "Turn: ",turnReport.turnNr
@@ -279,7 +279,7 @@ proc decideKillAndMove*(confirmedKill:string) =
 
 proc aiShouldKillPiece:bool =
   if turn.playerNr == killPiece.playerNr:
-    hypo.friendlyFireBest selectedMove
+    hypo.ownKillBest selectedMove
   else: turnPlayer.shouldKillEnemyOn selectedMove
 
 proc movePiece =
@@ -337,8 +337,9 @@ proc nextGameState* =
   playSound "carhorn-1"
 
 proc aiStartTurn =
-  hypo = hypotheticalInit(turnPlayer)
+  diceMoves[^1].moves.setLen 0
   playCashPlansTo blueDeck
+  hypo = hypotheticalInit(turnPlayer)
   if hypo.legalPieces.len == 0:
     echo $turnPlayer.color&" has no legal pieces and has left the game in shame"
     phase = EndTurn
@@ -352,6 +353,13 @@ proc aiDrawPhase =
     if phase != PostMove:
       hypo = turnPlayer.hypotheticalInit
   phase = Reroll
+
+proc aiShouldReroll*(hypothetical:Hypothetic,dice:Dice):bool =
+  if dice[1] == dice[2]:
+    if diceMoves[^1].moves.len == 0: 
+      diceMoves = hypothetical.allDiceMoves()
+    not dice[^1].isBestDieIn diceMoves
+  else: false
 
 proc aiRerollPhase =
   if statGame:
@@ -374,7 +382,7 @@ proc aiRerollPhase =
 
 proc aiMovePhase =
   if hypo.legalPieces.len > 0:
-    selectedMove = hypo.bestMove diceRoll
+    selectedMove = hypo.bestMove(diceMoves,diceRoll)
     if selectedMove.pieceNr > -1: movePiece()
   else: echo $turnPlayer.color&" has no pieces to move"
   phase = PostMove
