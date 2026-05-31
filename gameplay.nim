@@ -9,6 +9,7 @@ import megasound
 import dialog
 import menu
 import eval
+import stat
 
 type
   MoveSelection* = tuple
@@ -242,6 +243,9 @@ proc selectBar*(dialogMoves:seq[Move]) =
     moveSelection.fromSquare = dialogBarMoves[0].fromSquare
     selectBarMoveDest entries[0]
 
+proc recieveKillResponse(answer:string) =
+  decideKillAndMove(answer)
+
 proc startKillDialog*(square:int) =
   let entries:seq[string] = @[
     "Remove piece on:\n",
@@ -251,7 +255,7 @@ proc startKillDialog*(square:int) =
     "No",
   ]
   showMenu = false
-  startDialog(entries,3..4,decideKillAndMove)
+  startDialog(entries,3..4,recieveKillResponse)
 
 func squareDistance(fromSquare,toSquare:int):int =
   if fromSquare < toSquare: toSquare-fromSquare

@@ -1,89 +1,92 @@
 Cashed cards:
-Grand designs: 1
-Trance: 1
-Grapevine: 1
-Drugdealer: 1
-Rock solid claims: 1
-Trans-action: 1
-Financier: 1
-Razia: 1
-Brotherhood: 1
-Underhanded: 1
-Cold meds: 1
-Stove away: 1
-Foreign aid: 1
+Legalese: 1
+Choireboys: 1
+VIP Lounge: 1
+Knock knock: 1
+Duty free: 1
+Specimens: 1
+Moonshine: 1
+Gangbangers: 1
+Ludomania: 1
+Chicks in cages: 1
+Spy: 1
 Hooked: 1
 Stiffs: 1
-Slumlord: 1
-Secret weapon: 1
-Occupational hazard: 1
-Redemption: 1
-Spy: 1
-Broken bones: 1
+Blood suckers: 1
+Hooters: 1
+Protection: 1
+Brotherhood: 1
 High society: 1
-Deadly cargo: 2
+Acquittal: 1
+Ramtheft: 1
+Burial at sea: 1
+Secret weapon: 1
+Trance: 1
+Transitions: 2
 Polterabend: 2
+Drugdealer: 2
+Bootlegging: 2
 Square visits:
 Gas Station Nr. 2: 0
-Airport Nr. 11: 0
 Bank Nr. 14: 0
-Shop Nr. 23: 0
-Bank Nr. 24: 0
-Gas Station Nr. 27: 0
-Condo Nr. 31: 0
+Gas Station Nr. 15: 0
+Realestate Nr. 22: 0
+Highway Nr. 29: 0
 Condo Nr. 32: 0
-Lawyers Nr. 33: 0
 Shop Nr. 34: 0
-Bar Nr. 35: 0
-Prison Nr. 36: 0
 Gas Station Nr. 37: 0
 Bank Nr. 38: 0
 Shop Nr. 42: 0
 Shop Nr. 44: 0
 Gas Station Nr. 47: 0
+Shop Nr. 50: 0
 Bank Nr. 52: 0
+Slum Nr. 56: 0
 Slum Nr. 58: 0
-Bar Nr. 1: 1
-Villa Nr. 8: 1
-Courthouse Nr. 10: 1
-Gas Station Nr. 15: 1
-Realestate Nr. 22: 1
-Undertaker Nr. 26: 1
+Bank Nr. 3: 1
+Shop Nr. 23: 1
+Bank Nr. 24: 1
+Gas Station Nr. 27: 1
 Bar Nr. 28: 1
-Debt Inc Nr. 39: 1
-Shop Nr. 50: 1
+Condo Nr. 31: 1
+Bar Nr. 35: 1
+Highway Nr. 41: 1
+Bar Nr. 46: 1
 Highway Nr. 53: 1
-Bar Nr. 54: 1
-Casino Nr. 12: 2
-Bar Nr. 18: 2
-Disco Nr. 19: 2
-Brothel Nr. 21: 2
-Highway Nr. 29: 2
-Highway Nr. 41: 2
-Bar Nr. 46: 2
-Brewery Nr. 48: 2
-Bar Nr. 51: 2
+Import inc Nr. 55: 1
+Bar Nr. 1: 2
+Barracks Nr. 6: 2
+Airport Nr. 11: 2
+Jeweler Nr. 13: 2
+Highway Nr. 17: 2
+Lawyers Nr. 33: 2
+Prison Nr. 36: 2
+Bar Nr. 54: 2
 Slum Nr. 59: 2
-Bank Nr. 3: 3
-Embassey Nr. 9: 3
-Jeweler Nr. 13: 3
-Bar Nr. 16: 3
-Highway Nr. 17: 3
+Courthouse Nr. 10: 3
+Bar Nr. 18: 3
 Bar Nr. 20: 3
 Entreprenour Nr. 43: 3
-Slum Nr. 56: 3
-Alley Nr. 57: 3
-McLeans Nr. 30: 4
-Import inc Nr. 55: 4
-Highway Nr. 5: 5
-Church Nr. 7: 5
+Brewery Nr. 48: 3
+Town Hall Nr. 4: 4
+Church Nr. 7: 4
+Villa Nr. 8: 4
+Embassey Nr. 9: 4
+Casino Nr. 12: 4
+Bar Nr. 40: 4
+Police Nr. 60: 4
+Bar Nr. 16: 5
+Disco Nr. 19: 5
+Debt Inc Nr. 39: 5
 Pharmacy Nr. 45: 5
-Police Nr. 60: 5
-Town Hall Nr. 4: 6
-Barracks Nr. 6: 6
+Harbour Nr. 49: 5
+Bar Nr. 51: 5
+Alley Nr. 57: 5
+Highway Nr. 5: 6
 Hospital Nr. 25: 6
-Bar Nr. 40: 6
-Harbour Nr. 49: 6Time: 1s
+Undertaker Nr. 26: 6
+Brothel Nr. 21: 7
+McLeans Nr. 30: 7Time: 1s
 Games: 1
-Turns: 20
-avgTurns: 20.00
+Turns: 24
+avgTurns: 24.00

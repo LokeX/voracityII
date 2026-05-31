@@ -1,24 +1,15 @@
 from math import sum
+import stat
 import game
 import sequtils
 import eval
 import random
 import times
-import strutils
 
 type
   Phase* = enum Await,Draw,Reroll,AiMove,PostMove,EndTurn
   DiceReroll = tuple[isPausing:bool,pauseStartTime:float]
   ConfigState* = enum StartGame,SetupGame,GameWon
-  TurnReport* = object
-    turnNr*:int
-    player*:tuple[color:PlayerColor,kind:PlayerKind]
-    diceRolls*:seq[Dice]
-    moves*:seq[Move]
-    cards*:tuple[played:array[PlayedKind,seq[BlueCard]],hand:seq[BlueCard]]
-    kills*:seq[PlayerColor]
-    pieces:array[5,int]
-    cash*:int
 
 var
   # Interface controls
@@ -26,15 +17,11 @@ var
   updatePieces*:proc()
   menuControl*:proc(show:bool)
   updateKillMatrix*:proc()
-  reportBatchesUpdate*:proc()
   updateUndrawnBlues*:proc()
   rollTheDice*:proc()
   runSelectBar*:proc(dialogMoves:seq[Move])
   killDialog*:proc(square:int)
 
-  # Interface flags
-  verbose* = false
-  recordStats* = true
   updateKeybar*:bool
   gameWon*:bool
   statGame*:bool
@@ -44,8 +31,6 @@ var
   configState*:proc(config:ConfigState)
   soundToPlay*:seq[string]
   phase*:Phase
-  turnReports*:seq[TurnReport]
-  turnReport*:TurnReport
 
   # Internals
   killPiece:KillablePiece
@@ -73,10 +58,6 @@ template showMenu(show:bool) =
   if menuControl != nil:
     menuControl show
 
-template updateTurnReportBatches =
-  if reportBatchesUpdate != nil:
-    reportBatchesUpdate()
-
 template moveAnimation(move:Move) =
   if runMoveAnimation != nil:
     move.runMoveAnimation()
@@ -96,61 +77,6 @@ template undrawnBluesUpdate =
 template updatePiecesPainter =
   if updatePieces != nil:
     updatePieces()
-
-proc initTurnReport =
-  if recordStats or not statGame:
-    turnReport = TurnReport()
-    turnReport.turnNr = turnPlayer.turnNr
-    turnReport.player.color = turnPlayer.color
-    turnReport.player.kind = turnPlayer.kind
-    updateTurnReportBatches()
-
-proc updateTurnReport*[T](item:T,playKind:PlayedKind = Drawn) =
-  if recordStats or not statGame:
-    when typeOf(T) is Move:
-      turnReport.moves.add item
-    when typeOf(T) is Dice:
-      turnReport.diceRolls.add item
-    when typeof(T) is PlayerColor:
-      turnReport.kills.add item
-      killMatrixUpdate()
-    when typeof(T) is BlueCard | seq[BlueCard]:
-      turnReport.cards.played[playKind].add item
-    updateTurnReportBatches()
-
-proc dumpTurnReport*(turnReport:TurnReport) =
-  proc moveStr(fromSquare,toSquare,die:int):string =
-    "    Die: " & $die &
-    ", from: "&board[fromSquare].name&" Nr. " & $board[fromSquare].nr &
-    ", to: "&board[toSquare].name&" Nr. " & $board[toSquare].nr
-  echo ""
-  echo $turnReport.player.color
-  echo "Turn: ",turnReport.turnNr
-  echo "  DiceRolls:"
-  echo turnReport.diceRolls.mapIt("    " & $it).join "\n"
-  echo "  Moves:"
-  echo turnReport.moves.mapIt(moveStr(it.fromSquare,it.toSquare,it.die)).join "\n"
-  echo "  Cards:"
-  let playedCards = turnReport.cards.played
-  for playKind in PlayedKind:
-    echo "    " & $playKind,": ",playedCards[playKind].mapIt(it.title).join ","
-  echo "    Hand: ",turnReport.cards.hand.mapIt(it.title).join ","
-  echo "  Pieces:"
-  for square in turnReport.pieces:
-    echo "    "&board[square].name&" Nr. " & $board[square].nr
-  echo "  Cash: ",turnReport.cash
-  if turnReport.cash >= cashToWin:
-    echo ""
-    echo "Gameover"
-    echo ""
-
-proc recordTurnReport =
-  if recordStats or not statGame:
-    turnReport.cards.hand = turnPlayer.hand
-    turnReport.cash = turnPlayer.cash
-    turnReport.pieces = turnPlayer.pieces
-    turnReports.add turnReport
-    if verbose: dumpTurnReport(turnReport)
 
 proc playCashPlansTo*(deck:var Deck) =
   let
@@ -318,6 +244,17 @@ proc startGame* =
   setConfigStateTo StartGame
   gameWon = false
 
+proc nextPlayerTurn =
+  turn.diceMoved = false
+  if turn.playerNr == players.high:
+    inc turn.nr
+    turn.playerNr = players.low
+  else: inc turn.playerNr
+  turnPlayer.turnNr = turn.nr
+  turnPlayer.update = true
+  turn.undrawnBlues = turnPlayer.nrOfPiecesOnBars
+  blueDeck.lastDrawn = ""
+ 
 proc nextTurn =
   playSound "page-flip-2"
   updateTurnReport(turnPlayer.discardCards blueDeck, Discarded)

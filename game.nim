@@ -343,17 +343,6 @@ proc newPlayers*:seq[Player] =
     )
   playerSlots.filterIt it.kind != None
 
-proc nextPlayerTurn* =
-  turn.diceMoved = false
-  if turn.playerNr == players.high:
-    inc turn.nr
-    turn.playerNr = players.low
-  else: inc turn.playerNr
-  turnPlayer.turnNr = turn.nr
-  turnPlayer.update = true
-  turn.undrawnBlues = turnPlayer.nrOfPiecesOnBars
-  blueDeck.lastDrawn = ""
- 
 proc playerKindsFromFile:seq[PlayerKind] =
   try:
     playerKindFile.readFile.splitLines

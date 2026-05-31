@@ -5,7 +5,7 @@ import strutils
 import game
 import menu
 import misc
-import play
+# import play
 import stat
 import gameplay
 

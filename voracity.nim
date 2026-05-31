@@ -112,6 +112,7 @@ proc draw(b:var Boxy) =
   b.drawPlayerBatches
   b.drawStats
   if showPanel: b.drawKeybar
+  b.showCards
   if showMenu: b.drawDynamicImage mainMenu
   if batchInputNr != -1: b.drawBatch inputBatch
   if showVolume > 0: b.drawImage(volumeImg,vec2(750,15))
@@ -132,7 +133,6 @@ proc draw(b:var Boxy) =
     b.drawImage(barmanImg,Rect(x:1555,y:530,w:220,h:275))
   else:
     b.drawCardsFooter
-  b.showCards
 
 proc mouseClicked(m:KeyEvent) =
   m.handlePlayerBatch()
