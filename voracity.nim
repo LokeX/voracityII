@@ -76,12 +76,10 @@ proc menuSelection =
       nextGameState()
 
 proc humanPlayLeftClick =
-  # if turn.nr > 0 and mouseOnDice() and mayReroll():
-  #   startDiceRoll()
   if turn.undrawnBlues > 0 and mouseOn drawPileArea:
-    drawCard()
+    gamePlay.drawCard()
   elif not isRollingDice():
-    if turn.nr > 0 and mouseOnDice() and isDouble():
+    if turn.nr > 0 and mouseOnDice() and diceRoll.isDouble():
       startDiceRoll()  
     elif mouseSquare > -1:
       handleMoveSelection()
@@ -97,6 +95,7 @@ proc humanPlayRightClick =
     mainMenu.zoom = zoomImage 15
   elif players.anyIt it.kind != None: 
     nextGameState()
+    playCashPlans()
 
 proc aiPlayRightClick =
   if phase == EndTurn:
@@ -239,6 +238,11 @@ var
   )
 
 template initPlay =
+  play.blueDeck = newDeck "decks\\blues.txt"
+  play.playerKinds = playerKindsFromFile()
+  play.players = newGameSetupPlayers(playerKinds)
+
+  # gui hooks up with play
   configState = setConfigState
   killDialog = startKillDialog
   runSelectBar = selectBar

@@ -10,8 +10,26 @@ type
   Phase* = enum Await,Draw,Reroll,AiMove,PostMove,EndTurn
   DiceReroll = tuple[isPausing:bool,pauseStartTime:float]
   ConfigState* = enum StartGame,SetupGame,GameWon
+  Play* = object
+    playerKinds*:array[6,PlayerKind]
+    blueDeck*:Deck
+    diceRoll*:Dice = [DieFace3,DieFace4]
+    turn*:Turn
+    players*:seq[Player]
+    diceReroll:DiceReroll
+    selectedMove:Move
+    killPiece:KillablePiece
+    eval:Eval
+    report*:Report
 
 var
+  play*:Play
+  killPiece:KillablePiece
+  hypo:Hypothetic
+  diceReroll:DiceReroll
+  diceMoves:DiceMoves
+  selectedMove*:Move
+
   # Interface controls
   runMoveAnimation*:proc(move:Move)
   updatePieces*:proc()
@@ -21,22 +39,17 @@ var
   rollTheDice*:proc()
   runSelectBar*:proc(dialogMoves:seq[Move])
   killDialog*:proc(square:int)
+  configState*:proc(config:ConfigState)
 
+  # Interface flags
   updateKeybar*:bool
   gameWon*:bool
   statGame*:bool
   autoEndTurn* = true
 
   # Interface state
-  configState*:proc(config:ConfigState)
   soundToPlay*:seq[string]
   phase*:Phase
-
-  # Internals
-  killPiece:KillablePiece
-  hypo:Hypothetic
-  diceReroll:DiceReroll
-  diceMoves:DiceMoves
 
 template setConfigStateTo(config:ConfigState) =
   if configState != nil:
@@ -78,12 +91,12 @@ template updatePiecesPainter =
   if updatePieces != nil:
     updatePieces()
 
-proc playCashPlansTo*(deck:var Deck) =
+proc playCashPlans* =
   let
     initialCash = turnPlayer.cash
-    cashedPlans = turnPlayer.cashInPlansTo deck
+    cashedPlans = turnPlayer.cashInPlansTo blueDeck
   if cashedPlans.len > 0:
-    updateTurnReport(cashedPlans,Cashed)
+    report.turn.update(cashedPlans,Cashed)
     turnPlayer.update = true
     playSound "coins-to-table-2"
     if initialCash < cashToWin and turnPlayer.cash >= cashToWin:
@@ -107,7 +120,7 @@ proc playNews =
   if news.moveSquares[1] == 0: playSound "electricity"
   else: playSound "driveBy"
   updatePiecesPainter()
-  playCashPlansTo blueDeck
+  playCashPlans()
 
 proc playEvent()
 proc playDejaVue =
@@ -116,7 +129,7 @@ proc playDejaVue =
   delete(blueDeck.discardPile,blueDeck.discardPile.high - 1)
   let blue = turnPlayer.hand[^1]
   blueDeck.lastDrawn = blue.title
-  updateTurnReport(blue,Drawn)
+  report.turn.update(blue,Drawn)
   var action = Played
   if turnPlayer.hand.len > 0:
     case blue.cardKind:
@@ -124,7 +137,7 @@ proc playDejaVue =
       of News: playNews()
       else: action = Drawn
   if action == Played:
-    updateTurnReport(blue,Played)
+    report.turn.update(blue,Played)
 
 proc playMassacre =
   if (let playerBars = turnPlayer.piecesOnBars.deduplicate; playerBars.len > 0):
@@ -165,31 +178,32 @@ proc playEvent =
       if blueDeck.discardPile.len > 1:
         playDejaVue()
     else: event.barMove
-  playCashPlansTo blueDeck
+  playCashPlans()
 
-proc drawCardFrom*(deck:var Deck) =
-  turnPlayer.hand.drawFrom deck
+proc drawCard* =
+  turnPlayer.hand.drawFrom blueDeck
   var action = Played
   let blue = turnPlayer.hand[^1]
-  updateTurnReport(blue,Drawn)
+  report.turn.update(blue,Drawn)
   case blue.cardKind:
     of Event: playEvent()
     of News: playNews()
     else: action = Drawn
   if action == Played:
-    updateTurnReport(blue,Played)
+    report.turn.update(blue,Played)
   dec turn.undrawnBlues
   undrawnBluesUpdate()
   turnPlayer.update = true
   playSound "page-flip-2"
+  playCashPlans()
 
 proc move =
   selectedMove.moveAnimation()
-  updateTurnReport selectedMove
+  report.turn.update selectedMove
   turnPlayer.pieces[selectedMove.pieceNr] = selectedMove.toSquare
   if selectedMove.fromSquare == 0:
     turnPlayer.cash -= piecePrice
-  playCashPlansTo blueDeck
+  playCashPlans()
   if not statGame:
     turnPlayer.hand = turnPlayer.sortBlues
   turnPlayer.update = true
@@ -204,7 +218,7 @@ proc move =
 proc decideKillAndMove*(confirmedKill:string) =
   if confirmedKill == "Yes":
     players[killPiece.playerNr].pieces[killPiece.pieceNr] = 0
-    updateTurnReport players[killPiece.playerNr].color
+    report.turn.update players[killPiece.playerNr].color
     playSound "Gunshot"
     playSound "Deanscream-2"
   move()
@@ -227,20 +241,20 @@ proc movePiece =
 proc setupGame* =
   turn = (0,0,false,0)
   blueDeck.resetDeck
-  players = newDefaultPlayers()
+  players = newGameSetupPlayers(playerKinds)
   setConfigStateTo SetupGame
 
 proc endGame* =
-  recordTurnReport()
+  report.recordTurn()
   setupGame()
   soundToPlay.setLen 0
 
 proc startGame* =
   inc turn.nr
-  players = newPlayers()
+  players = players.newGamePlayers
   players[0].turnNr = 1
-  turnReports.setLen 0
-  initTurnReport()
+  report.turns.setLen 0
+  report.turn.init()
   setConfigStateTo StartGame
   gameWon = false
 
@@ -257,14 +271,14 @@ proc nextPlayerTurn =
  
 proc nextTurn =
   playSound "page-flip-2"
-  updateTurnReport(turnPlayer.discardCards blueDeck, Discarded)
+  report.turn.update(turnPlayer.discardCards blueDeck, Discarded)
   turnPlayer.update = true
-  recordTurnReport()
+  report.recordTurn()
   nextPlayerTurn()
-  initTurnReport()
+  report.turn.init()
   if anyHuman players:
     showMenu false
-  playCashPlansTo blueDeck
+  # playCashPlans()
 
 proc nextGameState* =
   if turnPlayer.cash >= cashToWin:
@@ -275,7 +289,7 @@ proc nextGameState* =
       startGame()
     else:
       nextTurn()
-    if statGame: rollDice()
+    if statGame: diceRoll.rollDice()
     else: startDiceRoll()
   playSound "carhorn-1"
 
@@ -285,7 +299,7 @@ proc aiStartTurn =
     phase = EndTurn
   else:
     diceMoves[^1].moves.setLen 0
-    playCashPlansTo blueDeck
+    playCashPlans()
     if turn.undrawnBlues == 0: 
       hypo = hypotheticalInit(turnPlayer)
       phase = Reroll
@@ -293,8 +307,8 @@ proc aiStartTurn =
 
 proc aiDraw =
   while turn.undrawnBlues > 0:
-    drawCardFrom blueDeck
-    playCashPlansTo blueDeck
+    drawCard()
+    playCashPlans()
   if phase != PostMove:
     hypo = turnPlayer.hypotheticalInit
   phase = Reroll
@@ -302,8 +316,8 @@ proc aiDraw =
 proc aiReroll =
   if statGame:
     if not diceReroll.isPausing or hypo.aiShouldReroll(diceMoves,diceRoll):
-      rollDice()
-      updateTurnReport diceRoll
+      diceRoll.rollDice()
+      report.turn.update diceRoll
       diceReroll.isPausing = true # appropriating an existing flag - don't EVER do that ;-)
     else:
       diceReroll.isPausing = false
@@ -312,7 +326,7 @@ proc aiReroll =
     diceReroll.isPausing = false
     startDiceRoll()
   elif not diceReroll.isPausing:
-    updateTurnReport diceRoll
+    report.turn.update diceRoll
     if hypo.aiShouldReroll(diceMoves,diceRoll):
       diceReroll.isPausing = true
       diceReroll.pauseStartTime = cpuTime()

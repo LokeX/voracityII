@@ -53,7 +53,7 @@ const
   cardKindStr = CardKind.mapIt ($it).toLower
   playerKindFile* = "dat\\playerkinds.cfg"
   
-  defaultPlayerKinds* = @[Human,Computer,None,None,None,None]
+  defaultPlayerKinds* = [Human,Computer,None,None,None,None]
   cashToWin* = 1_000_000
   piecePrice* = 10_000
   startCash* = 50_000
@@ -78,12 +78,12 @@ const
 
 var 
   board*:Board
+
+  playerKinds*:array[6,PlayerKind]
   blueDeck*:Deck
   diceRoll*:Dice = [DieFace3,DieFace4]
   turn*:Turn
-  playerKinds*:array[6,PlayerKind]
   players*:seq[Player]
-  selectedMove*:Move
 
 proc newBoard*(path:string):Board =
   var count = 0
@@ -191,11 +191,11 @@ func moveToSquares*(fromSquare:int,dice:Dice):seq[int] =
       result.add moveToSquares(fromSquare,die.ord)
   result.deduplicate
 
-proc rollDice*() = 
+proc rollDice*(diceRoll:var Dice) = 
   for die in diceRoll.mitems: 
     die = DieFace(rand(1..6))
 
-proc isDouble*: bool = diceRoll[1] == diceRoll[2]
+func isDouble*(diceRoll:Dice): bool = diceRoll[1] == diceRoll[2]
 
 func diceMoved*(fromSquare,toSquare:int):bool =
   if fromSquare == 0:
@@ -204,7 +204,7 @@ func diceMoved*(fromSquare,toSquare:int):bool =
     not toSquare.isGasStation
   else: true
 
-proc movesFrom*(player:Player,square:int):seq[int] =
+func movesFrom*(turn:Turn,diceRoll:Dice,square:int):seq[int] =
   if turn.diceMoved: moveToSquares square
   else: moveToSquares(square,diceRoll)
 
@@ -223,7 +223,7 @@ func nrOfRemovedPieces*(player:Player):int =
   player.pieces.count 0
 
 iterator legalPiecesIter*(pieces:openArray[int],cash:int):(int,int) =
-  let nrAllowed = cash div game.piecePrice
+  let nrAllowed = cash div piecePrice
   var count = 0
   for pieceNr,square in pieces:
     if square == 0:
@@ -319,7 +319,7 @@ proc cashInPlansTo*(player:var Player,deck:var Deck):seq[BlueCard] =
   player.cash += cashable.mapIt(it.cash).sum
   cashable
 
-proc newDefaultPlayers*:seq[Player] =
+proc newGameSetupPlayers*(playerKinds:array[6,PlayerKind]):seq[Player] =
   for i,kind in playerKinds:
     result.add Player(
       kind:kind,
@@ -327,11 +327,11 @@ proc newDefaultPlayers*:seq[Player] =
       pieces:highways
     )
 
-proc newPlayers*:seq[Player] =
+proc newGamePlayers*(gameSetupPlayers:seq[Player]):seq[Player] =
   var 
     randomPosition = rand(5)
     playerSlots:array[6,Player]
-  for player in players:
+  for player in gameSetupPlayers:
     while playerSlots[randomPosition].cash != 0: 
       randomPosition = rand(5)
     playerSlots[randomPosition] = Player(
@@ -342,12 +342,12 @@ proc newPlayers*:seq[Player] =
       agro:rand 0..9
     )
   playerSlots.filterIt it.kind != None
-
-proc playerKindsFromFile:seq[PlayerKind] =
+ 
+proc playerKindsFromFile*:array[6,PlayerKind] =
   try:
-    playerKindFile.readFile.splitLines
-    .mapIt(PlayerKind(playerKindStrs.find(it)))
-  except: defaultPlayerKinds
+    for idx,line in playerKindFile.readFile.splitLines.toSeq:
+      result[idx] = PlayerKind(playerKindStrs.find(line))
+  except: result = defaultPlayerKinds
 
 proc playerKindsToFile*(playerKinds:openArray[PlayerKind]) =
   playerKindFile.writeFile(playerKinds.mapIt($it).join "\n")
@@ -356,5 +356,5 @@ template initGame* =
   randomize()
   board = newBoard "dat\\board.txt"
   blueDeck = newDeck "decks\\blues.txt"
-  for i,kind in playerKindsFromFile(): playerKinds[i] = kind
-  players = newDefaultPlayers()
+  playerKinds = playerKindsFromFile()
+  players = newGameSetupPlayers(playerKinds)

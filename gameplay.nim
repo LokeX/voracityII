@@ -351,12 +351,12 @@ proc drawDice*(b:var Boxy) =
     for i,die in diceRoll:
       b.drawImage($die,vec2(diceRollDims[i].rect.x, diceRollDims[i].rect.y))
   else:
-    rollDice()
+    diceRoll.rollDice()
     b.rotateDie(1)
     b.rotateDie(2)
     inc dieRollFrame
     if turnPlayer.kind == Human and dieRollFrame == maxRollFrames:
-      updateTurnReport diceRoll
+      report.turn.update diceRoll
       # turnReport.diceRolls.add diceRoll #please: don't do as I do
 
 proc isRollingDice*:bool = dieRollFrame < maxRollFrames
@@ -378,15 +378,15 @@ proc dieUsed*:int =
   else: -1
 
 proc drawCard* =
-  drawCardFrom blueDeck
-  playCashPlansTo blueDeck
+  play.drawCard()
+  playCashPlans()
   turnPlayer.hand = turnPlayer.sortBlues
 
 proc selectPiece*(square:int) =
   if not turn.diceMoved or square == 0 or square.isHighway:
     if turnPlayer.hasLegalPieceOn square:
       hoverSquare = -1
-      moveSelection = (square,-1,turnPlayer.movesFrom(square))
+      moveSelection = (square,-1,movesFrom(turn,diceRoll,square))
       moveToSquaresPainter.context = moveSelection.toSquares
       moveToSquaresPainter.update = true
       piecesImg.update = true

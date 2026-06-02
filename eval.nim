@@ -11,6 +11,7 @@ const
   posPercent = [1.0,0.3,0.3,0.3,0.3,0.3,0.3,0.15,0.14,0.12,0.10,0.08,0.05]
 
 type
+  Eval* = tuple[hypothetical:Hypothetic,diceMoves:DiceMoves]
   DiceMoves* = array[DieFace,tuple[moves:seq[Move],bestMove:Move,isWinningMove:bool]]
   EvalBoard = array[61,int]
   Hypothetic* = tuple
@@ -19,9 +20,6 @@ type
     ownKillSquares:seq[int]
     cards:seq[BlueCard]
     cash:int
-
-# var
-#   diceMoves:DiceMoves
 
 func legalPieces*(hypothetical:Hypothetic):seq[int] =
   for _,square in hypothetical.pieces.legalPiecesIter hypothetical.cash:
@@ -150,7 +148,7 @@ func blueVals(hypothetical:Hypothetic,squares:openArray[int]):array[12,int] =
         if square == card.squares.required[0] or square in card.squares.oneInMany:
           result[idx] += hypothetical.oneInMoreBonus(card,square,rewardValue)
 
-func requiredWith(pieces:openArray[int],cards:seq[BlueCard],square:int):int =
+func required(pieces:openArray[int],cards:seq[BlueCard],square:int):int =
   if cards.len == 0: 
     return
   elif (result = cards.mapIt(it.squares.required.count square).max; result > 0):
@@ -163,7 +161,7 @@ func requiredWith(pieces:openArray[int],cards:seq[BlueCard],square:int):int =
         return if pieces.anyIt it in squares: 0 else: 1
 
 template requiredPiecesOn(it,square:untyped):int =
-  it.pieces.requiredWith(when typeof(it) is Hypothetic:it.cards else:it.hand,square)
+  it.pieces.required(when typeof(it) is Hypothetic:it.cards else:it.hand,square)
 
 func posPercentages(hypothetical:Hypothetic,squares:openArray[int]):array[12,float] =
   var freePieces,freePiecesOnSquare:int

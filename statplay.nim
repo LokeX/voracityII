@@ -85,14 +85,11 @@ for i in 1..settings.nrOfGames:
   echo "game nr: ",i
   while not gameWon:
       aiTakeTurn()
-  endGame()
   if recordStats:
+    report.recordTurn
     gameStats.add newGameStats()
-    addVisits turnReports.reportedVisitsCount
+    addVisits report.turns.reportedVisitsCount
     addCards reportedCashedCards()
-  # if turnReports[^1].turnNr < 10:
-  #   for turnReport in turnReports:
-  #     dumpTurnReport(turnReport)
 
 if recordStats:
   let

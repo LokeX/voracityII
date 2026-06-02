@@ -16,6 +16,9 @@ type
     kills*:seq[PlayerColor]
     pieces:array[5,int]
     cash*:int
+  Report* = tuple
+    turns:seq[TurnReport]
+    turn:TurnReport
   CashedCards* = seq[tuple[title:string,count:int]]  
   Alias* = array[8,char]
   GameStats*[T,U] = object
@@ -45,8 +48,7 @@ const
   statsFile* = "dat\\stats.dat"
 
 var
-  turnReports*:seq[TurnReport]
-  turnReport*:TurnReport
+  report*:Report
   gameStats*:seq[GameStats[string,PlayerKind]]
   playerHandles*:array[6,string]
   verbose* = false
@@ -59,7 +61,7 @@ template updateTurnReportBatches =
   if reportBatchesUpdate != nil:
     reportBatchesUpdate()
 
-proc initTurnReport* =
+proc init*(turnReport:var TurnReport) =
   if recordStats:
     turnReport = TurnReport()
     turnReport.turnNr = turnPlayer.turnNr
@@ -67,7 +69,7 @@ proc initTurnReport* =
     turnReport.player.kind = turnPlayer.kind
     updateTurnReportBatches()
 
-proc updateTurnReport*[T](item:T,playKind:PlayedKind = Drawn) =
+proc update*[T](turnReport:var TurnReport,item:T,playKind:PlayedKind = Drawn) =
   if recordStats:
     when typeOf(T) is Move:
       turnReport.moves.add item
@@ -80,7 +82,7 @@ proc updateTurnReport*[T](item:T,playKind:PlayedKind = Drawn) =
       turnReport.cards.played[playKind].add item
     updateTurnReportBatches()
 
-proc dumpTurnReport*(turnReport:TurnReport) =
+proc dump*(turnReport:TurnReport) =
   proc moveStr(fromSquare,toSquare,die:int):string =
     "    Die: " & $die &
     ", from: "&board[fromSquare].name&" Nr. " & $board[fromSquare].nr &
@@ -106,13 +108,13 @@ proc dumpTurnReport*(turnReport:TurnReport) =
     echo "Gameover"
     echo ""
 
-proc recordTurnReport* =
+proc recordTurn*(report:var Report) =
   if recordStats:
-    turnReport.cards.hand = turnPlayer.hand
-    turnReport.cash = turnPlayer.cash
-    turnReport.pieces = turnPlayer.pieces
-    turnReports.add turnReport
-    if verbose: dumpTurnReport(turnReport)
+    report.turn.cards.hand = turnPlayer.hand
+    report.turn.cash = turnPlayer.cash
+    report.turn.pieces = turnPlayer.pieces
+    report.turns.add report.turn
+    if verbose: dump(report.turn)
 
 proc getLoneAlias:string =
   for i in 0..playerHandles.high:
@@ -180,7 +182,7 @@ proc getMatchingStats*:MatchingStats =
 
 proc newGameStats*:GameStats[string,PlayerKind] =
   GameStats[string,PlayerKind](
-    turnCount:turnReport.turnNr,
+    turnCount:report.turn.turnNr,
     playerKinds:playerKinds,
     aliases:playerHandles,
     winner:($turnPlayer.kind).toLower,
@@ -189,7 +191,7 @@ proc newGameStats*:GameStats[string,PlayerKind] =
 
 proc reportedCashedCards*:CashedCards =
   let titles = collect:
-    for report in turnReports:
+    for report in report.turns:
       for card in report.cards.played[Cashed]: card.title
   for title in titles.deduplicate:
     result.add (title,titles.count title)
@@ -213,7 +215,7 @@ func allSquareVisits(reportVisits,fileVisits:array[1..60,int]):array[1..60,int] 
 
 proc writeSquareVisitsTo*(path:string) =
   var squareVisits:seq[string]
-  for i,visits in allSquareVisits(turnReports.reportedVisitsCount,readVisitsFile path):
+  for i,visits in allSquareVisits(report.turns.reportedVisitsCount,readVisitsFile path):
     squareVisits.add board[i].name&" Nr."&($i)&": "&($visits)
   writeFile(path,squareVisits.join "\n")
 
