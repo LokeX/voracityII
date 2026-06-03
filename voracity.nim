@@ -28,7 +28,7 @@ proc configStartGame =
   showMenu = false
 
 proc configGameWon =
-  writeGamestats()
+  getGame.writeGamestats report
   updateStatsBatch()
   if turnPlayer.kind == Human or not players.anyHuman:
     playSound "applause-2"
@@ -237,12 +237,7 @@ var
     )
   )
 
-template initPlay =
-  play.blueDeck = newDeck "decks\\blues.txt"
-  play.playerKinds = playerKindsFromFile()
-  play.players = newGameSetupPlayers(playerKinds)
-
-  # gui hooks up with play
+template hookUpGui =  # gui hook ups
   configState = setConfigState
   killDialog = startKillDialog
   runSelectBar = selectBar
@@ -260,17 +255,20 @@ template initSettings =
   else: settingsToFile()
   setVolume vol
 
+template initVoracity =
+  addCall voracityCall
+  window.onCloseRequest = quitVoracity
+  window.icon = readImage "pics\\BarMan.png"
+
 initGame()
-initPlay()
 initMenu()
 initGamePlay()
 initCards()
 initStats()
 initReports()
 initSettings()
-addCall voracityCall
-window.onCloseRequest = quitVoracity
-window.icon = readImage "pics\\BarMan.png"
+initVoracity()
+hookUpGui()
 runWinWith:
   callCycles()
   callTimers()

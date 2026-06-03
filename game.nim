@@ -47,6 +47,12 @@ type
     playerNr:int
     diceMoved:bool
     undrawnBlues:int
+  Game* = object
+    playerKinds*:array[6,PlayerKind]
+    blueDeck*:Deck
+    diceRoll*:Dice = [DieFace3,DieFace4]
+    turn*:Turn
+    players*:seq[Player]
 
 const
   playerKindStrs = PlayerKind.mapIt $it
@@ -78,12 +84,22 @@ const
 
 var 
   board*:Board
+  game:Game
 
-  playerKinds*:array[6,PlayerKind]
-  blueDeck*:Deck
-  diceRoll*:Dice = [DieFace3,DieFace4]
-  turn*:Turn
-  players*:seq[Player]
+  # playerKinds*:array[6,PlayerKind]
+  # blueDeck*:Deck
+  # diceRoll*:Dice = [DieFace3,DieFace4]
+  # turn*:Turn
+  # players*:seq[Player]
+
+template playerKinds*:untyped = game.playerKinds
+template blueDeck*:untyped = game.blueDeck
+template diceRoll*:untyped = game.diceRoll
+template turn*:untyped = game.turn
+template players*:untyped = game.players
+template getGame*:untyped = game
+
+# proc getGame*:Game = game
 
 proc newBoard*(path:string):Board =
   var count = 0
@@ -208,7 +224,8 @@ func movesFrom*(turn:Turn,diceRoll:Dice,square:int):seq[int] =
   if turn.diceMoved: moveToSquares square
   else: moveToSquares(square,diceRoll)
 
-template turnPlayer*:untyped = players[turn.playerNr]
+template turnPlayer*:untyped = game.players[turn.playerNr]
+# template turnPlayer*:untyped = players[turn.playerNr]
 
 func anyHuman*(players:seq[Player]):bool =
   players.anyIt it.kind == Human
@@ -342,7 +359,7 @@ proc newGamePlayers*(gameSetupPlayers:seq[Player]):seq[Player] =
       agro:rand 0..9
     )
   playerSlots.filterIt it.kind != None
- 
+
 proc playerKindsFromFile*:array[6,PlayerKind] =
   try:
     for idx,line in playerKindFile.readFile.splitLines.toSeq:

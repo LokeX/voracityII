@@ -5,7 +5,7 @@ import strutils
 import game
 import menu
 import misc
-# import play
+import play
 import stat
 import gameplay
 
@@ -176,11 +176,11 @@ proc drawPlayerBatches*(b:var Boxy) =
     b.drawBatch playerBatches[playerNr]
 
 proc victims(killer:PlayerColor):seq[PlayerColor] =
-  for report in report.turns:
+  for report in turnReports:
     if report.player.color == killer:
       result.add report.kills
   if killer == turnPlayer.color:
-    result.add report.turn.kills
+    result.add turnReport.kills
 
 proc killMatrix:KillMatrix =
   for killer in PlayerColor:
@@ -294,9 +294,9 @@ proc finalReportText(hand,drawn:seq[BlueCard]):seq[string] = @[
 
 proc latestTurnReport(player:Player):TurnReport =
   if player.color == turnPlayer.color: 
-    return report.turn 
+    return turnReport
   else:
-    for report in report.turns.reversed:
+    for report in turnReports.reversed:
       if player.color == report.player.color:
         return report
 
@@ -318,7 +318,7 @@ proc updateReportBatches* =
   if turnPlayer.cash >= cashToWin:
     for playerColor,turnReportText in finalReports():
       writeReportBatch playerColor,turnReportText
-  else: writeReportBatch turnPlayer.color,report.turn.reportText
+  else: writeReportBatch turnPlayer.color,turnReport.reportText
 
 proc resetReports* =
   for batch in reportBatches.mitems:
@@ -330,7 +330,7 @@ template gotReport*(player:PlayerColor):untyped =
   reportBatches[player].spansLength > 0
 
 proc reports*(playerColor:PlayerColor):seq[TurnReport] =
-  report.turns.filterIt(it.player.color == playerColor)
+  turnReports.filterIt(it.player.color == playerColor)
 
 proc drawReport*(b:var Boxy,playerColor:PlayerColor) =
   if selectedBatch == -1 or playerColor != PlayerColor(selectedBatch):
@@ -432,7 +432,7 @@ proc handlePlayerBatch*(m:KeyEvent) =
 
 proc reportAnimationMoves*:seq[AnimationMove] =
   if selectedBatchColor == turnPlayer.color:
-    result.add report.turn.moves.mapIt (it.fromSquare,it.toSquare)
+    result.add turnReport.moves.mapIt (it.fromSquare,it.toSquare)
   elif selectedBatchColor.reports.len > 0: 
     result.add selectedBatchColor
     .reports[^1].moves

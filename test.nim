@@ -1,41 +1,32 @@
 
-var
-  c:array[8,char]
-  # c = ['a','b','c','d']
-  s:string
+import test2
 
-echo sizeof c[0]
-echo sizeof s[0]
+proc t(test:var Test) = 
+  echo test.a
+  a += 1
+  test.a += 1
+  echo test.a
 
-s = "test"
-copyMem(c[0].addr,s[0].addr,sizeof s)
+var 
+  tes,te:Test
 
-# echo c
+tes.a = 3
+tes.t
+te.a = 1
+echo test2.test.a
 
-func aliasToChars(alias:string):array[8,char] =
-  for i,ch in alias:
-    if i < result.len: 
-      result[i] = ch
-      if i == alias.high and i < result.high:
-        result[i+1] = '\n'
-    else: return
+proc g(t:var Test = tes) =
+  var a = t.a.addr
+  a[] += 1
+  echo t
 
-echo "test".aliasToChars
+g(te)
 
-func strToChars(str:string,res:var openArray[char]) =
-  if str.len < res.len:
-    copyMem(res[0].addr,str[0].addr,str.len)
-    res[str.len] = '\n'
-  else: copyMem(res[0].addr,str[0].addr,res.len)
+var 
+  arr = [1,2,3]
+  # p = arr.addr
+  p2 = cast[ptr int](cast[int](arr.addr)+sizeof(arr[0])*2)
 
-func strToChars(str:string,T:typedesc):T =
-  if str.len < result.len:
-    copyMem(result[0].addr,str[0].addr,str.len)
-    result[str.len] = '\n'
-  else: copyMem(result[0].addr,str[0].addr,result.len)
+echo p2[]
 
-"testttttttttt".strToChars c
-echo c
 
-c = "test".strToChars typeof c
-echo c

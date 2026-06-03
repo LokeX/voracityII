@@ -1,14 +1,14 @@
-Redemption: 63
+Redemption: 64
 Stiffs: 37
-Ludomania: 39
-Broken bones: 52
+Ludomania: 40
+Broken bones: 53
 Safe bet: 30
 Grapevine: 57
 Sweethearts: 25
-Polterabend: 94
+Polterabend: 95
 Faulty towers: 42
 Loads of stuff: 74
-High society: 60
+High society: 61
 Knocked out: 57
 Chicks in cages: 69
 Drugdealer: 49
@@ -16,44 +16,44 @@ Trans-action: 28
 Secret weapon: 45
 Moonshine: 99
 Outstanding: 56
-Containment: 63
+Containment: 64
 Deadweight: 33
 Hooters: 43
 Brotherhood: 43
 Bail: 45
 Recycling: 39
 Specimens: 29
-Home invasion: 66
+Home invasion: 68
 Stove away: 37
-Grand designs: 52
-Demolition: 47
+Grand designs: 53
+Demolition: 48
 Human resources: 68
 Deadly cargo: 45
 Agent: 52
-Borderless: 38
+Borderless: 39
 Globalist: 42
 Bootlegging: 40
 Lawfare: 52
 Terrorism: 28
 Lord of War: 25
 Rentseeking: 37
-Protection: 78
+Protection: 79
 Duty free: 59
-Hooked: 62
+Hooked: 63
 Open house: 35
-Rock solid claims: 67
-Pimp: 55
+Rock solid claims: 68
+Pimp: 56
 Concuctions: 46
 Circle jerk: 37
 Legalese: 56
 Higher powers: 46
-Nose job: 44
+Nose job: 45
 Insurgency: 44
-Outsider: 47
-Prescriptions: 48
+Outsider: 48
+Prescriptions: 49
 Bouncing: 76
 Side effects: 31
-Diamonds are...: 47
+Diamonds are...: 48
 Blood diamants: 35
 Foreign aid: 53
 Color revolution: 40
@@ -62,37 +62,37 @@ Financier: 36
 Underhanded: 44
 Up yours: 39
 Choireboys: 45
-Knock knock: 66
+Knock knock: 67
 Sing a long song: 67
 White collars: 19
 Broman escorte: 22
 Cold meds: 61
 Et spiritus sancti: 63
-Occupational hazard: 53
+Occupational hazard: 54
 VIP Lounge: 40
 Small arms: 47
 Express demands: 41
-Ramtheft: 39
+Ramtheft: 40
 Golden chains: 41
 Bodyguard: 25
 Mayor: 43
 Homebrew: 51
-Meat grinder: 29
+Meat grinder: 30
 Judicial murder: 29
 Flay'em: 45
-Projects: 48
-Advisory board: 57
-Usery: 48
-Financing: 42
-Lucky bastard: 37
-Lipstick on a pig: 36
+Projects: 49
+Advisory board: 58
+Usery: 49
+Financing: 43
+Lucky bastard: 38
+Lipstick on a pig: 37
 Laundry: 36
 Debt to society: 40
-Transitions: 21
+Transitions: 22
 Trance: 60
 Bodycount: 27
 Informer: 24
-Rentals: 40
+Rentals: 41
 Healthplan: 38
 Slumlord: 42
 Heartless: 17

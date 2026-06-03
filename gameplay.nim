@@ -356,7 +356,7 @@ proc drawDice*(b:var Boxy) =
     b.rotateDie(2)
     inc dieRollFrame
     if turnPlayer.kind == Human and dieRollFrame == maxRollFrames:
-      report.turn.update diceRoll
+      turnReport.update diceRoll
       # turnReport.diceRolls.add diceRoll #please: don't do as I do
 
 proc isRollingDice*:bool = dieRollFrame < maxRollFrames

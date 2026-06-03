@@ -1,6 +1,7 @@
 import win
 import batch
 import game
+import play
 import gameplay
 import stat
 import reports
@@ -408,7 +409,7 @@ let paintCards = animateCards()
 proc cashedCards:seq[BlueCard] =
   result.add selectedBatchColor.reports.mapIt(it.cards.played[Cashed]).flatMap
   if selectedBatchColor == turnPlayer.color:
-    result.add report.turn.cards.played[Cashed]
+    result.add turnReport.cards.played[Cashed]
 
 template drawSelectedPlayersHand:untyped =
   altPressed and pinnedBatchNr == -1 and turnPlayer.cash >= cashToWin

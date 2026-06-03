@@ -1,4 +1,5 @@
 import game
+# import game except players
 import strutils
 import sequtils
 import misc
@@ -48,7 +49,6 @@ const
   statsFile* = "dat\\stats.dat"
 
 var
-  report*:Report
   gameStats*:seq[GameStats[string,PlayerKind]]
   playerHandles*:array[6,string]
   verbose* = false
@@ -180,19 +180,20 @@ proc getMatchingStats*:MatchingStats =
       result.humanPercent = ((result.humanWins.toFloat/matches.len.toFloat)*100)
         .formatFloat(ffDecimal,2)
 
-proc newGameStats*:GameStats[string,PlayerKind] =
+proc newGameStats*(game:Game,turnReport:TurnReport):GameStats[string,PlayerKind] =
   GameStats[string,PlayerKind](
-    turnCount:report.turn.turnNr,
-    playerKinds:playerKinds,
+    turnCount:turnReport.turnNr,
+    playerKinds:game.playerKinds,
     aliases:playerHandles,
-    winner:($turnPlayer.kind).toLower,
+    winner:($game.players[game.turn.playerNr].kind).toLower,
+    # winner:($turnPlayer.kind).toLower,
     cash:cashToWin
   )
 
-proc reportedCashedCards*:CashedCards =
+proc reportedCashedCards*(turnReports:seq[TurnReport]):CashedCards =
   let titles = collect:
-    for report in report.turns:
-      for card in report.cards.played[Cashed]: card.title
+    for turnReport in turnReports:
+      for card in turnReport.cards.played[Cashed]: card.title
   for title in titles.deduplicate:
     result.add (title,titles.count title)
 
@@ -213,9 +214,9 @@ func allSquareVisits(reportVisits,fileVisits:array[1..60,int]):array[1..60,int] 
   for idx in 1..60:
     result[idx] = reportVisits[idx] + fileVisits[idx]
 
-proc writeSquareVisitsTo*(path:string) =
+proc writeSquareVisitsTo*(turnReports:seq[TurnReport],path:string) =
   var squareVisits:seq[string]
-  for i,visits in allSquareVisits(report.turns.reportedVisitsCount,readVisitsFile path):
+  for i,visits in allSquareVisits(turnReports.reportedVisitsCount,readVisitsFile path):
     squareVisits.add board[i].name&" Nr."&($i)&": "&($visits)
   writeFile(path,squareVisits.join "\n")
 
@@ -226,16 +227,16 @@ proc readCashedCardsFrom(path:string):CashedCards =
       try: result.add (lineSplit[0],lineSplit[^1].strip.parseInt)
       except:discard
 
-proc allCashedCards(path:string):CashedCards =
+proc andAllCashedCardsFrom(turnReports:seq[TurnReport],path:string):CashedCards =
   result = readCashedCardsFrom path
-  for card in reportedCashedCards():
+  for card in turnReports.reportedCashedCards():
     if (let idx = result.mapIt(it.title).find card.title; idx != -1):
       result[idx].count = card.count+result[idx].count
     else: result.add card
 
-proc writeCashedCardsTo*(path:string) =
-  writeFile(
-    path,allCashedCards(path)
+proc writeCashedCardsTo*(turnReports:seq[TurnReport],path:string) =
+  writeFile(path,
+    turnReports.andAllCashedCardsFrom(path)
     .mapIt(it.title&": "&($it.count))
     .join "\n"
   )
@@ -294,12 +295,12 @@ proc readGameStatsFrom*(path:string) =
   if fileExists path:
     gameStats = fileToSeq(path,GameStats[Alias,int]).mapIt it.toGameStats
 
-proc writeGamestats* =
-  writeSquareVisitsTo visitsFile
-  writeCashedCardsTo cashedFile
-  if players.anyHuman and players.anyComputer:
+proc writeGamestats*(game:Game,report:Report) =
+  report.turns.writeSquareVisitsTo visitsFile
+  report.turns.writeCashedCardsTo cashedFile
+  if game.players.anyHuman and game.players.anyComputer:
     echo "nr of stat games: ",gameStats.len
-    gameStats.add newGameStats()
+    gameStats.add game.newGameStats report.turn
     echo "nr of stat games: ",gameStats.len
     writeGameStatsTo statsFile
 
