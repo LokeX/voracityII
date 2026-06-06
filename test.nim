@@ -1,32 +1,21 @@
 
-import test2
+type
+  Win = ref object of RootObj
+    test:int
+  Ext = ref object of Win
+    test2:int
 
-proc t(test:var Test) = 
-  echo test.a
-  a += 1
-  test.a += 1
-  echo test.a
+var
+  # win = Win(test:1)
+  ext = Ext(test2:2)
+  win = ext
 
-var 
-  tes,te:Test
+echo win[]
+echo ext[]
 
-tes.a = 3
-tes.t
-te.a = 1
-echo test2.test.a
+# win[] = ext[]
 
-proc g(t:var Test = tes) =
-  var a = t.a.addr
-  a[] += 1
-  echo t
+ext.test = 5
 
-g(te)
-
-var 
-  arr = [1,2,3]
-  # p = arr.addr
-  p2 = cast[ptr int](cast[int](arr.addr)+sizeof(arr[0])*2)
-
-echo p2[]
-
+echo win[]
 

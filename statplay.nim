@@ -87,7 +87,7 @@ for i in 1..settings.nrOfGames:
       aiTakeTurn()
   if recordStats:
     report.recordTurn
-    gameStats.add getGame.newGameStats turnReport
+    gameStats.add mainGame.newGameStats
     addVisits report.turns.reportedVisitsCount
     addCards turnReports.reportedCashedCards()
 

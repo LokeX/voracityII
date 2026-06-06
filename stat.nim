@@ -180,9 +180,9 @@ proc getMatchingStats*:MatchingStats =
       result.humanPercent = ((result.humanWins.toFloat/matches.len.toFloat)*100)
         .formatFloat(ffDecimal,2)
 
-proc newGameStats*(game:Game,turnReport:TurnReport):GameStats[string,PlayerKind] =
+proc newGameStats*(game:Game):GameStats[string,PlayerKind] =
   GameStats[string,PlayerKind](
-    turnCount:turnReport.turnNr,
+    turnCount:game.turn.nr,
     playerKinds:game.playerKinds,
     aliases:playerHandles,
     winner:($game.players[game.turn.playerNr].kind).toLower,
@@ -300,7 +300,7 @@ proc writeGamestats*(game:Game,report:Report) =
   report.turns.writeCashedCardsTo cashedFile
   if game.players.anyHuman and game.players.anyComputer:
     echo "nr of stat games: ",gameStats.len
-    gameStats.add game.newGameStats report.turn
+    gameStats.add game.newGameStats
     echo "nr of stat games: ",gameStats.len
     writeGameStatsTo statsFile
 

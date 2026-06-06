@@ -1,16 +1,76 @@
 from math import sum
-import stat
 import game
-import sequtils
+import stat
 import eval
+import sequtils
 import random
 import times
+import macros
+
+macro injectTemplates*(params:varargs[untyped]): untyped =
+  proc templ(param:string):NimNode =
+    let node = ident(param)
+    case param:
+      of "turnPlayer": 
+        quote do:
+          template `node`: untyped = localGame.players[localGame.turn.playerNr]
+      of "turn": 
+        quote do:
+          template `node`: untyped = localGame.turn
+      of "players": 
+        quote do: 
+          template `node`: untyped = localGame.players
+      of "diceRoll": 
+        quote do: 
+          template `node`: untyped = localGame.diceRoll
+      of "blueDeck": 
+        quote do: 
+          template `node`: untyped = localGame.blueDeck
+      of "playerKinds": 
+        quote do: 
+          template `node`: untyped = localGame.playerKinds
+      of "turnReports": 
+        quote do: 
+          template `node`: untyped = localPlay.report.turns
+      of "report": 
+        quote do: 
+          template `node`: untyped = localPlay.report
+      of "eval": 
+        quote do: 
+          template `node`: untyped = localPlay.eval
+      of "diceMoves": 
+        quote do: 
+          template `node`: untyped = localPlay.eval.diceMoves
+      of "hypo": 
+        quote do: 
+          template `node`: untyped = localPlay.eval.hypothetical
+      of "killPiece": 
+        quote do: 
+          template `node`: untyped = localPlay.killPiece
+      of "diceReroll": 
+        quote do: 
+          template `node`: untyped = localPlay.diceReroll
+      of "selectedMove": 
+        quote do: 
+          template `node`: untyped = localPlay.selectedMove
+      of "turnReport": 
+        quote do:
+          template `node`: untyped = localPlay.report.turn
+      else:nil
+  var body = newTree(nnkStmtList)
+  for param in params:
+    let node = param.strVal.templ
+    if node != nil: body.add(node)
+    else: echo "no such template: ",param.strVal
+  result = body
+  echo result.repr
 
 type
   Phase* = enum Await,Draw,Reroll,AiMove,PostMove,EndTurn
   DiceReroll = tuple[isPausing:bool,pauseStartTime:float]
   ConfigState* = enum StartGame,SetupGame,GameWon
   Play* = object
+    playId:string
     diceReroll:DiceReroll
     selectedMove:Move
     killPiece:KillablePiece
@@ -18,7 +78,7 @@ type
     report*:Report
 
 var
-  play*:Play
+  mainPlay*:Play
   # killPiece:KillablePiece
   # hypo:Hypothetic
   # diceReroll:DiceReroll
@@ -26,12 +86,13 @@ var
   # selectedMove*:Move
 
   # Interface controls
-  runMoveAnimation*:proc(move:Move)
   updatePieces*:proc()
-  menuControl*:proc(show:bool)
-  updateKillMatrix*:proc()
   updateUndrawnBlues*:proc()
+  updateKillMatrix*:proc()
+  menuControl*:proc(show:bool)
   rollTheDice*:proc()
+  
+  runMoveAnimation*:proc(move:Move)
   runSelectBar*:proc(dialogMoves:seq[Move])
   killDialog*:proc(square:int)
   configState*:proc(config:ConfigState)
@@ -46,15 +107,15 @@ var
   soundToPlay*:seq[string]
   phase*:Phase
 
-template diceReroll:untyped = play.diceReroll
-template selectedMove*:untyped = play.selectedMove
-template killPiece:untyped = play.killPiece
-template hypo:untyped = play.eval.hypothetical
-template diceMoves:untyped = play.eval.diceMoves
-template eval:untyped = play.eval
-template turnReport*:untyped = play.report.turn
-template turnReports*:untyped = play.report.turns
-template report*:untyped = play.report
+template diceReroll:untyped = mainPlay.diceReroll
+template killPiece:untyped = mainPlay.killPiece
+template hypo:untyped = mainPlay.eval.hypothetical
+template diceMoves:untyped = mainPlay.eval.diceMoves
+template eval:untyped = mainPlay.eval
+template selectedMove*:untyped = mainPlay.selectedMove
+template report*:untyped = mainPlay.report
+template turnReport*:untyped = mainPlay.report.turn
+template turnReports*:untyped = mainPlay.report.turns
 
 template setConfigStateTo(config:ConfigState) =
   if configState != nil:
@@ -97,6 +158,7 @@ template updatePiecesPainter =
     updatePieces()
 
 proc playCashPlans* =
+  # injectTemplates(turnPlayer,turn)
   let
     initialCash = turnPlayer.cash
     cashedPlans = turnPlayer.cashInPlansTo blueDeck
@@ -202,28 +264,9 @@ proc drawCard* =
   playSound "page-flip-2"
   playCashPlans()
 
-# proc move(game:var Game = getGame,play:var Play = play) =
-#   let
-#     turnPlayer = game.players[game.turn.playerNr].addr
-#     selectedMove = play.selectedMove.addr
-#   selectedMove[].moveAnimation()
-#   play.report.turn.update selectedMove[]
-#   turnPlayer.pieces[selectedMove.pieceNr] = selectedMove.toSquare
-#   if selectedMove.fromSquare == 0:
-#     turnPlayer.cash -= piecePrice
-#   playCashPlans()
-#   if not statGame:
-#     turnPlayer.hand = turnPlayer[].sortBlues
-#   turnPlayer.update = true
-#   updatePiecesPainter()
-#   updateKeybar = true
-#   playSound "driveBy"
-#   if selectedMove.toSquare.isBar:
-#     inc game.turn.undrawnBlues
-#     undrawnBluesUpdate()
-#     playSound "can-open-1"
-
-proc move =
+proc move(localGame:var Game = mainGame,localPlay:var Play = mainPlay) =
+# proc move =
+  injectTemplates(turnPlayer,selectedMove,turn,turnReport)
   selectedMove.moveAnimation()
   turnReport.update selectedMove
   turnPlayer.pieces[selectedMove.pieceNr] = selectedMove.toSquare
@@ -280,7 +323,7 @@ proc startGame* =
   players = players.newGamePlayers
   players[0].turnNr = 1
   report.turns.setLen 0
-  report.turn.init()
+  turnReport.init()
   setConfigStateTo StartGame
   gameWon = false
 
@@ -304,7 +347,6 @@ proc nextTurn =
   report.turn.init()
   if anyHuman players:
     showMenu false
-  # playCashPlans()
 
 proc nextGameState* =
   if turnPlayer.cash >= cashToWin:
@@ -361,7 +403,6 @@ proc aiReroll =
 proc aiMove =
   if hypo.legalPieces.len > 0:
     selectedMove = eval.bestMove diceRoll
-    # selectedMove = hypo.bestMove(diceMoves,diceRoll)
     if selectedMove.pieceNr > -1: 
       movePiece()
   else: echo $turnPlayer.color&" has no pieces to move"

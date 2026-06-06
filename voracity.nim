@@ -28,7 +28,7 @@ proc configStartGame =
   showMenu = false
 
 proc configGameWon =
-  getGame.writeGamestats report
+  mainGame.writeGamestats report
   updateStatsBatch()
   if turnPlayer.kind == Human or not players.anyHuman:
     playSound "applause-2"
@@ -236,6 +236,13 @@ var
       secs:0.4
     )
   )
+
+# proc updates(updates:array[Update,bool]) =
+#   for update in updates:
+#     case update
+#     Pieces:updatePiecesPainter
+#     KillMatrix:killMatrixUpdate
+#     ReportBatches:updateReportBatches
 
 template hookUpGui =  # gui hook ups
   configState = setConfigState

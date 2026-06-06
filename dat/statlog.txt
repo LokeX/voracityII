@@ -1,92 +1,164 @@
 Cashed cards:
-Et spiritus sancti: 1
-Faulty towers: 1
-High society: 1
-Borderless: 1
-Redemption: 1
-Hooked: 1
-Bouncing: 1
-Sing a long song: 1
-Secret weapon: 1
-Human resources: 1
-Burial at sea: 1
-Trans-action: 1
-Hooters: 1
-Stiffs: 1
+Recycling: 1
+Healthplan: 1
 Specimens: 1
-Transitions: 1
-Razia: 1
-Trance: 1
-Aiding and abetting: 1
+Occupational hazard: 1
+Flay'em: 1
+Human resources: 1
+Mayor: 1
+Ludomania: 1
+Lipstick on a pig: 1
+Terrorism: 1
 Lucky bastard: 1
-Bail: 1
-Debt to society: 1
-Loads of stuff: 1
-Safe bet: 1
-Rock solid claims: 1
-Knock knock: 1
-Polterabend: 2
+Stove away: 1
+Trans-action: 1
+Aiding and abetting: 1
+Choireboys: 1
+Meat grinder: 1
+Addictions: 1
+Lawfare: 1
+Rentals: 1
+Foreign aid: 1
+Blood diamants: 1
+Coup: 1
+Razia: 1
+Transitions: 1
+Cold meds: 1
+Deadweight: 1
+Heartless: 2
+Color revolution: 2
+Laundry: 2
+Corruption: 2
+Lord of War: 2
+Knocked out: 2
+Pimp: 2
+Advisory board: 2
+Projects: 2
+Trance: 2
+Golden chains: 2
+Circle jerk: 2
+VIP Lounge: 2
+Gangbangers: 2
+Ramtheft: 2
+Concuctions: 2
+Judicial murder: 2
+Bail: 2
+Nose job: 2
+Small arms: 2
+Up yours: 2
+Stiffs: 2
+Slumlord: 2
+Demolition: 2
+Outsider: 2
+Outstanding: 2
+Duty free: 2
+Infiltration: 2
+Debt to society: 2
+Loads of stuff: 3
+Deadly cargo: 3
+Agent: 3
+Brotherhood: 3
+Borderless: 3
+Insurgency: 3
+Et spiritus sancti: 3
+Usery: 3
+Drugdealer: 3
+Hooked: 3
+Open house: 3
+Globalist: 3
+Diamonds are...: 3
+Sing a long song: 3
+Hooters: 3
+Chicks in cages: 4
+Financier: 4
+Containment: 4
+Grapevine: 4
+Home invasion: 4
+Rentseeking: 4
+Redemption: 4
+Polterabend: 4
+Legalese: 4
+Knock knock: 4
+Grand designs: 4
+Safe bet: 4
+Blood suckers: 4
+Financing: 4
+Side effects: 4
+Underhanded: 4
+Bodyguard: 4
+Moonshine: 5
+Homebrew: 5
+Bootlegging: 5
+Faulty towers: 5
+Protection: 5
+Rock solid claims: 5
+Acquittal: 6
+Express demands: 6
+Secret weapon: 6
+High society: 6
+Broken bones: 6
+Bouncing: 8
 Square visits:
-Gas Station Nr. 2: 0
-Bank Nr. 3: 0
-Jeweler Nr. 13: 0
-Bank Nr. 14: 0
-Bar Nr. 18: 0
-Bank Nr. 24: 0
-Gas Station Nr. 27: 0
-Shop Nr. 34: 0
-Gas Station Nr. 37: 0
-Bank Nr. 38: 0
-Highway Nr. 41: 0
-Shop Nr. 42: 0
-Shop Nr. 44: 0
-Gas Station Nr. 47: 0
-Shop Nr. 50: 0
-Bank Nr. 52: 0
-Slum Nr. 56: 0
-Slum Nr. 59: 0
-Bar Nr. 1: 1
-Highway Nr. 5: 1
-Embassey Nr. 9: 1
-Courthouse Nr. 10: 1
-Casino Nr. 12: 1
-Realestate Nr. 22: 1
-Undertaker Nr. 26: 1
-Condo Nr. 32: 1
-Bar Nr. 46: 1
-Highway Nr. 53: 1
-Bar Nr. 54: 1
-Import inc Nr. 55: 1
-Slum Nr. 58: 1
-Town Hall Nr. 4: 2
-Barracks Nr. 6: 2
-Villa Nr. 8: 2
-Airport Nr. 11: 2
-Gas Station Nr. 15: 2
-Disco Nr. 19: 2
-Hospital Nr. 25: 2
-Condo Nr. 31: 2
-Lawyers Nr. 33: 2
-Prison Nr. 36: 2
-Debt Inc Nr. 39: 2
-Entreprenour Nr. 43: 2
-Brewery Nr. 48: 2
-Bar Nr. 51: 2
-Church Nr. 7: 3
-Highway Nr. 17: 3
-Bar Nr. 28: 3
-Highway Nr. 29: 3
-Bar Nr. 35: 3
-Pharmacy Nr. 45: 3
-Harbour Nr. 49: 3
-Alley Nr. 57: 3
-Bar Nr. 20: 4
+Gas Station Nr. 2: 1
+Gas Station Nr. 37: 1
+Shop Nr. 50: 2
+Bank Nr. 14: 3
+Bank Nr. 24: 3
+Shop Nr. 34: 3
+Gas Station Nr. 47: 3
+Slum Nr. 59: 3
+Bank Nr. 3: 4
 Shop Nr. 23: 4
-Bar Nr. 40: 4
-Police Nr. 60: 4
-McLeans Nr. 30: 5
-Bar Nr. 16: 6
-Brothel Nr. 21: 6Time: 1s
-Games: 1
-Turns: 17
-avgTurns: 17.00
+Bank Nr. 38: 4
+Shop Nr. 42: 4
+Bank Nr. 52: 4
+Slum Nr. 58: 4
+Gas Station Nr. 15: 5
+Gas Station Nr. 27: 5
+Slum Nr. 56: 5
+Bar Nr. 1: 6
+Bar Nr. 18: 7
+Bar Nr. 54: 7
+Shop Nr. 44: 8
+Highway Nr. 29: 11
+Casino Nr. 12: 12
+Highway Nr. 17: 12
+Condo Nr. 31: 13
+Bar Nr. 28: 14
+Highway Nr. 53: 14
+Alley Nr. 57: 14
+Jeweler Nr. 13: 16
+Realestate Nr. 22: 16
+Condo Nr. 32: 16
+Embassey Nr. 9: 17
+Bar Nr. 20: 17
+Undertaker Nr. 26: 17
+Prison Nr. 36: 17
+Import inc Nr. 55: 18
+Police Nr. 60: 18
+Entreprenour Nr. 43: 19
+Highway Nr. 5: 21
+Church Nr. 7: 21
+Hospital Nr. 25: 22
+Highway Nr. 41: 22
+Harbour Nr. 49: 22
+Disco Nr. 19: 24
+Bar Nr. 35: 25
+Bar Nr. 51: 26
+Villa Nr. 8: 27
+Courthouse Nr. 10: 27
+Airport Nr. 11: 27
+Debt Inc Nr. 39: 28
+Bar Nr. 46: 28
+Pharmacy Nr. 45: 29
+Brewery Nr. 48: 34
+Lawyers Nr. 33: 37
+Barracks Nr. 6: 40
+Town Hall Nr. 4: 41
+Bar Nr. 40: 44
+Brothel Nr. 21: 48
+Bar Nr. 16: 50
+McLeans Nr. 30: 51Time: 2s
+Games: 10
+Turns: 179
+avgTurns: 17.90
