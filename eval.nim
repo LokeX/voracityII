@@ -343,7 +343,7 @@ func boardInit(player:Player):EvalBoard =
     player.cash,
   )
 
-proc ownKillSquares(player:Player):seq[int] =
+proc ownKillSquares(players:seq[Player],player:Player):seq[int] =
   result = player.pieces.filterIt(
     canKillPieceOn(it) and
     player.pieces.count(it) == 1 and
@@ -353,10 +353,10 @@ proc ownKillSquares(player:Player):seq[int] =
     let otherPieces = toSeq(players.piecesInColorsOtherThan player.color)
     result.keepItIf it notin otherPieces
 
-proc hypotheticalInit*(player:Player):Hypothetic = (
+proc hypotheticalInit*(players:seq[Player],player:Player):Hypothetic = (
   player.boardInit,
   player.pieces,
-  player.ownKillSquares,
+  players.ownKillSquares player,
   player.hand,
   player.cash,
 )
@@ -418,8 +418,8 @@ proc sortBlues*(player:Player):seq[BlueCard] =
     uncovered.sort (a,b) => b.value-a.value
   result.add uncovered.mapIt it.card
 
-proc eventMovesEval*(player:Player,event:BlueCard):seq[Move] =
-  let hypothetical = player.hypotheticalInit
+proc eventMovesEval*(players:seq[Player],player:Player,event:BlueCard):seq[Move] =
+  let hypothetical = players.hypotheticalInit player
   for pieceNr in player.pieceNrsOnBars:
     for toSquare in event.moveSquares:
       result.add (
@@ -431,8 +431,8 @@ proc eventMovesEval*(player:Player,event:BlueCard):seq[Move] =
       )
   result.sort (a,b) => b.eval-a.eval
 
-proc wantsNoProtectionAfter(player:Player,move:Move):bool =
-  var hypo = player.hypotheticalInit
+proc wantsNoProtectionAfter(player:Player,players:seq[Player],move:Move):bool =
+  var hypo = players.hypotheticalInit player
   hypo.pieces[move.pieceNr] = move.toSquare
   hypo.cards = hypo.pieces.cashesIn(hypo.cards).notCashable
   let noKillEval = hypo.evalPos
@@ -440,8 +440,8 @@ proc wantsNoProtectionAfter(player:Player,move:Move):bool =
   let killEval = hypo.evalPos
   killEval > noKillEval
 
-proc shouldKillEnemyOn*(player:Player,move:Move):bool =
+proc shouldKillEnemyOn*(players:seq[Player],player:Player,move:Move):bool =
   if player.cash-(player.nrOfRemovedPieces*piecePrice) <= startCash div 2:
     return
   (move.toSquare.isBar and (players.len < 3 or player.nrOfPiecesOnBars > 0)) or 
-  rand(0..99) <= player.agro or player.wantsNoProtectionAfter move
+  rand(0..99) <= player.agro or player.wantsNoProtectionAfter(players,move)

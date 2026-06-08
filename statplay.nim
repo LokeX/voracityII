@@ -71,20 +71,31 @@ proc statsStr(time:float):string =
   result.add "avgTurns: "
   result.add formatFloat(float(stats.turns)/float(stats.games),ffDecimal,2)&"\n"
 
-initGame()
+# initPlay()
+# initGame()
+import random
+randomize()
 statGame = true
+recordStats = false
 verbose = commandLineParams().anyIt it.toLower == "-v"
-for i in 0..playerKinds.high:
+
+var
+  statPlay = Play(
+    gameId:"stat",
+    blueDeck:newDeck "decks\\blues.txt",
+    playerKinds:defaultPlayerKinds
+  )
+for i in 0..defaultPlayerKinds.high:
   if i < settings.nrOfPlayers:
-    playerKinds[i] = Computer
-  else: playerKinds[i] = None
+    statPlay.playerKinds[i] = Computer
+  else: statPlay.playerKinds[i] = None
 
 for i in 1..settings.nrOfGames:
-  setupGame()
-  startGame()
+  setupGame(statPlay)
+  startGame(statPlay)
   echo "game nr: ",i
   while not gameWon:
-      aiTakeTurn()
+      aiTakeTurn(statPlay)
   if recordStats:
     report.recordTurn
     gameStats.add mainGame.newGameStats

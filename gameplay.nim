@@ -244,7 +244,7 @@ proc selectBar*(dialogMoves:seq[Move]) =
     selectBarMoveDest entries[0]
 
 proc recieveKillResponse(answer:string) =
-  decideKillAndMove(answer)
+  mainPlay.decideKillAndMove(answer)
 
 proc startKillDialog*(square:int) =
   let entries:seq[string] = @[

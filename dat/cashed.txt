@@ -1,76 +1,76 @@
-Redemption: 64
+Redemption: 65
 Stiffs: 37
-Ludomania: 40
-Broken bones: 53
-Safe bet: 30
+Ludomania: 42
+Broken bones: 54
+Safe bet: 31
 Grapevine: 57
 Sweethearts: 25
 Polterabend: 95
 Faulty towers: 42
-Loads of stuff: 74
+Loads of stuff: 75
 High society: 61
 Knocked out: 57
 Chicks in cages: 69
 Drugdealer: 49
 Trans-action: 28
 Secret weapon: 45
-Moonshine: 99
-Outstanding: 56
-Containment: 64
+Moonshine: 101
+Outstanding: 57
+Containment: 65
 Deadweight: 33
 Hooters: 43
-Brotherhood: 43
-Bail: 45
-Recycling: 39
-Specimens: 29
-Home invasion: 68
-Stove away: 37
+Brotherhood: 44
+Bail: 47
+Recycling: 40
+Specimens: 30
+Home invasion: 69
+Stove away: 38
 Grand designs: 53
-Demolition: 48
+Demolition: 49
 Human resources: 68
 Deadly cargo: 45
 Agent: 52
 Borderless: 39
 Globalist: 42
 Bootlegging: 40
-Lawfare: 52
+Lawfare: 54
 Terrorism: 28
 Lord of War: 25
 Rentseeking: 37
-Protection: 79
+Protection: 80
 Duty free: 59
 Hooked: 63
 Open house: 35
-Rock solid claims: 68
+Rock solid claims: 70
 Pimp: 56
 Concuctions: 46
-Circle jerk: 37
+Circle jerk: 38
 Legalese: 56
-Higher powers: 46
+Higher powers: 47
 Nose job: 45
-Insurgency: 44
+Insurgency: 45
 Outsider: 48
 Prescriptions: 49
 Bouncing: 76
 Side effects: 31
 Diamonds are...: 48
-Blood diamants: 35
-Foreign aid: 53
+Blood diamants: 36
+Foreign aid: 54
 Color revolution: 40
-Acquittal: 43
+Acquittal: 44
 Financier: 36
 Underhanded: 44
 Up yours: 39
 Choireboys: 45
-Knock knock: 67
-Sing a long song: 67
+Knock knock: 69
+Sing a long song: 68
 White collars: 19
 Broman escorte: 22
-Cold meds: 61
+Cold meds: 62
 Et spiritus sancti: 63
-Occupational hazard: 54
+Occupational hazard: 55
 VIP Lounge: 40
-Small arms: 47
+Small arms: 48
 Express demands: 41
 Ramtheft: 40
 Golden chains: 41
@@ -80,11 +80,11 @@ Homebrew: 51
 Meat grinder: 30
 Judicial murder: 29
 Flay'em: 45
-Projects: 49
-Advisory board: 58
+Projects: 50
+Advisory board: 59
 Usery: 49
 Financing: 43
-Lucky bastard: 38
+Lucky bastard: 39
 Lipstick on a pig: 37
 Laundry: 36
 Debt to society: 40
@@ -94,15 +94,15 @@ Bodycount: 27
 Informer: 24
 Rentals: 41
 Healthplan: 38
-Slumlord: 42
+Slumlord: 43
 Heartless: 17
 Gangbangers: 35
 Aiding and abetting: 23
-Coup: 26
-Blood suckers: 37
-Infiltration: 31
+Coup: 27
+Blood suckers: 39
+Infiltration: 33
 Spy: 20
-Addictions: 19
+Addictions: 20
 Corruption: 14
 Burial at sea: 39
 Razia: 27

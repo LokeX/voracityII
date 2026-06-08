@@ -47,8 +47,9 @@ type
     playerNr:int
     diceMoved:bool
     undrawnBlues:int
-  Game* = object
-    gameId:string
+  # Game* = object
+  Game* = ref object of RootObj
+    gameId*:string
     playerKinds*:array[6,PlayerKind]
     blueDeck*:Deck
     diceRoll*:Dice = [DieFace3,DieFace4]
@@ -99,6 +100,7 @@ template blueDeck*:untyped = mainGame.blueDeck
 template diceRoll*:untyped = mainGame.diceRoll
 template turn*:untyped = mainGame.turn
 template players*:untyped = mainGame.players
+
 # template getMainGame*:untyped = mainGame
 
 proc newBoard*(path:string):Board =
@@ -132,9 +134,8 @@ func parseCardKindFrom(kind:string):CardKind =
   except: raise newException(CatchableError,"Error, parsing CardKind: "&kind)
 
 func newBlueCards(protoCards:seq[array[4,string]]):seq[BlueCard] =
-  var card:BlueCard
   for protoCard in protoCards:
-    card = BlueCard(title:protoCard[1],cardKind:parseCardKindFrom protoCard[0])
+    var card = BlueCard(title:protoCard[1],cardKind:parseCardKindFrom protoCard[0])
     if card.cardKind in [Event,News]:
       card.moveSquares = parseCardSquares(protoCard[2],['{','}'])
       card.bgPath = protoCard[3]

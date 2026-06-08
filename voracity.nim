@@ -267,6 +267,7 @@ template initVoracity =
   window.onCloseRequest = quitVoracity
   window.icon = readImage "pics\\BarMan.png"
 
+initPlay()
 initGame()
 initMenu()
 initGamePlay()
