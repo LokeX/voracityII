@@ -1,5 +1,6 @@
 import std/typedthreads
 import random
+import sequtils
 
 randomize()
 
@@ -62,4 +63,29 @@ writeTest2.test = 1
 echo writeTest.repr
 echo writeTest2.repr
 
+import tables
+
+var a = initTable[string, int]()
+a["x"] = 7
+a["y"] = 33
+a["x"] += 7
+a["y"] += 33
+
+echo a["y"]
+# doAssert a == {'x': 7, 'y': 33}.toTable
+
+var
+  d = @["r","t","u"]
+  c,b:CountTable[string]
+
+c = d.toCountTable
+b = d[1..d.high].toCountTable
+echo c.repr
+echo b.repr
+c.merge b
+echo c
+
+var tr = c.pairs.toseq
+
+echo tr.repr
 

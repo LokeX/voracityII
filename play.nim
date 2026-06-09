@@ -379,7 +379,7 @@ proc setupGame*(gamePlay:Play = mainPlay) =
 proc endGame*(gamePlay:Play = mainPlay) =
   injectTemplatesIfUsed:
   # injectGamePlayTemplates(report)
-    report.recordTurn()
+    report.recordTurn(turnPlayer)
     gamePlay.setupGame()
     soundToPlay.setLen 0
 
@@ -390,7 +390,7 @@ proc startGame*(gamePlay:Play = mainPlay) =
     players = players.newGamePlayers
     players[0].turnNr = 1
     turnReports.setLen 0
-    turnReport.init()
+    turnReport.init(turnPlayer)
     setConfigStateTo StartGame
     gameWon = false
 
@@ -406,16 +406,16 @@ proc nextPlayerGetsTurn(gamePlay:Play = mainPlay) =
     turnPlayer.update = true
     turn.undrawnBlues = turnPlayer.nrOfPiecesOnBars
     blueDeck.lastDrawn = ""
- 
+
 proc nextTurn(gamePlay:Play = mainPlay) =
   # injectGamePlayTemplates(players,turnReport,turnPlayer,blueDeck,report)
   injectTemplatesIfUsed:
     playSound "page-flip-2"
     turnReport.update(turnPlayer.discardCards blueDeck, Discarded)
     turnPlayer.update = true
-    report.recordTurn()
+    report.recordTurn(turnPlayer)
     gamePlay.nextPlayerGetsTurn()
-    turnReport.init()
+    turnReport.init(turnPlayer)
     if anyHuman players:
       showMenu false
 

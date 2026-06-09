@@ -1,5 +1,5 @@
+import tables
 import game
-# import game except players
 import strutils
 import sequtils
 import misc
@@ -20,7 +20,8 @@ type
   Report* = tuple
     turns:seq[TurnReport]
     turn:TurnReport
-  CashedCards* = seq[tuple[title:string,count:int]]  
+  CashedCards* = seq[tuple[title:string,count:int]]
+  Visits* = array[1..60,int]
   Alias* = array[8,char]
   GameStats*[T,U] = object
     turnCount*:int
@@ -61,12 +62,12 @@ template updateTurnReportBatches =
   if reportBatchesUpdate != nil:
     reportBatchesUpdate()
 
-proc init*(turnReport:var TurnReport) =
+proc init*(turnReport:var TurnReport,player:Player) =
   if recordStats:
     turnReport = TurnReport()
-    turnReport.turnNr = turnPlayer.turnNr
-    turnReport.player.color = turnPlayer.color
-    turnReport.player.kind = turnPlayer.kind
+    turnReport.turnNr = player.turnNr
+    turnReport.player.color = player.color
+    turnReport.player.kind = player.kind
     updateTurnReportBatches()
 
 proc update*[T](turnReport:var TurnReport,item:T,playKind:PlayedKind = Drawn) =
@@ -108,11 +109,11 @@ proc dump*(turnReport:TurnReport) =
     echo "Gameover"
     echo ""
 
-proc recordTurn*(report:var Report) =
+proc recordTurn*(report:var Report,player:Player) =
   if recordStats:
-    report.turn.cards.hand = turnPlayer.hand
-    report.turn.cash = turnPlayer.cash
-    report.turn.pieces = turnPlayer.pieces
+    report.turn.cards.hand = player.hand
+    report.turn.cash = player.cash
+    report.turn.pieces = player.pieces
     report.turns.add report.turn
     if verbose: dump(report.turn)
 
@@ -186,31 +187,31 @@ proc newGameStats*(game:Game):GameStats[string,PlayerKind] =
     playerKinds:game.playerKinds,
     aliases:playerHandles,
     winner:($game.players[game.turn.playerNr].kind).toLower,
-    # winner:($turnPlayer.kind).toLower,
     cash:cashToWin
   )
 
-proc reportedCashedCards*(turnReports:seq[TurnReport]):CashedCards =
-  let titles = collect:
-    for turnReport in turnReports:
-      for card in turnReport.cards.played[Cashed]: card.title
-  for title in titles.deduplicate:
-    result.add (title,titles.count title)
+proc reportedCashedCards*(turnReports:seq[TurnReport]):CountTable[string] =
+  let 
+    titles = collect:
+      for turnReport in turnReports:
+        for card in turnReport.cards.played[Cashed]: 
+          card.title
+  titles.toCountTable
 
-func reportedVisitsCount*(turnReports:seq[TurnReport]):array[1..60,int] =
+func reportedVisitsCount*(turnReports:seq[TurnReport]):Visits =
   for report in turnReports:
     for move in report.moves:
       if move.toSquare > 0:
         inc result[move.toSquare]
 
-proc readVisitsFile(path:string):array[1..60,int] =
+proc readVisitsFile(path:string):Visits =
   if fileExists path:
     var square = 1
     for line in lines path:
       try: result[square] = line.split[^1].parseInt except:discard
       inc square
 
-func allSquareVisits(reportVisits,fileVisits:array[1..60,int]):array[1..60,int] =
+func allSquareVisits(reportVisits,fileVisits:Visits):Visits =
   for idx in 1..60:
     result[idx] = reportVisits[idx] + fileVisits[idx]
 
@@ -228,11 +229,10 @@ proc readCashedCardsFrom(path:string):CashedCards =
       except:discard
 
 proc andAllCashedCardsFrom(turnReports:seq[TurnReport],path:string):CashedCards =
-  result = readCashedCardsFrom path
-  for card in turnReports.reportedCashedCards():
-    if (let idx = result.mapIt(it.title).find card.title; idx != -1):
-      result[idx].count = card.count+result[idx].count
-    else: result.add card
+  var reported = turnReports.reportedCashedCards()
+  for (title,count) in readCashedCardsFrom path:
+    reported.inc(title,count)
+  reported.pairs.toSeq
 
 proc writeCashedCardsTo*(turnReports:seq[TurnReport],path:string) =
   writeFile(path,

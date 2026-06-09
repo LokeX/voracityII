@@ -378,7 +378,6 @@ proc animateCards:auto =
     zoomImg,rotateImg:proc:float32
     popUpCardName,lastName:string
     center = popUpCardRect.rectCenter()
-
   return proc(b:var Boxy,deck:Deck,cards:seq[BlueCard],show:Reveal = Front) =
     popUpCardName.setLen 0
     if show == Front and deck.lastDrawn.len > 0 and mouseOn drawPileArea:
@@ -386,7 +385,7 @@ proc animateCards:auto =
       if (let cardNr = deck.lastDrawnCardNr; cardNr != -1):
         b.drawCardSquares deck.fullDeck[cardNr]
     if deck.discardPile.len > 0:
-      b.drawImage(deck.discardPile[^1].title, discardPileRect)
+      b.drawImage(deck.discardPile[^1].title,discardPileRect)
       if mouseOn discardPileArea:
         popUpCardName = deck.discardPile[^1].title
         b.drawCardSquares deck.discardPile[^1]
