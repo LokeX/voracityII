@@ -1,3 +1,4 @@
+# import std/typedthreads,locks
 import sugar
 import tables
 import play
@@ -10,6 +11,17 @@ import strutils
 import sequtils
 import misc
 import random
+
+type
+  Stats = object
+    visitsCounts:array[1..60,int]
+    cashedCards:CountTable[string]
+    nrOfTurns:int
+    hasData:bool
+  Process = object
+    id,nrOfGames:int
+    deck:Deck
+    kinds:array[6,PlayerKind]
 
 proc getParams:seq[int] =
   for prm in commandLineParams():
@@ -31,15 +43,6 @@ let
   time = cpuTime()
   settings = setSettings getParams()
 
-template turnPlayer:untyped = 
-  statPlay.players[statPlay.turn.playerNr]
-
-template report:untyped =
-  statPlay.report
-
-template turnReports:untyped =
-  statPlay.report.turns
-
 proc cashedCardsToStr(cashedCards:CountTable[string]):string =
   result.add "Cashed cards:\n"
   let cashedCards:CashedCards = cashedCards.pairs.toSeq
@@ -50,7 +53,7 @@ proc addVisits(visits:var Visits,addVisits:Visits) =
   for i in 1..60:
     visits[i] += addVisits[i]
 
-proc visitsCountToStr(visits:Visits):string =
+proc visitsCountsToStr(visits:Visits):string =
   result.add "Square visits:\n"
   result.add(
     toSeq(1..60)
@@ -79,41 +82,89 @@ proc newStatPlay(id:string,deck:Deck,kinds:array[6,PlayerKind]):Play = Play(
   playerKinds:kinds
 )
 
-randomize()
-statGame = true
-recordStats = true
-verbose = commandLineParams().anyIt it.toLower == "-v"
-board = newBoard "dat\\board.txt"
+proc add(stats:var Stats,nrOfTurns:int,cashedCards:CountTable[string],visits:Visits) =
+  stats.nrOfTurns += nrOfTurns
+  stats.visitsCounts.addVisits visits
+  stats.cashedCards.merge cashedCards
+  stats.hasData = true
 
-let
-  deck = newDeck "decks\\blues.txt"
-  kinds = newPlayerKinds settings.nrOfPlayers
+proc newProcess(id,nrOfGames:int,deck:Deck,kinds:array[6,PlayerKind]):Process = 
+  Process(
+    id:id,
+    nrOfGames:nrOfGames,
+    deck:deck,
+    kinds:kinds
+  )
 
-var 
-  statPlay = newStatPlay("stat",deck,kinds)
-  visitsCounts:array[1..60,int]
-  cashedCards:CountTable[string]
-  nrOfTurns = 0
+proc reduceOutputs(output:array[10,Stats]):Stats =
+  for stats in output:
+    if stats.hasData:
+      result.add(
+        stats.nrOfTurns,
+        stats.cashedCards,
+        stats.visitsCounts,
+      )
 
-for i in 1..settings.nrOfGames:
-  setupGame(statPlay)
-  startGame(statPlay)
-  echo "game nr: ",i
-  while not gameWon:
-      aiTakeTurn(statPlay)
-  if recordStats:
-    nrOfTurns += statPlay.turn.nr
-    report.recordTurn(turnPlayer)
-    visitsCounts.addVisits turnReports.reportedVisitsCount()
-    cashedCards.merge turnReports.reportedCashedCards()
-
-if recordStats:
+proc outputStats(results:Stats) =
   let
-    cards = cashedCardsToStr(cashedCards)
-    visits = visitsCountToStr(visitsCounts)
-    stats = statsToStr(settings.nrOfGames,nrOfTurns,time)
+    cards = cashedCardsToStr(results.cashedCards)
+    visits = visitsCountsToStr(results.visitsCounts)
+    stats = statsToStr(settings.nrOfGames,results.nrOfTurns,time)
   writeFile(fileName,cards&visits&stats)
   echo cards
   echo visits
   echo stats
   echo "Wrote to file: "&fileName
+
+template initRun = 
+  randomize()
+  statGame = true
+  recordStats = true
+  verbose = commandLineParams().anyIt it.toLower == "-v"
+  board = newBoard "dat\\board.txt"
+
+proc playStatGames:Stats =
+  var
+    # threads:array[10,Thread[Process]]
+    # lock:Lock
+    outputs:array[10,Stats]
+  # proc playGames(process:Process) {.thread,nimCall,gcsafe.} =
+  proc playGames(process:Process) =
+    template turnPlayer:untyped = statPlay.players[statPlay.turn.playerNr]
+    template report:untyped = statPlay.report
+    template turnReports:untyped = statPlay.report.turns
+    var 
+      statPlay = newStatPlay("stat",process.deck,process.kinds)
+      stats:Stats
+    for i in 1..process.nrOfGames:
+      setupGame(statPlay)
+      startGame(statPlay)
+      echo "game nr: ",i
+      while not gameWon:
+          aiTakeTurn(statPlay)
+      if recordStats:
+        report.recordTurn(turnPlayer)
+        stats.add(
+          statPlay.turn.nr,
+          turnReports.reportedCashedCards(),
+          turnReports.reportedVisitsCount(),
+        )
+        # lock.acquire
+        outputs[process.id] = stats
+        # lock.release
+  let
+    # nrOfGames = settings.nrOfGames div 10
+    deck = newDeck "decks\\blues.txt"
+    kinds = newPlayerKinds settings.nrOfPlayers
+  # for i in 0..threads.high:
+  #   createThread(threads[i],playGames,newProcess(i,nrOfGames,deck,kinds))
+  # initLock(lock)
+  playGames newProcess(0,settings.nrOfGames,deck,kinds)
+  # deinitLock(lock)
+  reduceOutputs outputs
+
+if settings.nrOfGames mod 10 == 0:
+  initRun()
+  let statResults = playStatGames()
+  if recordStats: outputStats statResults
+else: echo "nrOfGames must be in orders of magnitude"
